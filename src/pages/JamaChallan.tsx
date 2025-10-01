@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import Header from '../components/Header';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
@@ -9,6 +10,7 @@ import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 
 const JamaChallan: React.FC = () => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -28,6 +30,7 @@ const JamaChallan: React.FC = () => {
     main_note: '',
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     fetchClients();
@@ -143,7 +146,7 @@ const JamaChallan: React.FC = () => {
       return;
     }
 
-    alert(t('saveSuccess'));
+    setShowSuccess(true);
 
     setTimeout(async () => {
       try {
@@ -152,22 +155,6 @@ const JamaChallan: React.FC = () => {
         console.error('Error generating JPEG:', error);
       }
     }, 500);
-
-    setChallanNumber('');
-    setDate(format(new Date(), 'yyyy-MM-dd'));
-    setDriverName('');
-    setAlternativeSite('');
-    setSecondaryPhone('');
-    setSelectedClientId('');
-    setItems({
-      size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
-      size_6_qty: 0, size_7_qty: 0, size_8_qty: 0, size_9_qty: 0,
-      size_1_borrowed: 0, size_2_borrowed: 0, size_3_borrowed: 0, size_4_borrowed: 0, size_5_borrowed: 0,
-      size_6_borrowed: 0, size_7_borrowed: 0, size_8_borrowed: 0, size_9_borrowed: 0,
-      size_1_note: '', size_2_note: '', size_3_note: '', size_4_note: '', size_5_note: '',
-      size_6_note: '', size_7_note: '', size_8_note: '', size_9_note: '',
-      main_note: '',
-    });
   };
 
   const selectedClient = clients.find(c => c.id === selectedClientId);
@@ -305,14 +292,30 @@ const JamaChallan: React.FC = () => {
             <ItemsTable items={items} onChange={setItems} />
           </div>
 
-          <div className="flex justify-center">
-            <button
-              onClick={handleSave}
-              className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
-            >
-              {t('save')}
-            </button>
-          </div>
+          {showSuccess ? (
+            <div className="space-y-6">
+              <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg text-center">
+                <p className="font-semibold text-lg">Challan saved and receipt downloaded!</p>
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
+                >
+                  {t('backToDashboard')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <button
+                onClick={handleSave}
+                className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
+              >
+                {t('save')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

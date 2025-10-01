@@ -35,6 +35,7 @@ export const translations = {
     selectClient: 'ક્લાયન્ટ પસંદ કરો',
     quickAddClient: 'ઝડપથી ક્લાયન્ટ ઉમેરો',
     actions: 'ક્રિયાઓ',
+    backToDashboard: 'ડેશબોર્ડ પર પાછા જાઓ',
 
     saveSuccess: 'સફળતાપૂર્વક સેવ થયું',
     deleteConfirm: 'શું તમે ખરેખર ડિલીટ કરવા માંગો છો?',
@@ -110,6 +111,7 @@ export const translations = {
     selectClient: 'Select Client',
     quickAddClient: 'Quick Add Client',
     actions: 'Actions',
+    backToDashboard: 'Back to Dashboard',
 
     saveSuccess: 'Successfully Saved',
     deleteConfirm: 'Are you sure you want to delete?',
