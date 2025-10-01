@@ -11,12 +11,14 @@ export const generateJPEG = async (
   }
 
   try {
-    const dataUrl = await toJpeg(node, { quality: 0.9, width: 1200 });
+    const dataUrl = await toJpeg(node, { quality: 0.95, width: 1200 });
 
     const link = document.createElement('a');
     link.download = `${challanType}_${challanNumber}_${date.replace(/\//g, '-')}.jpg`;
     link.href = dataUrl;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   } catch (error) {
     console.error('Error generating JPEG:', error);
     throw error;
