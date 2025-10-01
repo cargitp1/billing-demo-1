@@ -1,0 +1,337 @@
+import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
+import Header from '../components/Header';
+import ClientForm, { ClientFormData } from '../components/ClientForm';
+import ItemsTable, { ItemsData } from '../components/ItemsTable';
+import ReceiptTemplate from '../components/ReceiptTemplate';
+import { useLanguage } from '../contexts/LanguageContext';
+import { supabase } from '../utils/supabase';
+import { generateJPEG } from '../utils/generateJPEG';
+
+const JamaChallan: React.FC = () => {
+  const { t } = useLanguage();
+  const [clients, setClients] = useState<ClientFormData[]>([]);
+  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [selectedClientId, setSelectedClientId] = useState('');
+  const [challanNumber, setChallanNumber] = useState('');
+  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [driverName, setDriverName] = useState('');
+  const [alternativeSite, setAlternativeSite] = useState('');
+  const [secondaryPhone, setSecondaryPhone] = useState('');
+  const [items, setItems] = useState<ItemsData>({
+    size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
+    size_6_qty: 0, size_7_qty: 0, size_8_qty: 0, size_9_qty: 0,
+    size_1_borrowed: 0, size_2_borrowed: 0, size_3_borrowed: 0, size_4_borrowed: 0, size_5_borrowed: 0,
+    size_6_borrowed: 0, size_7_borrowed: 0, size_8_borrowed: 0, size_9_borrowed: 0,
+    size_1_note: '', size_2_note: '', size_3_note: '', size_4_note: '', size_5_note: '',
+    size_6_note: '', size_7_note: '', size_8_note: '', size_9_note: '',
+    main_note: '',
+  });
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  useEffect(() => {
+    fetchClients();
+  }, []);
+
+  const fetchClients = async () => {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('client_nic_name');
+
+    if (error) {
+      console.error('Error fetching clients:', error);
+    } else {
+      setClients(data || []);
+    }
+  };
+
+  const handleQuickAddClient = async (clientData: ClientFormData) => {
+    const { data, error } = await supabase
+      .from('clients')
+      .insert({
+        client_nic_name: clientData.client_nic_name,
+        client_name: clientData.client_name,
+        site: clientData.site,
+        primary_phone_number: clientData.primary_phone_number,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating client:', error);
+      alert('Error creating client');
+    } else {
+      alert(t('saveSuccess'));
+      setShowQuickAdd(false);
+      await fetchClients();
+      if (data) {
+        setSelectedClientId(data.id);
+      }
+    }
+  };
+
+  const validate = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!challanNumber) {
+      newErrors.challanNumber = t('requiredField');
+    }
+    if (!date) {
+      newErrors.date = t('requiredField');
+    }
+    if (!selectedClientId) {
+      newErrors.client = t('requiredField');
+    }
+
+    const hasItems = Object.keys(items).some(key => {
+      if (key.includes('qty') || key.includes('borrowed')) {
+        return items[key as keyof ItemsData] > 0;
+      }
+      return false;
+    });
+
+    if (!hasItems) {
+      newErrors.items = 'At least one item quantity or borrowed stock must be greater than 0';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validate()) return;
+
+    const { data: existingChallan } = await supabase
+      .from('jama_challans')
+      .select('jama_challan_number')
+      .eq('jama_challan_number', challanNumber)
+      .maybeSingle();
+
+    if (existingChallan) {
+      alert(t('duplicateChallan'));
+      return;
+    }
+
+    const { error: challanError } = await supabase
+      .from('jama_challans')
+      .insert({
+        jama_challan_number: challanNumber,
+        client_id: selectedClientId,
+        alternative_site: alternativeSite || null,
+        secondary_phone_number: secondaryPhone || null,
+        jama_date: date,
+        driver_name: driverName || null,
+      });
+
+    if (challanError) {
+      console.error('Error creating challan:', challanError);
+      alert('Error creating challan');
+      return;
+    }
+
+    const { error: itemsError } = await supabase
+      .from('jama_items')
+      .insert({
+        jama_challan_number: challanNumber,
+        ...items,
+      });
+
+    if (itemsError) {
+      console.error('Error creating items:', itemsError);
+      alert('Error creating items');
+      return;
+    }
+
+    alert(t('saveSuccess'));
+
+    setTimeout(async () => {
+      try {
+        await generateJPEG('jama', challanNumber, date);
+      } catch (error) {
+        console.error('Error generating JPEG:', error);
+      }
+    }, 500);
+
+    setChallanNumber('');
+    setDate(format(new Date(), 'yyyy-MM-dd'));
+    setDriverName('');
+    setAlternativeSite('');
+    setSecondaryPhone('');
+    setSelectedClientId('');
+    setItems({
+      size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
+      size_6_qty: 0, size_7_qty: 0, size_8_qty: 0, size_9_qty: 0,
+      size_1_borrowed: 0, size_2_borrowed: 0, size_3_borrowed: 0, size_4_borrowed: 0, size_5_borrowed: 0,
+      size_6_borrowed: 0, size_7_borrowed: 0, size_8_borrowed: 0, size_9_borrowed: 0,
+      size_1_note: '', size_2_note: '', size_3_note: '', size_4_note: '', size_5_note: '',
+      size_6_note: '', size_7_note: '', size_8_note: '', size_9_note: '',
+      main_note: '',
+    });
+  };
+
+  const selectedClient = clients.find(c => c.id === selectedClientId);
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Header />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('jamaChallanTitle')}</h2>
+
+        <div className="space-y-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('clientDetails')}</h3>
+
+            <div className="mb-4">
+              <button
+                onClick={() => setShowQuickAdd(!showQuickAdd)}
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium min-h-[44px]"
+              >
+                {t('quickAddClient')}
+              </button>
+            </div>
+
+            {showQuickAdd && (
+              <div className="mb-6">
+                <ClientForm
+                  onSubmit={handleQuickAddClient}
+                  onCancel={() => setShowQuickAdd(false)}
+                  isQuickAdd={true}
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {t('selectClient')} *
+              </label>
+              <select
+                value={selectedClientId}
+                onChange={(e) => setSelectedClientId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+              >
+                <option value="">{t('selectClient')}</option>
+                {clients.map((client) => (
+                  <option key={client.id} value={client.id}>
+                    {client.client_nic_name} - {client.client_name}
+                  </option>
+                ))}
+              </select>
+              {errors.client && <p className="text-red-600 text-sm mt-1">{errors.client}</p>}
+            </div>
+
+            {selectedClient && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                <p><strong>{t('site')}:</strong> {selectedClient.site}</p>
+                <p><strong>{t('primaryPhone')}:</strong> {selectedClient.primary_phone_number}</p>
+              </div>
+            )}
+
+            <div className="mt-6 space-y-4">
+              <p className="text-sm text-gray-600 italic">{t('overrideNote')}</p>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('alternativeSite')}
+                </label>
+                <input
+                  type="text"
+                  value={alternativeSite}
+                  onChange={(e) => setAlternativeSite(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('secondaryPhone')}
+                </label>
+                <input
+                  type="text"
+                  value={secondaryPhone}
+                  onChange={(e) => setSecondaryPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('challanDetails')}</h3>
+
+            <div className="grid md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('challanNumber')} *
+                </label>
+                <input
+                  type="text"
+                  value={challanNumber}
+                  onChange={(e) => setChallanNumber(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                />
+                {errors.challanNumber && <p className="text-red-600 text-sm mt-1">{errors.challanNumber}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('date')} *
+                </label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                />
+                {errors.date && <p className="text-red-600 text-sm mt-1">{errors.date}</p>}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {t('driverName')}
+                </label>
+                <input
+                  type="text"
+                  value={driverName}
+                  onChange={(e) => setDriverName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('itemsDetails')}</h3>
+            {errors.items && <p className="text-red-600 text-sm mb-4">{errors.items}</p>}
+            <ItemsTable items={items} onChange={setItems} />
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              onClick={handleSave}
+              className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
+            >
+              {t('save')}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ position: 'absolute', left: '-9999px' }}>
+        {selectedClient && (
+          <ReceiptTemplate
+            challanType="jama"
+            challanNumber={challanNumber}
+            date={date}
+            clientName={selectedClient.client_name}
+            site={alternativeSite || selectedClient.site}
+            phone={secondaryPhone || selectedClient.primary_phone_number}
+            driverName={driverName}
+            items={items}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default JamaChallan;
