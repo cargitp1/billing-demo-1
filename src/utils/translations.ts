@@ -23,7 +23,6 @@ export const translations = {
 
     size: 'સાઇઝ',
     quantity: 'સંખ્યા',
-    borrowedStock: 'ઉધાર સ્ટોક',
     note: 'નોંધ',
     mainNote: 'મુખ્ય નોંધ',
 
@@ -74,6 +73,22 @@ export const translations = {
     phone: 'ફોન',
     driver: 'ડ્રાઇવર',
     items: 'વસ્તુઓ',
+
+    stockManagement: 'સ્ટોક મેનેજમેન્ટ',
+    stockOverview: 'સ્ટોક ઝલક',
+    totalInventory: 'કુલ ઇન્વેન્ટરી',
+    onRent: 'ભાડે',
+    borrowed: 'ઉધાર',
+    available: 'ઉપલબ્ધ',
+    totalStock: 'કુલ સ્ટોક',
+    onRentStock: 'ભાડે સ્ટોક',
+    borrowedStock: 'ઉધાર સ્ટોક',
+    lostStock: 'ખોવાયેલ સ્ટોક',
+    availableStock: 'ઉપલબ્ધ સ્ટોક',
+    lastUpdated: 'છેલ્લે અપડેટ',
+    editStock: 'સ્ટોક સુધારો',
+    updateStock: 'સ્ટોક અપડેટ કરો',
+    stockUpdated: 'સ્ટોક અપડેટ થયું',
   },
   en: {
     appName: 'Nilkanth Plat Depo',
@@ -99,7 +114,6 @@ export const translations = {
 
     size: 'Size',
     quantity: 'Quantity',
-    borrowedStock: 'Borrowed Stock',
     note: 'Note',
     mainNote: 'Main Note',
 
@@ -150,6 +164,22 @@ export const translations = {
     phone: 'Phone',
     driver: 'Driver',
     items: 'Items',
+
+    stockManagement: 'Stock Management',
+    stockOverview: 'Stock Overview',
+    totalInventory: 'Total Inventory',
+    onRent: 'On Rent',
+    borrowed: 'Borrowed',
+    available: 'Available',
+    totalStock: 'Total Stock',
+    onRentStock: 'On Rent Stock',
+    borrowedStock: 'Borrowed Stock',
+    lostStock: 'Lost Stock',
+    availableStock: 'Available Stock',
+    lastUpdated: 'Last Updated',
+    editStock: 'Edit Stock',
+    updateStock: 'Update Stock',
+    stockUpdated: 'Stock Updated',
   },
 };
 
