@@ -1,4 +1,4 @@
-import { Edit } from 'lucide-react';
+import { CreditCard as Edit } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { format } from 'date-fns';
 import type { StockData } from '../utils/stockCalculations';
