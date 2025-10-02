@@ -1,26 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { UserPlus, FileText, FileCheck, LogOut } from 'lucide-react';
+import Header from '../components/Header';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
 import ReceiptTemplate from '../components/ReceiptTemplate';
-import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 
 const JamaChallan: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const { t } = useLanguage();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -155,26 +146,6 @@ const JamaChallan: React.FC = () => {
       return;
     }
 
-    const stockItems = [];
-    for (let i = 1; i <= 9; i++) {
-      const qty = items[`size_${i}_qty` as keyof ItemsData] || 0;
-      const borrowed = items[`size_${i}_borrowed` as keyof ItemsData] || 0;
-      const totalQuantity = Number(qty) + Number(borrowed);
-      if (totalQuantity > 0) {
-        stockItems.push({ size: i, quantity: totalQuantity });
-      }
-    }
-
-    if (stockItems.length > 0) {
-      const { error: stockError } = await supabase.rpc('decrement_stock', {
-        stock_items: stockItems,
-      });
-
-      if (stockError) {
-        console.error('Error updating stock:', stockError);
-      }
-    }
-
     setShowSuccess(true);
 
     setTimeout(async () => {
@@ -189,70 +160,20 @@ const JamaChallan: React.FC = () => {
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
   return (
-    <div className="min-h-screen bg-green-50 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <Header />
 
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <span>{t('dashboard')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/clients')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-            >
-              <UserPlus size={20} />
-              <span>{t('addClient')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
-            >
-              <FileText size={20} />
-              <span>{t('udharChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-green-100 text-green-600 border-l-4 border-green-600 rounded-lg"
-            >
-              <FileCheck size={20} />
-              <span>{t('jamaChallan')}</span>
-            </button>
-          </div>
-        </nav>
-
-        <div className="p-4 border-t space-y-4">
-          <div className="flex justify-center">
-            <LanguageToggle />
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <LogOut size={20} />
-            <span>{t('logout')}</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-3xl font-bold text-green-700 mb-8">{t('jamaChallanTitle')}</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('jamaChallanTitle')}</h2>
 
         <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow-md border-l-4 border-green-600 p-6">
-            <h3 className="text-xl font-semibold text-green-700 mb-4">{t('clientDetails')}</h3>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('clientDetails')}</h3>
 
             <div className="mb-4">
               <button
                 onClick={() => setShowQuickAdd(!showQuickAdd)}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium min-h-[44px] shadow-md"
+                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium min-h-[44px]"
               >
                 {t('quickAddClient')}
               </button>
@@ -321,8 +242,8 @@ const JamaChallan: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md border-l-4 border-green-600 p-6">
-            <h3 className="text-xl font-semibold text-green-700 mb-4">{t('challanDetails')}</h3>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('challanDetails')}</h3>
 
             <div className="grid md:grid-cols-3 gap-4">
               <div>
@@ -365,15 +286,15 @@ const JamaChallan: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md border-l-4 border-green-600 p-6">
-            <h3 className="text-xl font-semibold text-green-700 mb-4">{t('itemsDetails')}</h3>
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('itemsDetails')}</h3>
             {errors.items && <p className="text-red-600 text-sm mb-4">{errors.items}</p>}
             <ItemsTable items={items} onChange={setItems} />
           </div>
 
           {showSuccess ? (
             <div className="space-y-6">
-              <div className="bg-green-100 border-2 border-green-600 text-green-700 px-6 py-4 rounded-lg text-center">
+              <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg text-center">
                 <p className="font-semibold text-lg">Challan saved and receipt downloaded!</p>
               </div>
               <div className="flex justify-center">
@@ -389,15 +310,14 @@ const JamaChallan: React.FC = () => {
             <div className="flex justify-center">
               <button
                 onClick={handleSave}
-                className="px-8 py-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-semibold text-lg min-h-[44px] shadow-lg"
+                className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
               >
                 {t('save')}
               </button>
             </div>
           )}
         </div>
-        </div>
-      </main>
+      </div>
 
       <div style={{ position: 'absolute', left: '-9999px' }}>
         {selectedClient && (

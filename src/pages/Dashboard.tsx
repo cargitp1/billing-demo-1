@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -23,22 +23,16 @@ const Dashboard: React.FC = () => {
       color: 'bg-blue-600 hover:bg-blue-700',
     },
     {
-      title: t('stockManagement'),
-      icon: Package,
-      path: '/stock',
-      color: 'bg-purple-600 hover:bg-purple-700',
-    },
-    {
       title: t('udharChallan'),
       icon: FileText,
       path: '/udhar-challan',
-      color: 'bg-red-600 hover:bg-red-700',
+      color: 'bg-green-600 hover:bg-green-700',
     },
     {
       title: t('jamaChallan'),
       icon: FileCheck,
       path: '/jama-challan',
-      color: 'bg-green-600 hover:bg-green-700',
+      color: 'bg-orange-600 hover:bg-orange-700',
     },
   ];
 
@@ -59,22 +53,15 @@ const Dashboard: React.FC = () => {
               <span>{t('addClient')}</span>
             </button>
             <button
-              onClick={() => navigate('/stock')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg transition-colors"
-            >
-              <Package size={20} />
-              <span>{t('stockManagement')}</span>
-            </button>
-            <button
               onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
@@ -100,7 +87,7 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('dashboard')}</h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-3 gap-8">
             {cards.map((card) => (
               <button
                 key={card.path}

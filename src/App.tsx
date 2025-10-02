@@ -8,7 +8,6 @@ import Dashboard from './pages/Dashboard';
 import ClientManagement from './pages/ClientManagement';
 import UdharChallan from './pages/UdharChallan';
 import JamaChallan from './pages/JamaChallan';
-import StockManagement from './pages/StockManagement';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -52,14 +51,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <JamaChallan />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/stock"
-              element={
-                <ProtectedRoute>
-                  <StockManagement />
                 </ProtectedRoute>
               }
             />
