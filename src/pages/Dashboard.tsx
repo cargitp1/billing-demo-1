@@ -26,13 +26,13 @@ const Dashboard: React.FC = () => {
       title: t('udharChallan'),
       icon: FileText,
       path: '/udhar-challan',
-      color: 'bg-red-600 hover:bg-red-700',
+      color: 'bg-green-600 hover:bg-green-700',
     },
     {
       title: t('jamaChallan'),
       icon: FileCheck,
       path: '/jama-challan',
-      color: 'bg-green-600 hover:bg-green-700',
+      color: 'bg-orange-600 hover:bg-orange-700',
     },
   ];
 
@@ -54,14 +54,14 @@ const Dashboard: React.FC = () => {
             </button>
             <button
               onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-orange-50 hover:text-orange-600 rounded-lg transition-colors"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>

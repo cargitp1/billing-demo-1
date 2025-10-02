@@ -1,22 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut } from 'lucide-react';
+import Header from '../components/Header';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
-import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 import { supabase } from '../utils/supabase';
 
 const ClientManagement: React.FC = () => {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
   const { t } = useLanguage();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [editingClient, setEditingClient] = useState<ClientFormData | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -106,60 +96,10 @@ const ClientManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <Header />
 
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <span>{t('dashboard')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/clients')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg"
-            >
-              <UserPlus size={20} />
-              <span>{t('addClient')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
-            >
-              <FileText size={20} />
-              <span>{t('udharChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
-            >
-              <FileCheck size={20} />
-              <span>{t('jamaChallan')}</span>
-            </button>
-          </div>
-        </nav>
-
-        <div className="p-4 border-t space-y-4">
-          <div className="flex justify-center">
-            <LanguageToggle />
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <LogOut size={20} />
-            <span>{t('logout')}</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('clientManagement')}</h2>
 
         <div className="bg-white rounded-lg shadow p-6 mb-8">
@@ -190,8 +130,7 @@ const ClientManagement: React.FC = () => {
           <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('clientList')}</h3>
           <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
         </div>
-        </div>
-      </main>
+      </div>
     </div>
   );
 };
