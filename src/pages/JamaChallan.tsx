@@ -146,6 +146,25 @@ const JamaChallan: React.FC = () => {
       return;
     }
 
+    for (let size = 1; size <= 9; size++) {
+      const qty = items[`size_${size}_qty` as keyof ItemsData] as number || 0;
+      const borrowed = items[`size_${size}_borrowed` as keyof ItemsData] as number || 0;
+
+      if (qty > 0 || borrowed > 0) {
+        const { error: stockError } = await supabase.rpc('decrement_stock', {
+          p_size: size,
+          p_on_rent_decrement: qty,
+          p_borrowed_decrement: borrowed
+        });
+
+        if (stockError) {
+          console.error('Error updating stock:', stockError);
+          alert('Error updating stock for size ' + size);
+          return;
+        }
+      }
+    }
+
     setShowSuccess(true);
 
     setTimeout(async () => {
