@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, Edit2, Save, X, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -22,75 +22,51 @@ const StockManagement: React.FC = () => {
   const { logout } = useAuth();
   const { t } = useLanguage();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
   const [stocks, setStocks] = useState<StockData[]>([]);
-  const [editingSize, setEditingSize] = useState<number | null>(null);
-  const [editValues, setEditValues] = useState<{ total_stock: number; lost_stock: number }>({
-    total_stock: 0,
-    lost_stock: 0,
-  });
-  const [editAllMode, setEditAllMode] = useState(false);
-  const [allEditValues, setAllEditValues] = useState<{ [key: number]: { total_stock: number; lost_stock: number } }>({});
+  const [loading, setLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [editValues, setEditValues] = useState<{ [key: number]: { total_stock: number; lost_stock: number } }>({});
 
   useEffect(() => {
     fetchStock();
   }, []);
 
   const fetchStock = async () => {
-    const { data, error } = await supabase
-      .from('stock')
-      .select('*')
-      .order('size');
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('stock')
+        .select('*')
+        .order('size');
 
-    if (error) {
-      console.error('Error fetching stock:', error);
-    } else {
-      setStocks(data || []);
+      if (error) {
+        console.error('Error fetching stock:', error);
+        alert('Error loading stock data');
+      } else {
+        setStocks(data || []);
+        const values: { [key: number]: { total_stock: number; lost_stock: number } } = {};
+        data?.forEach(stock => {
+          values[stock.size] = {
+            total_stock: stock.total_stock,
+            lost_stock: stock.lost_stock,
+          };
+        });
+        setEditValues(values);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error loading stock data');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEdit = (stock: StockData) => {
-    setEditingSize(stock.size);
-    setEditValues({
-      total_stock: stock.total_stock,
-      lost_stock: stock.lost_stock,
-    });
+  const handleLogout = () => {
+    logout();
+    navigate('/');
   };
 
-  const handleSave = async (size: number) => {
-    if (editValues.total_stock < 0 || editValues.lost_stock < 0) {
-      alert(t('invalidStock'));
-      return;
-    }
-
-    const { error } = await supabase
-      .from('stock')
-      .update({
-        total_stock: editValues.total_stock,
-        lost_stock: editValues.lost_stock,
-      })
-      .eq('size', size);
-
-    if (error) {
-      console.error('Error updating stock:', error);
-      alert('Error updating stock');
-    } else {
-      alert(t('stockUpdated'));
-      setEditingSize(null);
-      fetchStock();
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingSize(null);
-  };
-
-  const handleEditAll = () => {
-    setEditAllMode(true);
+  const handleEditMode = () => {
     const values: { [key: number]: { total_stock: number; lost_stock: number } } = {};
     stocks.forEach(stock => {
       values[stock.size] = {
@@ -98,21 +74,28 @@ const StockManagement: React.FC = () => {
         lost_stock: stock.lost_stock,
       };
     });
-    setAllEditValues(values);
+    setEditValues(values);
+    setEditMode(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
   };
 
   const handleSaveAll = async () => {
-    for (const size in allEditValues) {
-      const values = allEditValues[parseInt(size)];
-      if (values.total_stock < 0 || values.lost_stock < 0) {
-        alert(t('invalidStock'));
-        return;
-      }
-    }
-
     try {
-      for (const size in allEditValues) {
-        const values = allEditValues[parseInt(size)];
+      for (const size in editValues) {
+        const values = editValues[parseInt(size)];
+        if (values.total_stock < 0 || values.lost_stock < 0) {
+          alert('Stock values cannot be negative');
+          return;
+        }
+      }
+
+      setLoading(true);
+
+      for (const size in editValues) {
+        const values = editValues[parseInt(size)];
         const { error } = await supabase
           .from('stock')
           .update({
@@ -124,35 +107,44 @@ const StockManagement: React.FC = () => {
         if (error) throw error;
       }
 
-      alert(t('stockUpdated'));
-      setEditAllMode(false);
-      fetchStock();
+      alert('Stock updated successfully');
+      setEditMode(false);
+      await fetchStock();
     } catch (error) {
       console.error('Error updating stock:', error);
       alert('Error updating stock');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCancelAll = () => {
-    setEditAllMode(false);
-    setAllEditValues({});
+  const updateEditValue = (size: number, field: 'total_stock' | 'lost_stock', value: number) => {
+    setEditValues(prev => ({
+      ...prev,
+      [size]: {
+        ...prev[size],
+        [field]: value,
+      }
+    }));
   };
 
   const getAvailabilityColor = (available: number) => {
-    if (available === 0) return 'text-red-600 font-bold';
-    if (available < 10) return 'text-yellow-600 font-semibold';
-    return 'text-green-600 font-semibold';
+    if (available === 0) return 'text-red-600';
+    if (available < 10) return 'text-yellow-600';
+    return 'text-green-600';
   };
 
+  const totalTotal = stocks.reduce((sum, stock) => sum + stock.total_stock, 0);
   const totalAvailable = stocks.reduce((sum, stock) => sum + stock.available_stock, 0);
   const totalOnRent = stocks.reduce((sum, stock) => sum + stock.on_rent_stock, 0);
+  const totalBorrowed = stocks.reduce((sum, stock) => sum + stock.borrowed_stock, 0);
   const totalLost = stocks.reduce((sum, stock) => sum + stock.lost_stock, 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex">
+      <aside className="w-64 bg-white shadow-xl flex flex-col">
+        <div className="p-6 border-b bg-gradient-to-r from-gray-700 to-gray-800">
+          <h1 className="text-xl font-bold text-white">{t('appName')}</h1>
         </div>
 
         <nav className="flex-1 p-4">
@@ -186,7 +178,7 @@ const StockManagement: React.FC = () => {
             </button>
             <button
               onClick={() => navigate('/stock')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 text-gray-900 border-l-4 border-gray-600 rounded-lg"
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 text-gray-900 border-l-4 border-gray-600 rounded-lg font-medium"
             >
               <Package size={20} />
               <span>{t('stockManagement')}</span>
@@ -209,289 +201,217 @@ const StockManagement: React.FC = () => {
       </aside>
 
       <main className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('stockManagement')}</h2>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">{t('stockManagement')}</h2>
+            <button
+              onClick={fetchStock}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              <span>Refresh</span>
+            </button>
+          </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-600">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{t('totalAvailable')}</p>
-                  <p className="text-3xl font-bold text-green-600">{totalAvailable}</p>
-                </div>
-                <Package size={48} className="text-green-600 opacity-20" />
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-gray-600">
+              <p className="text-xs text-gray-600 mb-1">{t('totalStock')}</p>
+              <p className="text-2xl font-bold text-gray-900">{totalTotal}</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-600">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{t('onRent')}</p>
-                  <p className="text-3xl font-bold text-blue-600">{totalOnRent}</p>
-                </div>
-                <FileText size={48} className="text-blue-600 opacity-20" />
-              </div>
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-600">
+              <p className="text-xs text-gray-600 mb-1">{t('available')}</p>
+              <p className="text-2xl font-bold text-green-600">{totalAvailable}</p>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-600">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">{t('lost')}</p>
-                  <p className="text-3xl font-bold text-red-600">{totalLost}</p>
-                </div>
-                <Package size={48} className="text-red-600 opacity-20" />
-              </div>
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-blue-600">
+              <p className="text-xs text-gray-600 mb-1">{t('onRent')}</p>
+              <p className="text-2xl font-bold text-blue-600">{totalOnRent}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-purple-600">
+              <p className="text-xs text-gray-600 mb-1">{t('borrowed')}</p>
+              <p className="text-2xl font-bold text-purple-600">{totalBorrowed}</p>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-red-600">
+              <p className="text-xs text-gray-600 mb-1">{t('lost')}</p>
+              <p className="text-2xl font-bold text-red-600">{totalLost}</p>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="bg-white rounded-lg shadow-lg p-6">
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-semibold text-gray-900">{t('stockOverview')}</h3>
-              {!editAllMode && !editingSize && (
+              {!editMode ? (
                 <button
-                  onClick={handleEditAll}
-                  className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium"
+                  onClick={handleEditMode}
+                  className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                 >
-                  {t('editAll')}
+                  <Edit2 size={18} />
+                  <span>{t('edit')}</span>
                 </button>
-              )}
-              {editAllMode && (
+              ) : (
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveAll}
-                    className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                    disabled={loading}
+                    className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
                   >
-                    {t('saveAll')}
+                    <Save size={18} />
+                    <span>{t('save')}</span>
                   </button>
                   <button
-                    onClick={handleCancelAll}
-                    className="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                    onClick={handleCancelEdit}
+                    disabled={loading}
+                    className="flex items-center gap-2 px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium disabled:opacity-50"
                   >
-                    {t('cancelAll')}
+                    <X size={18} />
+                    <span>{t('cancel')}</span>
                   </button>
                 </div>
               )}
             </div>
 
-            <div className="hidden md:block overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('size')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('totalStock')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('onRent')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('borrowed')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('lost')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('available')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('actions')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {stocks.map((stock) => (
-                    <tr key={stock.size} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {stock.size}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {editingSize === stock.size ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={editValues.total_stock}
-                            onChange={(e) => setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 })}
-                            className="w-24 px-2 py-1 border border-gray-300 rounded"
-                          />
-                        ) : editAllMode ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={allEditValues[stock.size]?.total_stock || 0}
-                            onChange={(e) => setAllEditValues({
-                              ...allEditValues,
-                              [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
-                            })}
-                            className="w-24 px-2 py-1 border border-gray-300 rounded"
-                          />
-                        ) : (
-                          stock.total_stock
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {stock.on_rent_stock}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {stock.borrowed_stock}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {editingSize === stock.size ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={editValues.lost_stock}
-                            onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
-                            className="w-24 px-2 py-1 border border-gray-300 rounded"
-                          />
-                        ) : editAllMode ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={allEditValues[stock.size]?.lost_stock || 0}
-                            onChange={(e) => setAllEditValues({
-                              ...allEditValues,
-                              [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
-                            })}
-                            className="w-24 px-2 py-1 border border-gray-300 rounded"
-                          />
-                        ) : (
-                          stock.lost_stock
-                        )}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${getAvailabilityColor(stock.available_stock)}`}>
-                        {stock.available_stock}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {!editAllMode && editingSize === stock.size ? (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleSave(stock.size)}
-                              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                            >
-                              {t('save')}
-                            </button>
-                            <button
-                              onClick={handleCancel}
-                              className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
-                            >
-                              {t('cancel')}
-                            </button>
-                          </div>
-                        ) : !editAllMode && !editingSize ? (
-                          <button
-                            onClick={() => handleEdit(stock)}
-                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                          >
-                            {t('edit')}
-                          </button>
-                        ) : null}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="md:hidden space-y-4">
-              {stocks.map((stock) => (
-                <div key={stock.size} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-lg font-semibold text-gray-900">
-                      {t('size')} {stock.size}
-                    </h4>
-                    <span className={`text-lg ${getAvailabilityColor(stock.available_stock)}`}>
-                      {t('available')}: {stock.available_stock}
-                    </span>
-                  </div>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('totalStock')}:</span>
-                      {editingSize === stock.size || editAllMode ? (
-                        <input
-                          type="number"
-                          min="0"
-                          value={editingSize === stock.size ? editValues.total_stock : allEditValues[stock.size]?.total_stock || 0}
-                          onChange={(e) => {
-                            if (editingSize === stock.size) {
-                              setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 });
-                            } else {
-                              setAllEditValues({
-                                ...allEditValues,
-                                [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
-                              });
-                            }
-                          }}
-                          className="w-24 px-2 py-1 border border-gray-300 rounded"
-                        />
-                      ) : (
-                        <span className="font-medium">{stock.total_stock}</span>
-                      )}
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('onRent')}:</span>
-                      <span className="font-medium">{stock.on_rent_stock}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('borrowed')}:</span>
-                      <span className="font-medium">{stock.borrowed_stock}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">{t('lost')}:</span>
-                      {editingSize === stock.size || editAllMode ? (
-                        <input
-                          type="number"
-                          min="0"
-                          value={editingSize === stock.size ? editValues.lost_stock : allEditValues[stock.size]?.lost_stock || 0}
-                          onChange={(e) => {
-                            if (editingSize === stock.size) {
-                              setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 });
-                            } else {
-                              setAllEditValues({
-                                ...allEditValues,
-                                [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
-                              });
-                            }
-                          }}
-                          className="w-24 px-2 py-1 border border-gray-300 rounded"
-                        />
-                      ) : (
-                        <span className="font-medium">{stock.lost_stock}</span>
-                      )}
-                    </div>
-                  </div>
-                  {!editAllMode && editingSize === stock.size && (
-                    <div className="flex gap-2 mt-3">
-                      <button
-                        onClick={() => handleSave(stock.size)}
-                        className="flex-1 px-3 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                      >
-                        {t('save')}
-                      </button>
-                      <button
-                        onClick={handleCancel}
-                        className="flex-1 px-3 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                      >
-                        {t('cancel')}
-                      </button>
-                    </div>
-                  )}
-                  {!editAllMode && !editingSize && (
-                    <button
-                      onClick={() => handleEdit(stock)}
-                      className="w-full mt-3 px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                    >
-                      {t('edit')}
-                    </button>
-                  )}
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <RefreshCw size={32} className="animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <>
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('size')}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('totalStock')}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('available')}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('onRent')}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('borrowed')}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('lost')}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {stocks.map((stock) => (
+                        <tr key={stock.size} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            Size {stock.size}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {editMode ? (
+                              <input
+                                type="number"
+                                min="0"
+                                value={editValues[stock.size]?.total_stock ?? 0}
+                                onChange={(e) => updateEditValue(stock.size, 'total_stock', parseInt(e.target.value) || 0)}
+                                className="w-24 px-3 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            ) : (
+                              <span className="font-semibold">{stock.total_stock}</span>
+                            )}
+                          </td>
+                          <td className={`px-6 py-4 whitespace-nowrap text-sm font-bold ${getAvailabilityColor(stock.available_stock)}`}>
+                            {stock.available_stock}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 font-medium">
+                            {stock.on_rent_stock}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-purple-600 font-medium">
+                            {stock.borrowed_stock}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {editMode ? (
+                              <input
+                                type="number"
+                                min="0"
+                                value={editValues[stock.size]?.lost_stock ?? 0}
+                                onChange={(e) => updateEditValue(stock.size, 'lost_stock', parseInt(e.target.value) || 0)}
+                                className="w-24 px-3 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              />
+                            ) : (
+                              <span className="font-semibold text-red-600">{stock.lost_stock}</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
 
-            {stocks.length > 0 && (
-              <div className="mt-4 text-sm text-gray-500 text-right">
-                {t('lastUpdated')}: {format(new Date(stocks[0].updated_at), 'dd/MM/yyyy HH:mm')}
+                <div className="md:hidden space-y-4">
+                  {stocks.map((stock) => (
+                    <div key={stock.size} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="text-lg font-semibold text-gray-900">Size {stock.size}</h4>
+                        <span className={`text-lg font-bold ${getAvailabilityColor(stock.available_stock)}`}>
+                          {stock.available_stock} {t('available')}
+                        </span>
+                      </div>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">{t('totalStock')}:</span>
+                          {editMode ? (
+                            <input
+                              type="number"
+                              min="0"
+                              value={editValues[stock.size]?.total_stock ?? 0}
+                              onChange={(e) => updateEditValue(stock.size, 'total_stock', parseInt(e.target.value) || 0)}
+                              className="w-24 px-2 py-1 border border-gray-300 rounded"
+                            />
+                          ) : (
+                            <span className="font-semibold text-gray-900">{stock.total_stock}</span>
+                          )}
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{t('onRent')}:</span>
+                          <span className="font-semibold text-blue-600">{stock.on_rent_stock}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">{t('borrowed')}:</span>
+                          <span className="font-semibold text-purple-600">{stock.borrowed_stock}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600">{t('lost')}:</span>
+                          {editMode ? (
+                            <input
+                              type="number"
+                              min="0"
+                              value={editValues[stock.size]?.lost_stock ?? 0}
+                              onChange={(e) => updateEditValue(stock.size, 'lost_stock', parseInt(e.target.value) || 0)}
+                              className="w-24 px-2 py-1 border border-gray-300 rounded"
+                            />
+                          ) : (
+                            <span className="font-semibold text-red-600">{stock.lost_stock}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {stocks.length > 0 && !loading && (
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <p className="text-sm text-gray-500 text-right">
+                  {t('lastUpdated')}: {format(new Date(stocks[0].updated_at), 'dd/MM/yyyy HH:mm')}
+                </p>
+                <p className="text-xs text-gray-400 text-right mt-1">
+                  Note: Available = Total - On Rent - Lost (Borrowed stock is tracked separately)
+                </p>
               </div>
             )}
           </div>
