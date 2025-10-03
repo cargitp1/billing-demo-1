@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import Header from '../components/Header';
+import { UserPlus, FileText, FileCheck, LogOut, Package } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
 import ReceiptTemplate from '../components/ReceiptTemplate';
 import { useLanguage } from '../contexts/LanguageContext';
+import LanguageToggle from '../components/LanguageToggle';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 
 const UdharChallan: React.FC = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
   const { t } = useLanguage();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -179,10 +187,67 @@ const UdharChallan: React.FC = () => {
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <Header />
+    <div className="min-h-screen bg-gray-100 flex">
+      <aside className="w-64 bg-white shadow-lg flex flex-col">
+        <div className="p-6 border-b">
+          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <nav className="flex-1 p-4">
+          <div className="space-y-2">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <span>{t('dashboard')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/clients')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+            >
+              <UserPlus size={20} />
+              <span>{t('addClient')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/udhar-challan')}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 border-l-4 border-red-600 rounded-lg"
+            >
+              <FileText size={20} />
+              <span>{t('udharChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/jama-challan')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+            >
+              <FileCheck size={20} />
+              <span>{t('jamaChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/stock')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <Package size={20} />
+              <span>{t('stockManagement')}</span>
+            </button>
+          </div>
+        </nav>
+
+        <div className="p-4 border-t space-y-4">
+          <div className="flex justify-center">
+            <LanguageToggle />
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <LogOut size={20} />
+            <span>{t('logout')}</span>
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('udharChallanTitle')}</h2>
 
         <div className="space-y-6">
@@ -336,22 +401,23 @@ const UdharChallan: React.FC = () => {
             </div>
           )}
         </div>
-      </div>
 
-      <div style={{ position: 'absolute', left: '-9999px' }}>
-        {selectedClient && (
-          <ReceiptTemplate
-            challanType="udhar"
-            challanNumber={challanNumber}
-            date={date}
-            clientName={selectedClient.client_name}
-            site={alternativeSite || selectedClient.site}
-            phone={secondaryPhone || selectedClient.primary_phone_number}
-            driverName={driverName}
-            items={items}
-          />
-        )}
-      </div>
+        <div style={{ position: 'absolute', left: '-9999px' }}>
+          {selectedClient && (
+            <ReceiptTemplate
+              challanType="udhar"
+              challanNumber={challanNumber}
+              date={date}
+              clientName={selectedClient.client_name}
+              site={alternativeSite || selectedClient.site}
+              phone={secondaryPhone || selectedClient.primary_phone_number}
+              driverName={driverName}
+              items={items}
+            />
+          )}
+        </div>
+        </div>
+      </main>
     </div>
   );
 };
