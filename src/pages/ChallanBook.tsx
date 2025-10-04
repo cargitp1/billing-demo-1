@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Edit2, Trash2, ArrowLeft } from 'lucide-react';
+import { Eye, CreditCard as Edit2, Trash2, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import Header from '../components/Header';

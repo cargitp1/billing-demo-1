@@ -1,5 +1,5 @@
 import React from 'react';
-import { Eye, Edit2, Trash2 } from 'lucide-react';
+import { Eye, CreditCard as Edit2, Trash2 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { format } from 'date-fns';
