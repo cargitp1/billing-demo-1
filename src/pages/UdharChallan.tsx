@@ -154,6 +154,31 @@ const UdharChallan: React.FC = () => {
       return;
     }
 
+    try {
+      for (let size = 1; size <= 9; size++) {
+        const onRentQty = items[`size_${size}_qty` as keyof ItemsData] as number;
+        const borrowedQty = items[`size_${size}_borrowed` as keyof ItemsData] as number;
+
+        if (onRentQty > 0 || borrowedQty > 0) {
+          console.log(`Incrementing stock for size ${size}: on_rent=${onRentQty}, borrowed=${borrowedQty}`);
+
+          const { error: stockError } = await supabase.rpc('increment_stock', {
+            p_size: size,
+            p_on_rent_increment: onRentQty,
+            p_borrowed_increment: borrowedQty,
+          });
+
+          if (stockError) {
+            console.error(`Error updating stock for size ${size}:`, stockError);
+            throw stockError;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error updating stock:', error);
+      alert('Challan saved but error updating stock. Please update stock manually.');
+    }
+
     setShowSuccess(true);
 
     setTimeout(async () => {
