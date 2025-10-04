@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -26,7 +26,7 @@ const Dashboard: React.FC = () => {
       title: t('udharChallan'),
       icon: FileText,
       path: '/udhar-challan',
-      color: 'bg-green-600 hover:bg-green-700',
+      color: 'bg-orange-600 hover:bg-orange-700',
     },
     {
       title: t('jamaChallan'),
@@ -39,6 +39,12 @@ const Dashboard: React.FC = () => {
       icon: Package,
       path: '/stock',
       color: 'bg-gray-600 hover:bg-gray-700',
+    },
+    {
+      title: t('challanBook'),
+      icon: BookOpen,
+      path: '/challan-book',
+      color: 'bg-teal-600 hover:bg-teal-700',
     },
   ];
 
@@ -79,6 +85,13 @@ const Dashboard: React.FC = () => {
               <Package size={20} />
               <span>{t('stockManagement')}</span>
             </button>
+            <button
+              onClick={() => navigate('/challan-book')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-600 rounded-lg transition-colors"
+            >
+              <BookOpen size={20} />
+              <span>{t('challanBook')}</span>
+            </button>
           </div>
         </nav>
 
@@ -100,7 +113,7 @@ const Dashboard: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('dashboard')}</h2>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {cards.map((card) => (
               <button
                 key={card.path}
