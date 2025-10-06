@@ -456,7 +456,7 @@ const ChallanBook: React.FC = () => {
                             {challan.challanNumber}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                            {format(new Date(challan.date), 'dd/MM/yyyy')}
+                            {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
                           </td>
                           <td className="px-6 py-4 text-sm text-gray-900">
                             <div>

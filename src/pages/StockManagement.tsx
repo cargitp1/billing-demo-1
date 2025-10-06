@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -193,6 +193,13 @@ const StockManagement: React.FC = () => {
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/challan-book')}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
+            >
+              <BookOpen size={20} />
+              <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/stock')}

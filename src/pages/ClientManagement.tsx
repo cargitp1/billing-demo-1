@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
@@ -140,6 +140,13 @@ const ClientManagement: React.FC = () => {
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/challan-book')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <BookOpen size={20} />
+              <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/stock')}
