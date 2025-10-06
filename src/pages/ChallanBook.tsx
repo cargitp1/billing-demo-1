@@ -1,426 +1,514 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, CreditCard as Edit2, Trash2, ArrowLeft } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Eye, Trash2 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import { translations } from '../utils/translations';
-import Header from '../components/Header';
-import { ChallanDetailsModal } from '../components/ChallanDetailsModal';
-import { DeleteConfirmDialog } from '../components/DeleteConfirmDialog';
-import { SearchFilter } from '../components/SearchFilter';
-import { ChallanCard } from '../components/ChallanCard';
-import {
-  fetchUdharChallans,
-  fetchJamaChallans,
-  deleteUdharChallan,
-  deleteJamaChallan,
-  calculateTotalItems,
-} from '../utils/challanOperations';
+import LanguageToggle from '../components/LanguageToggle';
+import ChallanDetailsModal from '../components/ChallanDetailsModal';
+import { supabase } from '../utils/supabase';
+import { generateJPEG } from '../utils/generateJPEG';
 import { format } from 'date-fns';
+
+interface ItemsData {
+  size_1_qty: number;
+  size_2_qty: number;
+  size_3_qty: number;
+  size_4_qty: number;
+  size_5_qty: number;
+  size_6_qty: number;
+  size_7_qty: number;
+  size_8_qty: number;
+  size_9_qty: number;
+  size_1_borrowed: number;
+  size_2_borrowed: number;
+  size_3_borrowed: number;
+  size_4_borrowed: number;
+  size_5_borrowed: number;
+  size_6_borrowed: number;
+  size_7_borrowed: number;
+  size_8_borrowed: number;
+  size_9_borrowed: number;
+  size_1_note: string | null;
+  size_2_note: string | null;
+  size_3_note: string | null;
+  size_4_note: string | null;
+  size_5_note: string | null;
+  size_6_note: string | null;
+  size_7_note: string | null;
+  size_8_note: string | null;
+  size_9_note: string | null;
+  main_note: string | null;
+}
+
+interface ChallanData {
+  challanNumber: string;
+  date: string;
+  clientNicName: string;
+  clientFullName: string;
+  site: string;
+  phone: string;
+  driverName: string | null;
+  isAlternativeSite: boolean;
+  isSecondaryPhone: boolean;
+  items: ItemsData;
+  totalItems: number;
+}
 
 type TabType = 'udhar' | 'jama';
 
-export const ChallanBook: React.FC = () => {
+const ChallanBook: React.FC = () => {
   const navigate = useNavigate();
-  const { language } = useLanguage();
-  const t = translations[language];
+  const { logout } = useAuth();
+  const { t } = useLanguage();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   const [activeTab, setActiveTab] = useState<TabType>('udhar');
-  const [udharChallans, setUdharChallans] = useState<any[]>([]);
-  const [jamaChallans, setJamaChallans] = useState<any[]>([]);
+  const [udharChallans, setUdharChallans] = useState<ChallanData[]>([]);
+  const [jamaChallans, setJamaChallans] = useState<ChallanData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const [searchTerm, setSearchTerm] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
-  const [sortBy, setSortBy] = useState<'date-asc' | 'date-desc' | 'challan-asc' | 'client-asc'>('date-asc');
-  const [showFilters, setShowFilters] = useState(false);
-
-  const [selectedChallan, setSelectedChallan] = useState<any>(null);
+  const [selectedChallan, setSelectedChallan] = useState<ChallanData | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deletingChallan, setDeletingChallan] = useState<any>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadChallans();
   }, []);
 
+  const calculateTotalItems = (items: ItemsData): number => {
+    let total = 0;
+    for (let size = 1; size <= 9; size++) {
+      total += items[`size_${size}_qty` as keyof ItemsData] as number || 0;
+    }
+    return total;
+  };
+
   const loadChallans = async () => {
     setLoading(true);
-    setError(null);
-
     try {
-      const [udharResult, jamaResult] = await Promise.all([
-        fetchUdharChallans(),
-        fetchJamaChallans(),
-      ]);
-
-      if (udharResult.error) throw udharResult.error;
-      if (jamaResult.error) throw jamaResult.error;
-
-      setUdharChallans(udharResult.data || []);
-      setJamaChallans(jamaResult.data || []);
-    } catch (err: any) {
-      console.error('Error loading challans:', err);
-      setError(err.message || 'Failed to load challans');
+      await Promise.all([fetchUdharChallans(), fetchJamaChallans()]);
+    } catch (error) {
+      console.error('Error loading challans:', error);
+      alert('Error loading challans');
     } finally {
       setLoading(false);
     }
   };
 
-  const filterAndSortChallans = (challans: any[], type: 'udhar' | 'jama') => {
-    let filtered = [...challans];
+  const fetchUdharChallans = async () => {
+    const { data, error } = await supabase
+      .from('udhar_challans')
+      .select(`
+        udhar_challan_number,
+        udhar_date,
+        driver_name,
+        alternative_site,
+        secondary_phone_number,
+        client_id,
+        client:clients!udhar_challans_client_id_fkey (
+          id,
+          client_nic_name,
+          client_name,
+          site,
+          primary_phone_number
+        ),
+        items:udhar_items!udhar_items_udhar_challan_number_fkey (
+          size_1_qty,
+          size_2_qty,
+          size_3_qty,
+          size_4_qty,
+          size_5_qty,
+          size_6_qty,
+          size_7_qty,
+          size_8_qty,
+          size_9_qty,
+          size_1_borrowed,
+          size_2_borrowed,
+          size_3_borrowed,
+          size_4_borrowed,
+          size_5_borrowed,
+          size_6_borrowed,
+          size_7_borrowed,
+          size_8_borrowed,
+          size_9_borrowed,
+          size_1_note,
+          size_2_note,
+          size_3_note,
+          size_4_note,
+          size_5_note,
+          size_6_note,
+          size_7_note,
+          size_8_note,
+          size_9_note,
+          main_note
+        )
+      `)
+      .order('udhar_date', { ascending: false });
 
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter((challan) => {
-        const challanNumber = type === 'udhar'
-          ? challan.udhar_challan_number
-          : challan.jama_challan_number;
-        const clientName = challan.client?.client_nic_name?.toLowerCase() || '';
-        const fullClientName = challan.client?.client_name?.toLowerCase() || '';
-        const site = (challan.alternative_site || challan.client?.site || '').toLowerCase();
-        const driver = (challan.driver_name || '').toLowerCase();
-
-        return (
-          challanNumber.toLowerCase().includes(term) ||
-          clientName.includes(term) ||
-          fullClientName.includes(term) ||
-          site.includes(term) ||
-          driver.includes(term)
-        );
-      });
+    if (error) {
+      console.error('Error fetching udhar challans:', error);
+      return;
     }
 
-    if (dateFrom) {
-      filtered = filtered.filter((challan) => {
-        const challanDate = type === 'udhar' ? challan.udhar_date : challan.jama_date;
-        return new Date(challanDate) >= new Date(dateFrom);
-      });
-    }
+    const transformedData = (data || []).map((challan: any) => ({
+      challanNumber: challan.udhar_challan_number,
+      date: challan.udhar_date,
+      driverName: challan.driver_name,
+      clientNicName: challan.client.client_nic_name,
+      clientFullName: challan.client.client_name,
+      site: challan.alternative_site || challan.client.site,
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: challan.items[0],
+      totalItems: calculateTotalItems(challan.items[0]),
+    }));
 
-    if (dateTo) {
-      filtered = filtered.filter((challan) => {
-        const challanDate = type === 'udhar' ? challan.udhar_date : challan.jama_date;
-        return new Date(challanDate) <= new Date(dateTo);
-      });
-    }
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'date-asc': {
-          const dateA = new Date(type === 'udhar' ? a.udhar_date : a.jama_date);
-          const dateB = new Date(type === 'udhar' ? b.udhar_date : b.jama_date);
-          return dateA.getTime() - dateB.getTime();
-        }
-        case 'date-desc': {
-          const dateA = new Date(type === 'udhar' ? a.udhar_date : a.jama_date);
-          const dateB = new Date(type === 'udhar' ? b.udhar_date : b.jama_date);
-          return dateB.getTime() - dateA.getTime();
-        }
-        case 'challan-asc': {
-          const numA = type === 'udhar' ? a.udhar_challan_number : a.jama_challan_number;
-          const numB = type === 'udhar' ? b.udhar_challan_number : b.jama_challan_number;
-          return numA.localeCompare(numB);
-        }
-        case 'client-asc': {
-          const nameA = a.client?.client_nic_name || '';
-          const nameB = b.client?.client_nic_name || '';
-          return nameA.localeCompare(nameB);
-        }
-        default:
-          return 0;
-      }
-    });
-
-    return filtered;
+    setUdharChallans(transformedData);
   };
 
-  const handleViewDetails = (challan: any) => {
+  const fetchJamaChallans = async () => {
+    const { data, error } = await supabase
+      .from('jama_challans')
+      .select(`
+        jama_challan_number,
+        jama_date,
+        driver_name,
+        alternative_site,
+        secondary_phone_number,
+        client_id,
+        client:clients!jama_challans_client_id_fkey (
+          id,
+          client_nic_name,
+          client_name,
+          site,
+          primary_phone_number
+        ),
+        items:jama_items!jama_items_jama_challan_number_fkey (
+          size_1_qty,
+          size_2_qty,
+          size_3_qty,
+          size_4_qty,
+          size_5_qty,
+          size_6_qty,
+          size_7_qty,
+          size_8_qty,
+          size_9_qty,
+          size_1_borrowed,
+          size_2_borrowed,
+          size_3_borrowed,
+          size_4_borrowed,
+          size_5_borrowed,
+          size_6_borrowed,
+          size_7_borrowed,
+          size_8_borrowed,
+          size_9_borrowed,
+          size_1_note,
+          size_2_note,
+          size_3_note,
+          size_4_note,
+          size_5_note,
+          size_6_note,
+          size_7_note,
+          size_8_note,
+          size_9_note,
+          main_note
+        )
+      `)
+      .order('jama_date', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching jama challans:', error);
+      return;
+    }
+
+    const transformedData = (data || []).map((challan: any) => ({
+      challanNumber: challan.jama_challan_number,
+      date: challan.jama_date,
+      driverName: challan.driver_name,
+      clientNicName: challan.client.client_nic_name,
+      clientFullName: challan.client.client_name,
+      site: challan.alternative_site || challan.client.site,
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: challan.items[0],
+      totalItems: calculateTotalItems(challan.items[0]),
+    }));
+
+    setJamaChallans(transformedData);
+  };
+
+  const handleViewDetails = (challan: ChallanData) => {
     setSelectedChallan(challan);
     setShowDetailsModal(true);
   };
 
-  const handleEdit = (challan: any) => {
-    const challanNumber = activeTab === 'udhar'
-      ? challan.udhar_challan_number
-      : challan.jama_challan_number;
-
-    navigate(`/${activeTab}-challan?edit=${challanNumber}`);
-  };
-
-  const handleDeleteClick = (challan: any) => {
-    setDeletingChallan(challan);
-    setShowDeleteDialog(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deletingChallan) return;
-
-    setIsDeleting(true);
+  const handleDownloadJPEG = async (challan: ChallanData) => {
     try {
-      const items = deletingChallan.items?.[0] || {};
-      const challanNumber = activeTab === 'udhar'
-        ? deletingChallan.udhar_challan_number
-        : deletingChallan.jama_challan_number;
+      await generateJPEG(activeTab, challan.challanNumber, challan.date);
+    } catch (error) {
+      console.error('Error generating JPEG:', error);
+      alert('Error generating JPEG');
+    }
+  };
 
-      const result = activeTab === 'udhar'
-        ? await deleteUdharChallan(challanNumber, items)
-        : await deleteJamaChallan(challanNumber, items);
+  const handleDelete = async (challan: ChallanData) => {
+    const confirmed = window.confirm(
+      `${t('confirmDelete')}\n\n${t('challanNumber')}: ${challan.challanNumber}\n${t('totalItems')}: ${challan.totalItems} ${t('pieces')}\n\n${t('deleteWarning')}`
+    );
 
-      if (result.success) {
-        alert(t.challanDeleted);
-        setShowDeleteDialog(false);
-        setDeletingChallan(null);
-        await loadChallans();
-      } else {
-        alert(`Error: ${result.error}`);
-      }
-    } catch (err: any) {
-      console.error('Error deleting challan:', err);
-      alert(`Error: ${err.message}`);
-    } finally {
-      setIsDeleting(false);
+    if (!confirmed) return;
+
+    try {
+      const tableName = activeTab === 'udhar' ? 'udhar_challans' : 'jama_challans';
+      const numberField = activeTab === 'udhar' ? 'udhar_challan_number' : 'jama_challan_number';
+
+      const { error } = await supabase
+        .from(tableName)
+        .delete()
+        .eq(numberField, challan.challanNumber);
+
+      if (error) throw error;
+
+      alert(t('challanDeleted'));
+      loadChallans();
+    } catch (error) {
+      console.error('Error deleting challan:', error);
+      alert('Error deleting challan');
     }
   };
 
   const currentChallans = activeTab === 'udhar' ? udharChallans : jamaChallans;
-  const filteredChallans = filterAndSortChallans(currentChallans, activeTab);
-
-  const calculateTotalStockAdjustment = (challan: any) => {
-    const items = challan.items?.[0] || {};
-    let totalQty = 0;
-    let totalBorrowed = 0;
-
-    for (let size = 1; size <= 9; size++) {
-      totalQty += items[`size_${size}_qty`] || 0;
-      totalBorrowed += items[`size_${size}_borrowed`] || 0;
-    }
-
-    return { totalQty, totalBorrowed };
-  };
-
-  if (loading) {
+  const filteredChallans = currentChallans.filter((challan) => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <div className="flex items-center justify-center h-64">
-          <div className="text-gray-600">
-            {language === 'gu' ? 'લોડ થઈ રહ્યું છે...' : 'Loading...'}
-          </div>
-        </div>
-      </div>
+      challan.challanNumber.toLowerCase().includes(searchLower) ||
+      challan.clientNicName.toLowerCase().includes(searchLower) ||
+      challan.clientFullName.toLowerCase().includes(searchLower) ||
+      challan.site.toLowerCase().includes(searchLower)
     );
-  }
+  });
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <div className="min-h-screen bg-gray-100 flex">
+      <aside className="w-64 bg-white shadow-lg flex flex-col">
+        <div className="p-6 border-b">
+          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
-        >
-          <ArrowLeft size={20} />
-          {t.backToDashboard}
-        </button>
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-gray-900">
-              {t.challanBook}
-            </h1>
+        <nav className="flex-1 p-4">
+          <div className="space-y-2">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <span>{t('dashboard')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/clients')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+            >
+              <UserPlus size={20} />
+              <span>{t('addClient')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/udhar-challan')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+            >
+              <FileText size={20} />
+              <span>{t('udharChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/jama-challan')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+            >
+              <FileCheck size={20} />
+              <span>{t('jamaChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/challan-book')}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-gray-100 text-gray-900 border-l-4 border-gray-600 rounded-lg"
+            >
+              <BookOpen size={20} />
+              <span>{t('challanBook')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/stock')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-600 rounded-lg transition-colors"
+            >
+              <Package size={20} />
+              <span>{t('stockManagement')}</span>
+            </button>
           </div>
+        </nav>
 
-          <div className="border-b border-gray-200">
-            <div className="flex">
-              <button
-                onClick={() => setActiveTab('udhar')}
-                className={`flex-1 px-6 py-4 text-center font-semibold transition-colors ${
-                  activeTab === 'udhar'
-                    ? 'bg-orange-50 text-orange-700 border-b-2 border-orange-600'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {t.udharChallans}
-              </button>
-              <button
-                onClick={() => setActiveTab('jama')}
-                className={`flex-1 px-6 py-4 text-center font-semibold transition-colors ${
-                  activeTab === 'jama'
-                    ? 'bg-green-50 text-green-700 border-b-2 border-green-600'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                {t.jamaChallans}
-              </button>
+        <div className="p-4 border-t space-y-4">
+          <div className="flex justify-center">
+            <LanguageToggle />
+          </div>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            <LogOut size={20} />
+            <span>{t('logout')}</span>
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('challanBook')}</h2>
+
+          <div className="bg-white rounded-lg shadow-md mb-6">
+            <div className="border-b border-gray-200">
+              <nav className="flex">
+                <button
+                  onClick={() => setActiveTab('udhar')}
+                  className={`flex-1 py-4 px-6 text-center font-medium ${
+                    activeTab === 'udhar'
+                      ? 'border-b-2 border-red-600 text-red-600'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {t('udharChallans')}
+                </button>
+                <button
+                  onClick={() => setActiveTab('jama')}
+                  className={`flex-1 py-4 px-6 text-center font-medium ${
+                    activeTab === 'jama'
+                      ? 'border-b-2 border-green-600 text-green-600'
+                      : 'text-gray-600 hover:text-gray-800'
+                  }`}
+                >
+                  {t('jamaChallans')}
+                </button>
+              </nav>
             </div>
-          </div>
 
-          <div className="p-6 space-y-6">
-            <SearchFilter
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              dateFrom={dateFrom}
-              onDateFromChange={setDateFrom}
-              dateTo={dateTo}
-              onDateToChange={setDateTo}
-              sortBy={sortBy}
-              onSortChange={setSortBy}
-              showFilters={showFilters}
-              onToggleFilters={() => setShowFilters(!showFilters)}
-            />
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {error}
+            <div className="p-6">
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder={t('searchChallan')}
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
-            )}
 
-            {filteredChallans.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                {t.noChallansFound}
-              </div>
-            ) : (
-              <>
-                <div className="hidden md:block overflow-x-auto">
-                  <table className="min-w-full border border-gray-200">
+              {loading ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">Loading challans...</p>
+                </div>
+              ) : filteredChallans.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-600">{t('noChallansFound')}</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
-                          {t.challanNumber}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('challanNumber')}
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
-                          {t.date}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('date')}
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
-                          {t.clientName}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('clientName')}
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
-                          {t.site}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('site')}
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
-                          {t.totalItems}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('phone')}
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700 border-b">
-                          {t.actions}
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('totalItems')}
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {t('actions')}
                         </th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {filteredChallans.map((challan) => {
-                        const challanNumber = activeTab === 'udhar'
-                          ? challan.udhar_challan_number
-                          : challan.jama_challan_number;
-                        const date = activeTab === 'udhar'
-                          ? challan.udhar_date
-                          : challan.jama_date;
-                        const items = challan.items?.[0] || {};
-                        const totalItems = calculateTotalItems(items);
-                        const site = challan.alternative_site || challan.client?.site || '';
-
-                        return (
-                          <tr key={challanNumber} className="hover:bg-gray-50">
-                            <td className="px-6 py-4 text-sm text-gray-900 border-b">
-                              {challanNumber}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 border-b">
-                              {format(new Date(date), 'dd/MM/yyyy')}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 border-b">
-                              {challan.client?.client_nic_name}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 border-b">
-                              {site}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 border-b">
-                              {totalItems} {t.pieces}
-                            </td>
-                            <td className="px-6 py-4 text-sm border-b">
-                              <div className="flex gap-2">
-                                <button
-                                  onClick={() => handleViewDetails(challan)}
-                                  className="flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
-                                  title={t.viewDetails}
-                                >
-                                  <Eye size={16} />
-                                  <span className="hidden lg:inline">{t.viewDetails}</span>
-                                </button>
-                                <button
-                                  onClick={() => handleEdit(challan)}
-                                  className="flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                                  title={t.edit}
-                                >
-                                  <Edit2 size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteClick(challan)}
-                                  className="flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                                  title={t.delete}
-                                >
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {filteredChallans.map((challan) => (
+                        <tr key={challan.challanNumber} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {challan.challanNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {format(new Date(challan.date), 'dd/MM/yyyy')}
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            <div>
+                              <div className="font-medium">{challan.clientNicName}</div>
+                              <div className="text-xs text-gray-500">{challan.clientFullName}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 text-sm text-gray-900">
+                            {challan.site}
+                            {challan.isAlternativeSite && (
+                              <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                                {t('alternative')}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {challan.phone}
+                            {challan.isSecondaryPhone && (
+                              <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                                {t('alternative')}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {challan.totalItems} {t('pieces')}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleViewDetails(challan)}
+                                className="text-blue-600 hover:text-blue-800"
+                                title={t('viewDetails')}
+                              >
+                                <Eye size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(challan)}
+                                className="text-red-600 hover:text-red-800"
+                                title={t('delete')}
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
-
-                <div className="md:hidden space-y-4">
-                  {filteredChallans.map((challan) => (
-                    <ChallanCard
-                      key={activeTab === 'udhar' ? challan.udhar_challan_number : challan.jama_challan_number}
-                      challan={challan}
-                      type={activeTab}
-                      onView={() => handleViewDetails(challan)}
-                      onEdit={() => handleEdit(challan)}
-                      onDelete={() => handleDeleteClick(challan)}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      </main>
 
       <ChallanDetailsModal
-        isOpen={showDetailsModal}
-        onClose={() => {
-          setShowDetailsModal(false);
-          setSelectedChallan(null);
-        }}
-        onEdit={() => {
-          setShowDetailsModal(false);
-          handleEdit(selectedChallan);
-        }}
         challan={selectedChallan}
         type={activeTab}
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        onDownload={handleDownloadJPEG}
       />
-
-      {deletingChallan && (
-        <DeleteConfirmDialog
-          isOpen={showDeleteDialog}
-          onClose={() => {
-            setShowDeleteDialog(false);
-            setDeletingChallan(null);
-          }}
-          onConfirm={handleDeleteConfirm}
-          challanNumber={
-            activeTab === 'udhar'
-              ? deletingChallan.udhar_challan_number
-              : deletingChallan.jama_challan_number
-          }
-          totalQty={calculateTotalStockAdjustment(deletingChallan).totalQty}
-          totalBorrowed={calculateTotalStockAdjustment(deletingChallan).totalBorrowed}
-          isDeleting={isDeleting}
-        />
-      )}
     </div>
   );
 };
+
+export default ChallanBook;

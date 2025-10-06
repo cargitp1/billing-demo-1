@@ -117,6 +117,11 @@ export const translations = {
     descending: 'ઘટતા ક્રમમાં',
     noChallansFound: 'કોઈ ચલણ મળ્યું નથી',
     pieces: 'પીસ',
+    alternative: 'વૈકલ્પિક',
+    clientInfo: 'ક્લાયન્ટ માહિતી',
+    downloadJPEG: 'JPEG ડાઉનલોડ કરો',
+    close: 'બંધ કરો',
+    challanInfo: 'ચલણ માહિતી',
   },
   en: {
     appName: 'Nilkanth Plat Depo',
@@ -235,7 +240,12 @@ export const translations = {
     ascending: 'Ascending',
     descending: 'Descending',
     noChallansFound: 'No challans found',
-    pieces: 'pieces',
+    pieces: 'pcs',
+    alternative: 'Alternative',
+    clientInfo: 'Client Information',
+    downloadJPEG: 'Download JPEG',
+    close: 'Close',
+    challanInfo: 'Challan Information',
   },
 };
 
