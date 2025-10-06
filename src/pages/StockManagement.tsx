@@ -46,6 +46,10 @@ const StockManagement: React.FC = () => {
       .select('*')
       .order('size');
 
+    // Debug: log raw response so developer can inspect why there are no rows
+    // Open browser devtools console to see this output when visiting /stock
+    console.log('fetchStock response:', { data, error });
+
     if (error) {
       console.error('Error fetching stock:', error);
     } else {

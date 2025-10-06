@@ -9,7 +9,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const users = [
-  { username: 'admin', password: 'admin123' },
+  { username: 'admin', password: 'admin' },
   { username: 'user1', password: 'user123' }
 ];
 
