@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Eye, Trash2 } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Eye, Trash2, Edit, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
 import ChallanDetailsModal from '../components/ChallanDetailsModal';
+import ChallanEditModal from '../components/ChallanEditModal';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 import { format } from 'date-fns';
@@ -82,6 +83,7 @@ const ChallanBook: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedChallan, setSelectedChallan] = useState<ChallanData | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
@@ -281,6 +283,15 @@ const ChallanBook: React.FC = () => {
   const handleViewDetails = (challan: ChallanData) => {
     setSelectedChallan(challan);
     setShowDetailsModal(true);
+  };
+
+  const handleEdit = (challan: ChallanData) => {
+    setSelectedChallan(challan);
+    setShowEditModal(true);
+  };
+
+  const handleEditSave = () => {
+    loadChallans();
   };
 
   const handleDownloadJPEG = async (challan: ChallanData) => {
@@ -511,14 +522,28 @@ const ChallanBook: React.FC = () => {
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleViewDetails(challan)}
-                                className="text-blue-600 hover:text-blue-800"
+                                className="p-2 text-blue-600 transition-colors rounded hover:bg-blue-50 hover:text-blue-800"
                                 title={t('viewDetails')}
                               >
                                 <Eye size={18} />
                               </button>
                               <button
+                                onClick={() => handleEdit(challan)}
+                                className="p-2 text-yellow-600 transition-colors rounded hover:bg-yellow-50 hover:text-yellow-800"
+                                title={t('edit')}
+                              >
+                                <Edit size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleDownloadJPEG(challan)}
+                                className="p-2 text-green-600 transition-colors rounded hover:bg-green-50 hover:text-green-800"
+                                title="Download JPEG"
+                              >
+                                <Download size={18} />
+                              </button>
+                              <button
                                 onClick={() => handleDelete(challan)}
-                                className="text-red-600 hover:text-red-800"
+                                className="p-2 text-red-600 transition-colors rounded hover:bg-red-50 hover:text-red-800"
                                 title={t('delete')}
                               >
                                 <Trash2 size={18} />
@@ -542,6 +567,14 @@ const ChallanBook: React.FC = () => {
         isOpen={showDetailsModal}
         onClose={() => setShowDetailsModal(false)}
         onDownload={handleDownloadJPEG}
+      />
+
+      <ChallanEditModal
+        challan={selectedChallan}
+        type={activeTab}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSave={handleEditSave}
       />
     </div>
   );
