@@ -182,6 +182,7 @@ const ChallanBook: React.FC = () => {
       driverName: challan.driver_name,
       clientNicName: challan.client.client_nic_name,
       clientFullName: challan.client.client_name,
+      clientId: challan.client_id,
       site: challan.alternative_site || challan.client.site,
       isAlternativeSite: !!challan.alternative_site,
       phone: challan.secondary_phone_number || challan.client.primary_phone_number,
@@ -265,6 +266,7 @@ const ChallanBook: React.FC = () => {
       driverName: challan.driver_name,
       clientNicName: challan.client.client_nic_name,
       clientFullName: challan.client.client_name,
+      clientId: challan.client_id,
       site: challan.alternative_site || challan.client.site,
       isAlternativeSite: !!challan.alternative_site,
       phone: challan.secondary_phone_number || challan.client.primary_phone_number,
@@ -311,18 +313,43 @@ const ChallanBook: React.FC = () => {
     if (!confirmed) return;
 
     try {
-      const tableName = activeTab === 'udhar' ? 'udhar_challans' : 'jama_challans';
-      const numberField = activeTab === 'udhar' ? 'udhar_challan_number' : 'jama_challan_number';
+      const rpcFunction = activeTab === 'udhar' ? 'delete_udhar_challan_with_stock' : 'delete_jama_challan_with_stock';
 
-      const { error } = await supabase
-        .from(tableName)
-        .delete()
-        .eq(numberField, challan.challanNumber);
+      const { data, error } = await supabase.rpc(rpcFunction, {
+        p_challan_number: challan.challanNumber,
+        p_size_1_qty: challan.items.size_1_qty,
+        p_size_2_qty: challan.items.size_2_qty,
+        p_size_3_qty: challan.items.size_3_qty,
+        p_size_4_qty: challan.items.size_4_qty,
+        p_size_5_qty: challan.items.size_5_qty,
+        p_size_6_qty: challan.items.size_6_qty,
+        p_size_7_qty: challan.items.size_7_qty,
+        p_size_8_qty: challan.items.size_8_qty,
+        p_size_9_qty: challan.items.size_9_qty,
+        p_size_1_borrowed: challan.items.size_1_borrowed,
+        p_size_2_borrowed: challan.items.size_2_borrowed,
+        p_size_3_borrowed: challan.items.size_3_borrowed,
+        p_size_4_borrowed: challan.items.size_4_borrowed,
+        p_size_5_borrowed: challan.items.size_5_borrowed,
+        p_size_6_borrowed: challan.items.size_6_borrowed,
+        p_size_7_borrowed: challan.items.size_7_borrowed,
+        p_size_8_borrowed: challan.items.size_8_borrowed,
+        p_size_9_borrowed: challan.items.size_9_borrowed,
+      });
 
       if (error) throw error;
 
-      alert(t('challanDeleted'));
-      loadChallans();
+      if (data && typeof data === 'object' && 'success' in data) {
+        if (data.success) {
+          alert(t('challanDeleted'));
+          loadChallans();
+        } else {
+          alert(`Error: ${data.message}`);
+        }
+      } else {
+        alert(t('challanDeleted'));
+        loadChallans();
+      }
     } catch (error) {
       console.error('Error deleting challan:', error);
       alert('Error deleting challan');

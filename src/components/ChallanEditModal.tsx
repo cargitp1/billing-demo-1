@@ -46,6 +46,7 @@ interface ChallanData {
   isSecondaryPhone: boolean;
   items: ItemsData;
   totalItems: number;
+  clientId?: string;
 }
 
 interface ChallanEditModalProps {
@@ -77,6 +78,15 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
     size_6_note: null, size_7_note: null, size_8_note: null, size_9_note: null,
     main_note: null,
   });
+  const [originalItems, setOriginalItems] = useState<ItemsData>({
+    size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
+    size_6_qty: 0, size_7_qty: 0, size_8_qty: 0, size_9_qty: 0,
+    size_1_borrowed: 0, size_2_borrowed: 0, size_3_borrowed: 0, size_4_borrowed: 0, size_5_borrowed: 0,
+    size_6_borrowed: 0, size_7_borrowed: 0, size_8_borrowed: 0, size_9_borrowed: 0,
+    size_1_note: null, size_2_note: null, size_3_note: null, size_4_note: null, size_5_note: null,
+    size_6_note: null, size_7_note: null, size_8_note: null, size_9_note: null,
+    main_note: null,
+  });
 
   useEffect(() => {
     if (challan && isOpen) {
@@ -84,6 +94,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
       setAlternativeSite(challan.isAlternativeSite ? challan.site : '');
       setSecondaryPhone(challan.isSecondaryPhone ? challan.phone : '');
       setItems(challan.items);
+      setOriginalItems(challan.items);
     }
   }, [challan, isOpen]);
 
@@ -97,35 +108,86 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
   };
 
   const handleSave = async () => {
+    if (!challan?.clientId) {
+      alert('Client ID not found');
+      return;
+    }
+
     setLoading(true);
     try {
-      const tableName = type === 'udhar' ? 'udhar_challans' : 'jama_challans';
-      const itemsTableName = type === 'udhar' ? 'udhar_items' : 'jama_items';
-      const numberField = type === 'udhar' ? 'udhar_challan_number' : 'jama_challan_number';
+      const rpcFunction = type === 'udhar' ? 'update_udhar_challan_with_stock' : 'update_jama_challan_with_stock';
+      const dateField = type === 'udhar' ? 'p_udhar_date' : 'p_jama_date';
 
-      const challanUpdate: any = {
-        driver_name: driverName || null,
-        alternative_site: alternativeSite || null,
-        secondary_phone_number: secondaryPhone || null,
-      };
+      const { data, error } = await supabase.rpc(rpcFunction, {
+        p_challan_number: challan.challanNumber,
+        p_client_id: challan.clientId,
+        p_alternative_site: alternativeSite || null,
+        p_secondary_phone_number: secondaryPhone || null,
+        [dateField]: challan.date,
+        p_driver_name: driverName || null,
+        p_old_size_1_qty: originalItems.size_1_qty,
+        p_old_size_2_qty: originalItems.size_2_qty,
+        p_old_size_3_qty: originalItems.size_3_qty,
+        p_old_size_4_qty: originalItems.size_4_qty,
+        p_old_size_5_qty: originalItems.size_5_qty,
+        p_old_size_6_qty: originalItems.size_6_qty,
+        p_old_size_7_qty: originalItems.size_7_qty,
+        p_old_size_8_qty: originalItems.size_8_qty,
+        p_old_size_9_qty: originalItems.size_9_qty,
+        p_old_size_1_borrowed: originalItems.size_1_borrowed,
+        p_old_size_2_borrowed: originalItems.size_2_borrowed,
+        p_old_size_3_borrowed: originalItems.size_3_borrowed,
+        p_old_size_4_borrowed: originalItems.size_4_borrowed,
+        p_old_size_5_borrowed: originalItems.size_5_borrowed,
+        p_old_size_6_borrowed: originalItems.size_6_borrowed,
+        p_old_size_7_borrowed: originalItems.size_7_borrowed,
+        p_old_size_8_borrowed: originalItems.size_8_borrowed,
+        p_old_size_9_borrowed: originalItems.size_9_borrowed,
+        p_new_size_1_qty: items.size_1_qty,
+        p_new_size_2_qty: items.size_2_qty,
+        p_new_size_3_qty: items.size_3_qty,
+        p_new_size_4_qty: items.size_4_qty,
+        p_new_size_5_qty: items.size_5_qty,
+        p_new_size_6_qty: items.size_6_qty,
+        p_new_size_7_qty: items.size_7_qty,
+        p_new_size_8_qty: items.size_8_qty,
+        p_new_size_9_qty: items.size_9_qty,
+        p_new_size_1_borrowed: items.size_1_borrowed,
+        p_new_size_2_borrowed: items.size_2_borrowed,
+        p_new_size_3_borrowed: items.size_3_borrowed,
+        p_new_size_4_borrowed: items.size_4_borrowed,
+        p_new_size_5_borrowed: items.size_5_borrowed,
+        p_new_size_6_borrowed: items.size_6_borrowed,
+        p_new_size_7_borrowed: items.size_7_borrowed,
+        p_new_size_8_borrowed: items.size_8_borrowed,
+        p_new_size_9_borrowed: items.size_9_borrowed,
+        p_new_size_1_note: items.size_1_note,
+        p_new_size_2_note: items.size_2_note,
+        p_new_size_3_note: items.size_3_note,
+        p_new_size_4_note: items.size_4_note,
+        p_new_size_5_note: items.size_5_note,
+        p_new_size_6_note: items.size_6_note,
+        p_new_size_7_note: items.size_7_note,
+        p_new_size_8_note: items.size_8_note,
+        p_new_size_9_note: items.size_9_note,
+        p_new_main_note: items.main_note,
+      });
 
-      const { error: challanError } = await supabase
-        .from(tableName)
-        .update(challanUpdate)
-        .eq(numberField, challan.challanNumber);
+      if (error) throw error;
 
-      if (challanError) throw challanError;
-
-      const { error: itemsError } = await supabase
-        .from(itemsTableName)
-        .update(items)
-        .eq(numberField, challan.challanNumber);
-
-      if (itemsError) throw itemsError;
-
-      alert(t('challanUpdated'));
-      onSave();
-      onClose();
+      if (data && typeof data === 'object' && 'success' in data) {
+        if (data.success) {
+          alert(t('challanUpdated'));
+          onSave();
+          onClose();
+        } else {
+          alert(`Error: ${data.message}`);
+        }
+      } else {
+        alert(t('challanUpdated'));
+        onSave();
+        onClose();
+      }
     } catch (error) {
       console.error('Error updating challan:', error);
       alert('Error updating challan');
