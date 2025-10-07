@@ -48,6 +48,7 @@ export const translations = {
     cancelAll: 'બધા રદ કરો',
     lastUpdated: 'છેલ્લે અપડેટ થયું',
     totalAvailable: 'કુલ ઉપલબ્ધ',
+    totalOut: 'કુલ બહાર',
     stockOverview: 'સ્ટોક ઓવરવ્યુ',
     lowStock: 'ઓછો સ્ટોક',
     outOfStock: 'સ્ટોક સમાપ્ત',
