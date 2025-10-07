@@ -103,24 +103,6 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
       const itemsTableName = type === 'udhar' ? 'udhar_items' : 'jama_items';
       const numberField = type === 'udhar' ? 'udhar_challan_number' : 'jama_challan_number';
 
-      for (let size = 1; size <= 9; size++) {
-        const originalQty = challan.items[`size_${size}_qty` as keyof ItemsData] as number;
-        const originalBorrowed = challan.items[`size_${size}_borrowed` as keyof ItemsData] as number;
-
-        if (originalQty > 0 || originalBorrowed > 0) {
-          const reverseRpc = type === 'udhar' ? 'decrement_stock' : 'increment_stock';
-          const { error } = await supabase.rpc(reverseRpc, {
-            p_size: size,
-            p_on_rent_increment: type === 'udhar' ? 0 : originalQty,
-            p_on_rent_decrement: type === 'udhar' ? originalQty : 0,
-            p_borrowed_increment: type === 'udhar' ? 0 : originalBorrowed,
-            p_borrowed_decrement: type === 'udhar' ? originalBorrowed : 0,
-          });
-
-          if (error) throw error;
-        }
-      }
-
       const challanUpdate: any = {
         driver_name: driverName || null,
         alternative_site: alternativeSite || null,
@@ -140,24 +122,6 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
         .eq(numberField, challan.challanNumber);
 
       if (itemsError) throw itemsError;
-
-      for (let size = 1; size <= 9; size++) {
-        const newQty = items[`size_${size}_qty` as keyof ItemsData] as number;
-        const newBorrowed = items[`size_${size}_borrowed` as keyof ItemsData] as number;
-
-        if (newQty > 0 || newBorrowed > 0) {
-          const applyRpc = type === 'udhar' ? 'increment_stock' : 'decrement_stock';
-          const { error } = await supabase.rpc(applyRpc, {
-            p_size: size,
-            p_on_rent_increment: type === 'udhar' ? newQty : 0,
-            p_on_rent_decrement: type === 'udhar' ? 0 : newQty,
-            p_borrowed_increment: type === 'udhar' ? newBorrowed : 0,
-            p_borrowed_decrement: type === 'udhar' ? 0 : newBorrowed,
-          });
-
-          if (error) throw error;
-        }
-      }
 
       alert(t('challanUpdated'));
       onSave();
