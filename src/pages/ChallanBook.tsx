@@ -94,9 +94,8 @@ const ChallanBook: React.FC = () => {
     const safeItems = items || emptyItems;
     let total = 0;
     for (let size = 1; size <= 9; size++) {
-      const qty = (safeItems[`size_${size}_qty` as keyof ItemsData] as unknown) as number;
-      const borrowed = (safeItems[`size_${size}_borrowed` as keyof ItemsData] as unknown) as number;
-      total += (qty || 0) + (borrowed || 0);
+      const val = (safeItems[`size_${size}_qty` as keyof ItemsData] as unknown) as number;
+      total += (val || 0);
     }
     return total;
   };

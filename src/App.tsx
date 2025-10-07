@@ -10,7 +10,6 @@ import UdharChallan from './pages/UdharChallan';
 import JamaChallan from './pages/JamaChallan';
 import StockManagement from './pages/StockManagement';
 import ChallanBook from './pages/ChallanBook';
-import Ledger from './pages/Ledger';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -70,14 +69,6 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ChallanBook />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/ledger"
-              element={
-                <ProtectedRoute>
-                  <Ledger />
                 </ProtectedRoute>
               }
             />

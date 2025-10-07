@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Book } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -45,12 +45,6 @@ const Dashboard: React.FC = () => {
       icon: BookOpen,
       path: '/challan-book',
       color: 'bg-teal-600 hover:bg-teal-700',
-    },
-    {
-      title: t('clientLedger'),
-      icon: Book,
-      path: '/ledger',
-      color: 'bg-indigo-600 hover:bg-indigo-700',
     },
   ];
 
@@ -97,13 +91,6 @@ const Dashboard: React.FC = () => {
             >
               <BookOpen size={20} />
               <span>{t('challanBook')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/ledger')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors"
-            >
-              <Book size={20} />
-              <span>{t('clientLedger')}</span>
             </button>
           </div>
         </nav>
