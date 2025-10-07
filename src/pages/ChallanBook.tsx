@@ -165,7 +165,16 @@ const ChallanBook: React.FC = () => {
       return;
     }
 
-    const transformedData = (data || []).map((challan: any) => ({
+  // Debug: show raw data returned by Supabase for troubleshooting
+  console.debug('udhar raw data length:', (data || []).length, data);
+
+  const transformedData = (data || []).map((challan: any) => {
+    // allow items to be returned either as an array (items[0]) or a single object
+    const rawItems = challan.items;
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+    // debug sample: show which shape we used for the first challan
+    // console.debug('udhar item shape for', challan.udhar_challan_number, { isArray: Array.isArray(rawItems), itemRow });
+    return {
       challanNumber: challan.udhar_challan_number,
       date: challan.udhar_date,
       driverName: challan.driver_name,
@@ -175,9 +184,13 @@ const ChallanBook: React.FC = () => {
       isAlternativeSite: !!challan.alternative_site,
       phone: challan.secondary_phone_number || challan.client.primary_phone_number,
       isSecondaryPhone: !!challan.secondary_phone_number,
-      items: (challan.items && challan.items[0]) ? challan.items[0] : emptyItems,
-      totalItems: calculateTotalItems((challan.items && challan.items[0]) ? challan.items[0] : emptyItems),
-    }));
+      items: itemRow,
+      totalItems: calculateTotalItems(itemRow),
+    };
+  });
+
+  // Debug: show a preview of transformed data (first 3 items)
+  console.debug('udhar transformed preview:', transformedData.slice(0, 3));
 
     setUdharChallans(transformedData);
   };
@@ -237,7 +250,14 @@ const ChallanBook: React.FC = () => {
       return;
     }
 
-    const transformedData = (data || []).map((challan: any) => ({
+  // Debug: show raw data returned by Supabase for troubleshooting
+  console.debug('jama raw data length:', (data || []).length, data);
+
+  const transformedData = (data || []).map((challan: any) => {
+    const rawItems = challan.items;
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+    // console.debug('jama item shape for', challan.jama_challan_number, { isArray: Array.isArray(rawItems), itemRow });
+    return {
       challanNumber: challan.jama_challan_number,
       date: challan.jama_date,
       driverName: challan.driver_name,
@@ -247,9 +267,13 @@ const ChallanBook: React.FC = () => {
       isAlternativeSite: !!challan.alternative_site,
       phone: challan.secondary_phone_number || challan.client.primary_phone_number,
       isSecondaryPhone: !!challan.secondary_phone_number,
-      items: (challan.items && challan.items[0]) ? challan.items[0] : emptyItems,
-      totalItems: calculateTotalItems((challan.items && challan.items[0]) ? challan.items[0] : emptyItems),
-    }));
+      items: itemRow,
+      totalItems: calculateTotalItems(itemRow),
+    };
+  });
+
+  // Debug: show a preview of transformed data (first 3 items)
+  console.debug('jama transformed preview:', transformedData.slice(0, 3));
 
     setJamaChallans(transformedData);
   };

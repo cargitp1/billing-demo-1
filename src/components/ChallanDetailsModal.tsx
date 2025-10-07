@@ -68,24 +68,24 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
   if (!isOpen || !challan) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+        <div className="sticky top-0 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900">
             {type === 'udhar' ? t('udharChallan') : t('jamaChallan')}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 transition-colors hover:text-gray-600"
           >
             <X size={24} />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('challanInfo')}</h3>
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-gray-50">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('challanInfo')}</h3>
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm text-gray-600">{t('challanNumber')}</p>
                 <p className="text-base font-medium text-gray-900">{challan.challanNumber}</p>
@@ -99,9 +99,9 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
             </div>
           </div>
 
-          <div className="bg-blue-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('clientInfo')}</h3>
-            <div className="grid md:grid-cols-2 gap-4">
+          <div className="p-4 rounded-lg bg-blue-50">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('clientInfo')}</h3>
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
                 <p className="text-sm text-gray-600">{t('clientNicName')}</p>
                 <p className="text-base font-medium text-gray-900">{challan.clientNicName}</p>
@@ -115,7 +115,7 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
                 <p className="text-base font-medium text-gray-900">
                   {challan.site}
                   {challan.isAlternativeSite && (
-                    <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                    <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-200 rounded">
                       {t('alternative')}
                     </span>
                   )}
@@ -126,7 +126,7 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
                 <p className="text-base font-medium text-gray-900">
                   {challan.phone}
                   {challan.isSecondaryPhone && (
-                    <span className="ml-2 text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                    <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-200 rounded">
                       {t('alternative')}
                     </span>
                   )}
@@ -141,22 +141,22 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('items')}</h3>
+          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('items')}</h3>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('size')}
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('quantity')}
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('borrowedStock')}
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('note')}
                     </th>
                   </tr>
@@ -171,13 +171,13 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
 
                     return (
                       <tr key={size} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                        <td className="px-4 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">
                           {size}
                         </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
                           {qty}
                         </td>
-                        <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-900">
+                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
                           {borrowed}
                         </td>
                         <td className="px-4 py-2 text-sm text-gray-900">
@@ -191,9 +191,9 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
             </div>
 
             {challan.items.main_note && (
-              <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded p-3">
+              <div className="p-3 mt-4 border border-yellow-200 rounded bg-yellow-50">
                 <p className="text-sm font-semibold text-gray-700">{t('mainNote')}:</p>
-                <p className="text-sm text-gray-900 mt-1">{challan.items.main_note}</p>
+                <p className="mt-1 text-sm text-gray-900">{challan.items.main_note}</p>
               </div>
             )}
 
@@ -205,17 +205,17 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+        <div className="sticky bottom-0 flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
           <button
             onClick={() => onDownload(challan)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
           >
             <Download size={20} />
             {t('downloadJPEG')}
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+            className="px-4 py-2 text-gray-800 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300"
           >
             {t('close')}
           </button>
