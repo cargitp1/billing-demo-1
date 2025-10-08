@@ -217,8 +217,8 @@ const ClientLedger: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
+    <div className="flex min-h-screen bg-gray-100">
+      <aside className="flex flex-col w-64 bg-white shadow-lg">
         <div className="p-6 border-b">
           <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
         </div>
@@ -227,49 +227,49 @@ const ClientLedger: React.FC = () => {
           <div className="space-y-2">
             <button
               onClick={() => navigate('/dashboard')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50 hover:text-gray-900"
             >
               <Package size={20} />
               <span>{t('dashboard')}</span>
             </button>
             <button
               onClick={() => navigate('/clients')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-600"
             >
               <UserPlus size={20} />
               <span>{t('clientManagement')}</span>
             </button>
             <button
               onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/stock')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50 hover:text-gray-600"
             >
               <Package size={20} />
               <span>{t('stockManagement')}</span>
             </button>
             <button
               onClick={() => navigate('/challan-book')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-teal-50 hover:text-teal-600"
             >
               <BookOpen size={20} />
               <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/client-ledger')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-amber-50 text-amber-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 transition-colors rounded-lg bg-amber-50 text-amber-600"
             >
               <Users size={20} />
               <span>{t('clientLedger')}</span>
@@ -277,13 +277,13 @@ const ClientLedger: React.FC = () => {
           </div>
         </nav>
 
-        <div className="p-4 border-t space-y-4">
+        <div className="p-4 space-y-4 border-t">
           <div className="flex justify-center">
             <LanguageToggle />
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
           >
             <LogOut size={20} />
             <span>{t('logout')}</span>
@@ -292,8 +292,8 @@ const ClientLedger: React.FC = () => {
       </aside>
 
       <main className="flex-1">
-        <div className="bg-white shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white border-b shadow-sm">
+          <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
             <div className="flex items-center h-16">
               <h1 className="text-2xl font-bold text-gray-900">
                 {t('clientLedger')} / ક્લાયન્ટ લેજર
@@ -302,7 +302,7 @@ const ClientLedger: React.FC = () => {
           </div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
         <div className="mb-6">
           <ClientSearchSelect
             clients={clients}
@@ -320,7 +320,7 @@ const ClientLedger: React.FC = () => {
         )}
 
         {loading && (
-          <div className="text-center py-12">
+          <div className="py-12 text-center">
             <div className="text-xl text-gray-600">{t('loading')}...</div>
           </div>
         )}
@@ -330,8 +330,8 @@ const ClientLedger: React.FC = () => {
         )}
 
         {!selectedClient && !loading && (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm">
-            <p className="text-gray-500 text-lg">
+          <div className="py-12 text-center bg-white rounded-lg shadow-sm">
+            <p className="text-lg text-gray-500">
               {t('selectClientToViewLedger')}
             </p>
           </div>

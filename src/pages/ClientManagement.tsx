@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
@@ -106,8 +106,8 @@ const ClientManagement: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
+    <div className="flex min-h-screen bg-gray-100">
+      <aside className="flex flex-col w-64 bg-white shadow-lg">
         <div className="p-6 border-b">
           <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
         </div>
@@ -116,55 +116,62 @@ const ClientManagement: React.FC = () => {
           <div className="space-y-2">
             <button
               onClick={() => navigate('/dashboard')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
             >
               <span>{t('dashboard')}</span>
             </button>
             <button
               onClick={() => navigate('/clients')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-600 border-l-4 border-blue-600 rounded-lg"
+              className="flex items-center w-full gap-3 px-4 py-3 text-blue-600 border-l-4 border-blue-600 rounded-lg bg-blue-50"
             >
               <UserPlus size={20} />
               <span>{t('addClient')}</span>
             </button>
             <button
               onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/challan-book')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
             >
               <BookOpen size={20} />
               <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/stock')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
             >
               <Package size={20} />
               <span>{t('stockManagement')}</span>
             </button>
+                        <button
+              onClick={() => navigate('/client-ledger')}
+              className="flex items-center w-full gap-3 px-4 py-3 transition-colors rounded-lg bg-amber-50 text-amber-600"
+            >
+              <Users size={20} />
+              <span>{t('clientLedger')}</span>
+            </button>
           </div>
         </nav>
 
-        <div className="p-4 border-t space-y-4">
+        <div className="p-4 space-y-4 border-t">
           <div className="flex justify-center">
             <LanguageToggle />
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
           >
             <LogOut size={20} />
             <span>{t('logout')}</span>
@@ -173,11 +180,11 @@ const ClientManagement: React.FC = () => {
       </aside>
 
       <main className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('clientManagement')}</h2>
+        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('clientManagement')}</h2>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
+        <div className="p-6 mb-8 bg-white rounded-lg shadow">
+          <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-900">
               {editingClient ? t('edit') : t('addNewClient')}
             </h3>
@@ -200,8 +207,8 @@ const ClientManagement: React.FC = () => {
           )}
         </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('clientList')}</h3>
+          <div className="p-6 bg-white rounded-lg shadow">
+            <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('clientList')}</h3>
             <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
           </div>
         </div>
