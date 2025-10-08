@@ -1,224 +1,102 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Users } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Book } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import ClientCard from '../components/ClientCard';
 import { supabase } from '../utils/supabase';
-import { format } from 'date-fns';
-import ReceiptTemplate from '../components/ReceiptTemplate';
-import { generateJPEG } from '../utils/generateJPEG';
-import ClientSearchSelect from '../components/ClientSearchSelect';
-import LedgerSummary from '../components/LedgerSummary';
-import LedgerTable from '../components/LedgerTable';
+import { fetchClientTransactions, calculateCurrentBalance } from '../utils/ledgerHelpers';
 
-interface Client {
+interface ClientData {
   id: string;
-  client_nic_name: string;
   client_name: string;
+  client_nic_name: string;
   site: string;
+  primary_phone_number: string;
+  transactions: any[];
+  currentBalance: number;
+  transactionCount: number;
 }
 
-interface LedgerEntry {
-  date: string;
-  challanNumber: string;
-  type: 'udhar' | 'jama';
-  site: string;
-  driver: string;
-  items: {
-    size_1_qty: number;
-    size_1_borrowed: number;
-    size_2_qty: number;
-    size_2_borrowed: number;
-    size_3_qty: number;
-    size_3_borrowed: number;
-    size_4_qty: number;
-    size_4_borrowed: number;
-    size_5_qty: number;
-    size_5_borrowed: number;
-    size_6_qty: number;
-    size_6_borrowed: number;
-    size_7_qty: number;
-    size_7_borrowed: number;
-    size_8_qty: number;
-    size_8_borrowed: number;
-    size_9_qty: number;
-    size_9_borrowed: number;
-    main_note?: string;
-  };
-  client: {
-    client_nic_name: string;
-    client_name: string;
-    site: string;
-    primary_phone_number?: string;
-  };
-}
-
-const ClientLedger: React.FC = () => {
+const NewClientLedger: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { t } = useLanguage();
-  const [clients, setClients] = useState<Client[]>([]);
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [ledgerData, setLedgerData] = useState<LedgerEntry[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [receiptData, setReceiptData] = useState<any>(null);
 
   const handleLogout = () => {
     logout();
     navigate('/');
   };
 
+  const [clients, setClients] = useState<ClientData[]>([]);
+  const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    fetchClients();
+    fetchClientsData();
   }, []);
 
-  const fetchClients = async () => {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('id, client_nic_name, client_name, site')
-      .order('client_name');
-
-    if (data) setClients(data);
-    if (error) console.error('Error fetching clients:', error);
-  };
-
-  const fetchClientLedger = async (clientId: string) => {
-    try {
-      const { data: udharData, error: udharError } = await supabase
-        .from('udhar_challans')
-        .select(`
-          udhar_challan_number,
-          udhar_date,
-          alternative_site,
-          driver_name,
-          client:clients!udhar_challans_client_id_fkey (
-            client_nic_name,
-            client_name,
-            site,
-            primary_phone_number
-          ),
-          items:udhar_items!udhar_items_udhar_challan_number_fkey (
-            size_1_qty, size_1_borrowed,
-            size_2_qty, size_2_borrowed,
-            size_3_qty, size_3_borrowed,
-            size_4_qty, size_4_borrowed,
-            size_5_qty, size_5_borrowed,
-            size_6_qty, size_6_borrowed,
-            size_7_qty, size_7_borrowed,
-            size_8_qty, size_8_borrowed,
-            size_9_qty, size_9_borrowed,
-            main_note
-          )
-        `)
-        .eq('client_id', clientId);
-
-      if (udharError) throw udharError;
-
-      const { data: jamaData, error: jamaError } = await supabase
-        .from('jama_challans')
-        .select(`
-          jama_challan_number,
-          jama_date,
-          alternative_site,
-          driver_name,
-          client:clients!jama_challans_client_id_fkey (
-            client_nic_name,
-            client_name,
-            site,
-            primary_phone_number
-          ),
-          items:jama_items!jama_items_jama_challan_number_fkey (
-            size_1_qty, size_1_borrowed,
-            size_2_qty, size_2_borrowed,
-            size_3_qty, size_3_borrowed,
-            size_4_qty, size_4_borrowed,
-            size_5_qty, size_5_borrowed,
-            size_6_qty, size_6_borrowed,
-            size_7_qty, size_7_borrowed,
-            size_8_qty, size_8_borrowed,
-            size_9_qty, size_9_borrowed,
-            main_note
-          )
-        `)
-        .eq('client_id', clientId);
-
-      if (jamaError) throw jamaError;
-
-      const udharTransformed: LedgerEntry[] = (udharData || []).map((challan: any) => ({
-        date: challan.udhar_date,
-        challanNumber: challan.udhar_challan_number,
-        type: 'udhar' as const,
-        site: challan.alternative_site || challan.client.site,
-        driver: challan.driver_name || '-',
-        items: challan.items[0] || {},
-        client: challan.client
-      }));
-
-      const jamaTransformed: LedgerEntry[] = (jamaData || []).map((challan: any) => ({
-        date: challan.jama_date,
-        challanNumber: challan.jama_challan_number,
-        type: 'jama' as const,
-        site: challan.alternative_site || challan.client.site,
-        driver: challan.driver_name || '-',
-        items: challan.items[0] || {},
-        client: challan.client
-      }));
-
-      const combined = [...udharTransformed, ...jamaTransformed].sort((a, b) => {
-        return new Date(a.date).getTime() - new Date(b.date).getTime();
-      });
-
-      return { data: combined, error: null };
-    } catch (error) {
-      console.error('Error fetching client ledger:', error);
-      return { data: null, error };
-    }
-  };
-
-  const handleClientSelect = async (client: Client) => {
-    setSelectedClient(client);
+  const fetchClientsData = async () => {
     setLoading(true);
+    try {
+      const { data: clientsData, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('client_name', { ascending: true });
 
-    const { data, error } = await fetchClientLedger(client.id);
+      if (error) throw error;
 
-    if (data) {
-      setLedgerData(data);
-    }
-    setLoading(false);
-  };
+      if (clientsData) {
+        const clientsWithData = await Promise.all(
+          clientsData.map(async (client) => {
+            const transactions = await fetchClientTransactions(client.id);
+            const balance = calculateCurrentBalance(transactions);
 
-  const handleDownloadChallan = async (entry: LedgerEntry) => {
-    setReceiptData({
-      challanType: entry.type,
-      challanNumber: entry.challanNumber,
-      date: entry.date,
-      client: entry.client,
-      site: entry.site,
-      driver: entry.driver,
-      items: entry.items
-    });
-
-    setTimeout(async () => {
-      try {
-        await generateJPEG(
-          entry.type,
-          entry.challanNumber,
-          format(new Date(entry.date), 'dd-MM-yyyy')
+            return {
+              ...client,
+              transactions,
+              currentBalance: balance,
+              transactionCount: transactions.length
+            };
+          })
         );
-      } catch (error) {
-        console.error('Error generating JPEG:', error);
-        alert('Error generating receipt');
-      } finally {
-        setReceiptData(null);
+
+        setClients(clientsWithData);
       }
-    }, 100);
+    } catch (error) {
+      console.error('Error fetching clients data:', error);
+      alert('Error loading clients data');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleToggle = (clientId: string) => {
+    setExpandedClientId(expandedClientId === clientId ? null : clientId);
+  };
+
+  const handleDownloadLedger = (client: ClientData) => {
+    alert(`Download ledger for ${client.client_name} - Coming soon!`);
+  };
+
+  const filteredClients = clients.filter(client => {
+    const query = searchQuery.toLowerCase();
+    return (
+      client.client_name.toLowerCase().includes(query) ||
+      client.client_nic_name.toLowerCase().includes(query) ||
+      client.site.toLowerCase().includes(query) ||
+      client.id.toLowerCase().includes(query)
+    );
+  });
+
+  const totalClients = clients.length;
+  const totalBalance = clients.reduce((sum, c) => sum + c.currentBalance, 0);
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <aside className="flex flex-col w-64 bg-white shadow-lg">
+    <div className="min-h-screen bg-gray-100 flex">
+      <aside className="w-64 bg-white shadow-lg flex flex-col">
         <div className="p-6 border-b">
           <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
         </div>
@@ -227,63 +105,62 @@ const ClientLedger: React.FC = () => {
           <div className="space-y-2">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50 hover:text-gray-900"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
             >
-              <Package size={20} />
               <span>{t('dashboard')}</span>
             </button>
             <button
               onClick={() => navigate('/clients')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-600"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
             >
               <UserPlus size={20} />
-              <span>{t('clientManagement')}</span>
+              <span>{t('addClient')}</span>
             </button>
             <button
               onClick={() => navigate('/udhar-challan')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
             </button>
             <button
-              onClick={() => navigate('/stock')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50 hover:text-gray-600"
-            >
-              <Package size={20} />
-              <span>{t('stockManagement')}</span>
-            </button>
-            <button
               onClick={() => navigate('/challan-book')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-teal-50 hover:text-teal-600"
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
             >
               <BookOpen size={20} />
               <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/client-ledger')}
-              className="flex items-center w-full gap-3 px-4 py-3 transition-colors rounded-lg bg-amber-50 text-amber-600"
+              className="w-full flex items-center gap-3 px-4 py-3 bg-purple-50 text-purple-600 border-l-4 border-purple-600 rounded-lg"
             >
-              <Users size={20} />
+              <Book size={20} />
               <span>{t('clientLedger')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/stock')}
+              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              <Package size={20} />
+              <span>{t('stockManagement')}</span>
             </button>
           </div>
         </nav>
 
-        <div className="p-4 space-y-4 border-t">
+        <div className="p-4 border-t space-y-4">
           <div className="flex justify-center">
             <LanguageToggle />
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
           >
             <LogOut size={20} />
             <span>{t('logout')}</span>
@@ -291,69 +168,68 @@ const ClientLedger: React.FC = () => {
         </div>
       </aside>
 
-      <main className="flex-1">
-        <div className="bg-white border-b shadow-sm">
-          <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-            <div className="flex items-center h-16">
-              <h1 className="text-2xl font-bold text-gray-900">
-                {t('clientLedger')} / ક્લાયન્ટ લેજર
-              </h1>
+      <main className="flex-1 overflow-auto">
+        <div className="max-w-6xl mx-auto bg-gray-100 min-h-screen">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6">
+            <div className="flex items-center justify-center mb-2">
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center">
+                <span className="text-4xl">📖</span>
+              </div>
+            </div>
+
+            <h1 className="text-3xl font-bold text-center mb-2">ખાતાવહી</h1>
+            <p className="text-center text-blue-100 text-lg">ગ્રાહક ભાડા ઇતિહાસ</p>
+
+            <div className="flex justify-between mt-6 gap-4">
+              <div className="flex-1 bg-blue-400 bg-opacity-30 px-4 py-3 rounded-lg text-center">
+                <div className="text-sm opacity-80">કુલ ગ્રાહકો</div>
+                <div className="text-2xl font-bold">{totalClients}</div>
+              </div>
+              <div className="flex-1 bg-blue-400 bg-opacity-30 px-4 py-3 rounded-lg text-center">
+                <div className="text-sm opacity-80">કુલ બાકી</div>
+                <div className="text-2xl font-bold">{totalBalance}</div>
+              </div>
             </div>
           </div>
+
+          <div className="bg-white p-4 shadow-md sticky top-0 z-10">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="નામ, ID અથવા સાઇટથી શોધો..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 border-2 border-blue-200 rounded-lg focus:border-blue-500 focus:outline-none text-lg"
+              />
+              <span className="absolute left-4 top-3 text-2xl">🔍</span>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-3">
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="text-xl text-gray-600">Loading...</div>
+              </div>
+            ) : filteredClients.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <p className="text-lg">કોઈ ગ્રાહક મળ્યો નહીં</p>
+              </div>
+            ) : (
+              filteredClients.map(client => (
+                <ClientCard
+                  key={client.id}
+                  client={client}
+                  isExpanded={expandedClientId === client.id}
+                  onToggle={() => handleToggle(client.id)}
+                  onDownloadLedger={handleDownloadLedger}
+                />
+              ))
+            )}
+          </div>
         </div>
-
-        <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-        <div className="mb-6">
-          <ClientSearchSelect
-            clients={clients}
-            selectedClient={selectedClient}
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onClientSelect={handleClientSelect}
-          />
-        </div>
-
-        {selectedClient && !loading && (
-          <div className="mb-6">
-            <LedgerSummary client={selectedClient} transactionCount={ledgerData.length} />
-          </div>
-        )}
-
-        {loading && (
-          <div className="py-12 text-center">
-            <div className="text-xl text-gray-600">{t('loading')}...</div>
-          </div>
-        )}
-
-        {!loading && selectedClient && (
-          <LedgerTable ledgerData={ledgerData} onDownloadChallan={handleDownloadChallan} />
-        )}
-
-        {!selectedClient && !loading && (
-          <div className="py-12 text-center bg-white rounded-lg shadow-sm">
-            <p className="text-lg text-gray-500">
-              {t('selectClientToViewLedger')}
-            </p>
-          </div>
-        )}
-        </div>
-
-        {receiptData && (
-          <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
-            <ReceiptTemplate
-              challanType={receiptData.challanType}
-              challanNumber={receiptData.challanNumber}
-              date={receiptData.date}
-              client={receiptData.client}
-              site={receiptData.site}
-              driver={receiptData.driver}
-              items={receiptData.items}
-            />
-          </div>
-        )}
       </main>
     </div>
   );
 };
 
-export default ClientLedger;
+export default NewClientLedger;
