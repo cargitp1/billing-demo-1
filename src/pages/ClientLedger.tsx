@@ -50,7 +50,7 @@ interface LedgerEntry {
     client_nic_name: string;
     client_name: string;
     site: string;
-    primary_phone?: string;
+    primary_phone_number?: string;
   };
 }
 
@@ -97,7 +97,7 @@ const ClientLedger: React.FC = () => {
             client_nic_name,
             client_name,
             site,
-            primary_phone
+            primary_phone_number
           ),
           items:udhar_items!udhar_items_udhar_challan_number_fkey (
             size_1_qty, size_1_borrowed,
@@ -127,7 +127,7 @@ const ClientLedger: React.FC = () => {
             client_nic_name,
             client_name,
             site,
-            primary_phone
+            primary_phone_number
           ),
           items:jama_items!jama_items_jama_challan_number_fkey (
             size_1_qty, size_1_borrowed,

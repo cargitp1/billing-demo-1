@@ -34,7 +34,7 @@ interface LedgerEntry {
     client_nic_name: string;
     client_name: string;
     site: string;
-    primary_phone?: string;
+    primary_phone_number?: string;
   };
 }
 
