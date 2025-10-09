@@ -9,19 +9,25 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { t } = useLanguage();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoading(true);
 
-    if (login(username, password)) {
+    const result = await login(email, password);
+
+    if (result.success) {
       navigate('/dashboard');
     } else {
-      setError(t('invalidCredentials'));
+      setError(result.error || t('invalidCredentials'));
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -40,14 +46,15 @@ const Login: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('username')}
+              Email
             </label>
             <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -61,6 +68,7 @@ const Login: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
               required
+              disabled={isLoading}
             />
           </div>
 
@@ -70,9 +78,10 @@ const Login: React.FC = () => {
 
           <button
             type="submit"
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold min-h-[44px]"
+            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading}
           >
-            {t('login')}
+            {isLoading ? 'Loading...' : t('login')}
           </button>
         </form>
       </div>
