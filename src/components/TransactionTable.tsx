@@ -40,7 +40,7 @@ export default function TransactionTable({
     const total = size.qty + size.borrowed;
     if (total === 0) return '-';
 
-    b   if (size.borrowed === 0) {
+    if (size.borrowed === 0) {
       return size.qty.toString();
     }
 
