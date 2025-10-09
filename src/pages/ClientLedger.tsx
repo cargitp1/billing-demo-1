@@ -4,6 +4,7 @@ import { ArrowLeft, Search, Filter } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../utils/supabase';
+import { fetchClientTransactions, calculateTotalFromItems } from '../utils/challanFetching';
 import Header from '../components/Header';
 import ClientLedgerCard from '../components/ClientLedgerCard';
 
@@ -62,59 +63,21 @@ export default function ClientLedger() {
     loadLedgers();
   }, []);
 
-  // Fetch clients with nested challans and items
   const fetchClientsWithChallans = async () => {
     const { data, error } = await supabase
       .from('clients')
-      .select(`
-        id,
-        client_nic_name,
-        client_name,
-        site,
-        primary_phone_number,
-        udhar_challans:udhar_challans!udhar_challans_ffclient_id_fkey (
-          udhar_challan_number,
-          udhar_date,
-          items:udhar_items!udhar_items_udhar_challan_number_fkey (
-            size_1_qty,
-            size_2_qty,
-            size_3_qty,
-            size_4_qty,
-            size_5_qty,
-            size_6_qty,
-            size_7_qty,
-            size_8_qty,
-            size_9_qty
-          )
-        ),
-        jama_challans:jama_challans!jama_challans_client_id_fkey (
-          jama_challan_number,
-          jama_date,
-          items:jama_items!jama_items_jama_challan_number_fkey (
-            size_1_qty,
-            size_2_qty,
-            size_3_qty,
-            size_4_qty,
-            size_5_qty,
-            size_6_qty,
-            size_7_qty,
-            size_8_qty,
-            size_9_qty
-          )
-        )
-      `)
+      .select('*')
       .order('client_nic_name', { ascending: true });
 
     if (error) {
-      console.error('Error fetching clients with challans:', error);
+      console.error('Error fetching clients:', error);
       throw error;
     }
 
-    console.debug('Fetched clients with challans:', data?.length || 0);
+    console.debug('Fetched clients:', data?.length || 0);
     return data || [];
   };
 
-  // Calculate totals from challans for a specific type (udhar or jama)
   const calculateTotalsFromChallans = (challans: any[]): SizeBalance => {
     const totals: SizeBalance = {
       size_1: 0,
@@ -132,17 +95,13 @@ export default function ClientLedger() {
     if (!challans || challans.length === 0) return totals;
 
     challans.forEach((challan: any) => {
-      // Handle both array and single object patterns from Supabase
-      const rawItems = challan.items;
-      const items: ItemsData | null = Array.isArray(rawItems) 
-        ? (rawItems[0] || null) 
-        : (rawItems || null);
-
+      const items = challan.items;
       if (items) {
         for (let size = 1; size <= 9; size++) {
           const key = `size_${size}` as keyof SizeBalance;
-          const qtyKey = `size_${size}_qty` as keyof ItemsData;
-          const qty = items[qtyKey] || 0;
+          const qtyKey = `size_${size}_qty`;
+          const borrowedKey = `size_${size}_borrowed`;
+          const qty = (items[qtyKey] || 0) + (items[borrowedKey] || 0);
           totals[key] += qty;
           totals.grandTotal += qty;
         }
@@ -152,56 +111,58 @@ export default function ClientLedger() {
     return totals;
   };
 
-  // Transform raw Supabase data into ClientLedgerData format
-  const transformToLedgerData = (clients: any[]): ClientLedgerData[] => {
-    return clients.map((client) => {
-      // Calculate udhar (borrowed) totals
-      const udharTotals = calculateTotalsFromChallans(client.udhar_challans || []);
-      
-      // Calculate jama (returned) totals
-      const jamaTotals = calculateTotalsFromChallans(client.jama_challans || []);
-      
-      // Calculate current balance (udhar - jama)
-      const currentBalance: SizeBalance = {
-        size_1: udharTotals.size_1 - jamaTotals.size_1,
-        size_2: udharTotals.size_2 - jamaTotals.size_2,
-        size_3: udharTotals.size_3 - jamaTotals.size_3,
-        size_4: udharTotals.size_4 - jamaTotals.size_4,
-        size_5: udharTotals.size_5 - jamaTotals.size_5,
-        size_6: udharTotals.size_6 - jamaTotals.size_6,
-        size_7: udharTotals.size_7 - jamaTotals.size_7,
-        size_8: udharTotals.size_8 - jamaTotals.size_8,
-        size_9: udharTotals.size_9 - jamaTotals.size_9,
-        grandTotal: 0
-      };
-      
-      // Calculate grand total for current balance
-      currentBalance.grandTotal = 
-        currentBalance.size_1 + currentBalance.size_2 + currentBalance.size_3 +
-        currentBalance.size_4 + currentBalance.size_5 + currentBalance.size_6 +
-        currentBalance.size_7 + currentBalance.size_8 + currentBalance.size_9;
+  const transformToLedgerData = async (clients: any[]): Promise<ClientLedgerData[]> => {
+    const results = await Promise.all(
+      clients.map(async (client) => {
+        const transactions = await fetchClientTransactions(client.id);
 
-      return {
-        clientId: client.id,
-        clientNicName: client.client_nic_name,
-        clientFullName: client.client_name,
-        clientSite: client.site,
-        clientPhone: client.primary_phone_number,
-        totalUdhar: udharTotals,
-        totalJama: jamaTotals,
-        currentBalance: currentBalance,
-        udharCount: client.udhar_challans?.length || 0,
-        jamaCount: client.jama_challans?.length || 0
-      };
-    });
+        const udharChallans = transactions.filter(t => t.type === 'udhar');
+        const jamaChallans = transactions.filter(t => t.type === 'jama');
+
+        const udharTotals = calculateTotalsFromChallans(udharChallans);
+        const jamaTotals = calculateTotalsFromChallans(jamaChallans);
+
+        const currentBalance: SizeBalance = {
+          size_1: udharTotals.size_1 - jamaTotals.size_1,
+          size_2: udharTotals.size_2 - jamaTotals.size_2,
+          size_3: udharTotals.size_3 - jamaTotals.size_3,
+          size_4: udharTotals.size_4 - jamaTotals.size_4,
+          size_5: udharTotals.size_5 - jamaTotals.size_5,
+          size_6: udharTotals.size_6 - jamaTotals.size_6,
+          size_7: udharTotals.size_7 - jamaTotals.size_7,
+          size_8: udharTotals.size_8 - jamaTotals.size_8,
+          size_9: udharTotals.size_9 - jamaTotals.size_9,
+          grandTotal: 0
+        };
+
+        currentBalance.grandTotal =
+          currentBalance.size_1 + currentBalance.size_2 + currentBalance.size_3 +
+          currentBalance.size_4 + currentBalance.size_5 + currentBalance.size_6 +
+          currentBalance.size_7 + currentBalance.size_8 + currentBalance.size_9;
+
+        return {
+          clientId: client.id,
+          clientNicName: client.client_nic_name,
+          clientFullName: client.client_name,
+          clientSite: client.site,
+          clientPhone: client.primary_phone_number,
+          totalUdhar: udharTotals,
+          totalJama: jamaTotals,
+          currentBalance: currentBalance,
+          udharCount: udharChallans.length,
+          jamaCount: jamaChallans.length
+        };
+      })
+    );
+
+    return results;
   };
 
-  // Main load function
   const loadLedgers = async () => {
     setLoading(true);
     try {
       const rawData = await fetchClientsWithChallans();
-      const transformedLedgers = transformToLedgerData(rawData);
+      const transformedLedgers = await transformToLedgerData(rawData);
       console.debug('Transformed ledgers:', transformedLedgers.length);
       setLedgers(transformedLedgers);
     } catch (error) {
