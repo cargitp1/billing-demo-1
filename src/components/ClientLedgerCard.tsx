@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, MapPin, Phone } from 'lucide-react';
-import { ClientLedgerData, Transaction } from '../utils/ledgerCalculations';
+import { ClientLedgerData } from '../pages/ClientLedger';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import TransactionTable from './TransactionTable';
 
 interface ClientLedgerCardProps {
-  ledger: Omit<ClientLedgerData, 'transactions'> & {
-    transactions?: Transaction[];
-  };
+  ledger: ClientLedgerData;
 }
 
 export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {

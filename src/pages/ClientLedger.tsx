@@ -35,6 +35,23 @@ interface SizeBalance {
   grandTotal: number;
 }
 
+export interface ClientBalance {
+  grandTotal: number;
+  sizes: { [key: string]: { main: number; borrowed: number; total: number } };
+}
+
+export interface Transaction {
+  type: 'udhar' | 'jama';
+  challanNumber: string;
+  challanId: string;
+  date: string;
+  grandTotal: number;
+  sizes: { [key: string]: { qty: number; borrowed: number } };
+  site: string;
+  driverName: string;
+  items: any;
+}
+
 export interface ClientLedgerData {
   clientId: string;
   clientNicName: string;
@@ -43,9 +60,10 @@ export interface ClientLedgerData {
   clientPhone: string;
   totalUdhar: SizeBalance;
   totalJama: SizeBalance;
-  currentBalance: SizeBalance;
+  currentBalance: ClientBalance;
   udharCount: number;
   jamaCount: number;
+  transactions: Transaction[];
 }
 
 export default function ClientLedger() {
@@ -114,7 +132,33 @@ export default function ClientLedger() {
   const transformToLedgerData = async (clients: any[]): Promise<ClientLedgerData[]> => {
     const results = await Promise.all(
       clients.map(async (client) => {
-        const transactions = await fetchClientTransactions(client.id);
+        const rawTransactions = await fetchClientTransactions(client.id);
+
+        console.log(`Client ${client.client_nic_name} transactions:`, rawTransactions.length);
+
+        const transactions: Transaction[] = rawTransactions.map((t: any) => {
+          const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
+          let grandTotal = 0;
+
+          for (let i = 1; i <= 9; i++) {
+            const qty = t.items[`size_${i}_qty`] || 0;
+            const borrowed = t.items[`size_${i}_borrowed`] || 0;
+            sizes[i] = { qty, borrowed };
+            grandTotal += qty + borrowed;
+          }
+
+          return {
+            type: t.type,
+            challanNumber: t.challanNumber,
+            challanId: t.challanNumber,
+            date: t.date,
+            grandTotal,
+            sizes,
+            site: t.site,
+            driverName: t.driverName || '',
+            items: t.items
+          };
+        });
 
         const udharChallans = transactions.filter(t => t.type === 'udhar');
         const jamaChallans = transactions.filter(t => t.type === 'jama');
@@ -122,23 +166,30 @@ export default function ClientLedger() {
         const udharTotals = calculateTotalsFromChallans(udharChallans);
         const jamaTotals = calculateTotalsFromChallans(jamaChallans);
 
-        const currentBalance: SizeBalance = {
-          size_1: udharTotals.size_1 - jamaTotals.size_1,
-          size_2: udharTotals.size_2 - jamaTotals.size_2,
-          size_3: udharTotals.size_3 - jamaTotals.size_3,
-          size_4: udharTotals.size_4 - jamaTotals.size_4,
-          size_5: udharTotals.size_5 - jamaTotals.size_5,
-          size_6: udharTotals.size_6 - jamaTotals.size_6,
-          size_7: udharTotals.size_7 - jamaTotals.size_7,
-          size_8: udharTotals.size_8 - jamaTotals.size_8,
-          size_9: udharTotals.size_9 - jamaTotals.size_9,
-          grandTotal: 0
+        const currentBalance: ClientBalance = {
+          grandTotal: 0,
+          sizes: {}
         };
 
-        currentBalance.grandTotal =
-          currentBalance.size_1 + currentBalance.size_2 + currentBalance.size_3 +
-          currentBalance.size_4 + currentBalance.size_5 + currentBalance.size_6 +
-          currentBalance.size_7 + currentBalance.size_8 + currentBalance.size_9;
+        for (let i = 1; i <= 9; i++) {
+          currentBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
+        }
+
+        transactions.forEach(transaction => {
+          for (let i = 1; i <= 9; i++) {
+            const size = transaction.sizes[i];
+            if (transaction.type === 'udhar') {
+              currentBalance.sizes[i].main += size.qty;
+              currentBalance.sizes[i].borrowed += size.borrowed;
+            } else {
+              currentBalance.sizes[i].main -= size.qty;
+              currentBalance.sizes[i].borrowed -= size.borrowed;
+            }
+            currentBalance.sizes[i].total = currentBalance.sizes[i].main + currentBalance.sizes[i].borrowed;
+          }
+        });
+
+        currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce((sum, size) => sum + size.total, 0);
 
         return {
           clientId: client.id,
@@ -150,7 +201,8 @@ export default function ClientLedger() {
           totalJama: jamaTotals,
           currentBalance: currentBalance,
           udharCount: udharChallans.length,
-          jamaCount: jamaChallans.length
+          jamaCount: jamaChallans.length,
+          transactions: transactions
         };
       })
     );
