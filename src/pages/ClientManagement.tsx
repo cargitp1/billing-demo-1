@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, Package, BookOpen } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
 import { useLanguage } from '../contexts/LanguageContext';
 import Header from '../components/Header';
+import Navbar from '../components/Navbar';
 import { supabase } from '../utils/supabase';
 
 const ClientManagement: React.FC = () => {
@@ -102,54 +101,7 @@ const ClientManagement: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Header />
-
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-1 overflow-x-auto py-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 whitespace-nowrap"
-            >
-              <span>{t('dashboard')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/clients')}
-              className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg whitespace-nowrap font-medium"
-            >
-              <UserPlus size={20} />
-              <span>{t('addClient')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/udhar-challan')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600 whitespace-nowrap"
-            >
-              <FileText size={20} />
-              <span>{t('udharChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/jama-challan')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600 whitespace-nowrap"
-            >
-              <FileCheck size={20} />
-              <span>{t('jamaChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/challan-book')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 whitespace-nowrap"
-            >
-              <BookOpen size={20} />
-              <span>{t('challanBook')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/stock')}
-              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 whitespace-nowrap"
-            >
-              <Package size={20} />
-              <span>{t('stockManagement')}</span>
-            </button>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('clientManagement')}</h2>
