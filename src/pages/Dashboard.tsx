@@ -4,6 +4,7 @@ import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, BookMarked } 
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
+import Navbar from '../components/Navbar';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -55,52 +56,54 @@ const Dashboard: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="flex">
+        <aside className="flex flex-col w-64 bg-white shadow-lg">
+          <div className="p-6 border-b">
+            <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
+          </div>
 
-        <nav className="flex-1 p-4">
+          <nav className="flex-1 p-4">
           <div className="space-y-2">
             <button
               onClick={() => navigate('/clients')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-600"
             >
               <UserPlus size={20} />
               <span>{t('addClient')}</span>
             </button>
             <button
               onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/stock')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-gray-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50 hover:text-gray-600"
             >
               <Package size={20} />
               <span>{t('stockManagement')}</span>
             </button>
             <button
               onClick={() => navigate('/challan-book')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-teal-50 hover:text-teal-600"
             >
               <BookOpen size={20} />
               <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/client-ledger')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors"
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-indigo-50 hover:text-indigo-600"
             >
               <BookMarked size={20} />
               <span>{t('clientLedger')}</span>
@@ -108,13 +111,13 @@ const Dashboard: React.FC = () => {
           </div>
         </nav>
 
-        <div className="p-4 border-t space-y-4">
+        <div className="p-4 space-y-4 border-t">
           <div className="flex justify-center">
             <LanguageToggle />
           </div>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
           >
             <LogOut size={20} />
             <span>{t('logout')}</span>
@@ -123,10 +126,10 @@ const Dashboard: React.FC = () => {
       </aside>
 
       <main className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">{t('dashboard')}</h2>
+        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <h2 className="mb-8 text-3xl font-bold text-center text-gray-900">{t('dashboard')}</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
+          <div className="grid max-w-5xl grid-cols-1 gap-6 mx-auto sm:grid-cols-2 lg:grid-cols-3">
             {cards.map((card) => (
               <button
                 key={card.path}
@@ -138,10 +141,11 @@ const Dashboard: React.FC = () => {
               </button>
             ))}
           </div>
-        </div>
-      </main>
+          </div>
+        </main>
+      </div>
     </div>
-  );
-};
+    );
+  };
 
 export default Dashboard;

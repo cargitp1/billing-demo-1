@@ -103,7 +103,7 @@ const ClientManagement: React.FC = () => {
       <Header />
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="px-4 py-8 mx-auto ml-64 max-w-7xl sm:px-6 lg:px-8">
         <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('clientManagement')}</h2>
 
         <div className="p-6 mb-8 bg-white rounded-lg shadow">

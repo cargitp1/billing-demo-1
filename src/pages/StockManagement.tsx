@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 import { supabase } from '../utils/supabase';
 import { format } from 'date-fns';
+import { Package, FileText } from 'lucide-react';
+import Navbar from '../components/Navbar';
 
 interface StockData {
   size: number;
@@ -18,15 +16,7 @@ interface StockData {
 }
 
 const StockManagement: React.FC = () => {
-  const navigate = useNavigate();
-  const { logout } = useAuth();
   const { t } = useLanguage();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
-
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [editingSize, setEditingSize] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<{ total_stock: number; lost_stock: number }>({
@@ -160,72 +150,8 @@ const StockManagement: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-      <aside className="flex flex-col w-64 bg-white shadow-lg">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
-        </div>
-
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
-            >
-              <span>{t('dashboard')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/clients')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-600"
-            >
-              <UserPlus size={20} />
-              <span>{t('addClient')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/udhar-challan')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
-            >
-              <FileText size={20} />
-              <span>{t('udharChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/jama-challan')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
-            >
-              <FileCheck size={20} />
-              <span>{t('jamaChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/challan-book')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
-            >
-              <BookOpen size={20} />
-              <span>{t('challanBook')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/stock')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-900 bg-gray-100 border-l-4 border-gray-600 rounded-lg"
-            >
-              <Package size={20} />
-              <span>{t('stockManagement')}</span>
-            </button>
-          </div>
-        </nav>
-
-        <div className="p-4 space-y-4 border-t">
-          <div className="flex justify-center">
-            <LanguageToggle />
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
-          >
-            <LogOut size={20} />
-            <span>{t('logout')}</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-auto">
+      <Navbar />
+      <main className="flex-1 ml-64 overflow-auto">
         <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('stockManagement')}</h2>
 

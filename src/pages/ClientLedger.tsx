@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Search, Filter } from 'lucide-react';
+import { Search, Filter } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../utils/supabase';
 import { fetchClientTransactions, calculateTotalFromItems } from '../utils/challanFetching';
-import Header from '../components/Header';
+import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
 
 type SortOption = 'nameAZ' | 'nameZA' | 'balanceHighLow' | 'balanceLowHigh';
@@ -270,19 +270,11 @@ export default function ClientLedger() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
+      <Navbar />
 
-      <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <div className="px-4 py-8 mx-auto ml-64 max-w-7xl sm:px-6 lg:px-8">
         {/* Header Section */}
         <div className="mb-6">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 mb-4 text-blue-600 hover:text-blue-800"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            {t.backToDashboard}
-          </button>
-
           <h1 className="text-3xl font-bold text-gray-900">
             {t.clientLedger}
           </h1>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Trash2, CreditCard as Edit, Download } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { useAuth } from '../contexts/AuthContext';
 import ChallanDetailsModal from '../components/ChallanDetailsModal';
 import ChallanEditModal from '../components/ChallanEditModal';
 import Navbar from '../components/Navbar';
@@ -72,6 +71,11 @@ const ChallanBook: React.FC = () => {
   const { logout } = useAuth();
   const { t } = useLanguage();
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   const [activeTab, setActiveTab] = useState<TabType>('udhar');
   const [udharChallans, setUdharChallans] = useState<ChallanData[]>([]);
   const [jamaChallans, setJamaChallans] = useState<ChallanData[]>([]);
@@ -125,14 +129,34 @@ const ChallanBook: React.FC = () => {
           primary_phone_number
         ),
         items:udhar_items!udhar_items_udhar_challan_number_fkey (
-          size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
-          size_6_qty, size_7_qty, size_8_qty, size_9_qty,
-          size_1_borrowed, size_2_borrowed, size_3_borrowed,
-          size_4_borrowed, size_5_borrowed, size_6_borrowed,
-          size_7_borrowed, size_8_borrowed, size_9_borrowed,
-          size_1_note, size_2_note, size_3_note, size_4_note,
-          size_5_note, size_6_note, size_7_note, size_8_note,
-          size_9_note, main_note
+          size_1_qty,
+          size_2_qty,
+          size_3_qty,
+          size_4_qty,
+          size_5_qty,
+          size_6_qty,
+          size_7_qty,
+          size_8_qty,
+          size_9_qty,
+          size_1_borrowed,
+          size_2_borrowed,
+          size_3_borrowed,
+          size_4_borrowed,
+          size_5_borrowed,
+          size_6_borrowed,
+          size_7_borrowed,
+          size_8_borrowed,
+          size_9_borrowed,
+          size_1_note,
+          size_2_note,
+          size_3_note,
+          size_4_note,
+          size_5_note,
+          size_6_note,
+          size_7_note,
+          size_8_note,
+          size_9_note,
+          main_note
         )
       `)
       .order('udhar_date', { ascending: false });
@@ -142,24 +166,33 @@ const ChallanBook: React.FC = () => {
       return;
     }
 
-    const transformedData = (data || []).map((challan: any) => {
-      const rawItems = challan.items;
-      const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
-      return {
-        challanNumber: challan.udhar_challan_number,
-        date: challan.udhar_date,
-        driverName: challan.driver_name,
-        clientNicName: challan.client.client_nic_name,
-        clientFullName: challan.client.client_name,
-        clientId: challan.client_id,
-        site: challan.alternative_site || challan.client.site,
-        isAlternativeSite: !!challan.alternative_site,
-        phone: challan.secondary_phone_number || challan.client.primary_phone_number,
-        isSecondaryPhone: !!challan.secondary_phone_number,
-        items: itemRow,
-        totalItems: calculateTotalItems(itemRow),
-      };
-    });
+  // Debug: show raw data returned by Supabase for troubleshooting
+  console.debug('udhar raw data length:', (data || []).length, data);
+
+  const transformedData = (data || []).map((challan: any) => {
+    // allow items to be returned either as an array (items[0]) or a single object
+    const rawItems = challan.items;
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+    // debug sample: show which shape we used for the first challan
+    // console.debug('udhar item shape for', challan.udhar_challan_number, { isArray: Array.isArray(rawItems), itemRow });
+    return {
+      challanNumber: challan.udhar_challan_number,
+      date: challan.udhar_date,
+      driverName: challan.driver_name,
+      clientNicName: challan.client.client_nic_name,
+      clientFullName: challan.client.client_name,
+      clientId: challan.client_id,
+      site: challan.alternative_site || challan.client.site,
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: itemRow,
+      totalItems: calculateTotalItems(itemRow),
+    };
+  });
+
+  // Debug: show a preview of transformed data (first 3 items)
+  console.debug('udhar transformed preview:', transformedData.slice(0, 3));
 
     setUdharChallans(transformedData);
   };
@@ -182,14 +215,34 @@ const ChallanBook: React.FC = () => {
           primary_phone_number
         ),
         items:jama_items!jama_items_jama_challan_number_fkey (
-          size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
-          size_6_qty, size_7_qty, size_8_qty, size_9_qty,
-          size_1_borrowed, size_2_borrowed, size_3_borrowed,
-          size_4_borrowed, size_5_borrowed, size_6_borrowed,
-          size_7_borrowed, size_8_borrowed, size_9_borrowed,
-          size_1_note, size_2_note, size_3_note, size_4_note,
-          size_5_note, size_6_note, size_7_note, size_8_note,
-          size_9_note, main_note
+          size_1_qty,
+          size_2_qty,
+          size_3_qty,
+          size_4_qty,
+          size_5_qty,
+          size_6_qty,
+          size_7_qty,
+          size_8_qty,
+          size_9_qty,
+          size_1_borrowed,
+          size_2_borrowed,
+          size_3_borrowed,
+          size_4_borrowed,
+          size_5_borrowed,
+          size_6_borrowed,
+          size_7_borrowed,
+          size_8_borrowed,
+          size_9_borrowed,
+          size_1_note,
+          size_2_note,
+          size_3_note,
+          size_4_note,
+          size_5_note,
+          size_6_note,
+          size_7_note,
+          size_8_note,
+          size_9_note,
+          main_note
         )
       `)
       .order('jama_date', { ascending: false });
@@ -199,24 +252,31 @@ const ChallanBook: React.FC = () => {
       return;
     }
 
-    const transformedData = (data || []).map((challan: any) => {
-      const rawItems = challan.items;
-      const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
-      return {
-        challanNumber: challan.jama_challan_number,
-        date: challan.jama_date,
-        driverName: challan.driver_name,
-        clientNicName: challan.client.client_nic_name,
-        clientFullName: challan.client.client_name,
-        clientId: challan.client_id,
-        site: challan.alternative_site || challan.client.site,
-        isAlternativeSite: !!challan.alternative_site,
-        phone: challan.secondary_phone_number || challan.client.primary_phone_number,
-        isSecondaryPhone: !!challan.secondary_phone_number,
-        items: itemRow,
-        totalItems: calculateTotalItems(itemRow),
-      };
-    });
+  // Debug: show raw data returned by Supabase for troubleshooting
+  console.debug('jama raw data length:', (data || []).length, data);
+
+  const transformedData = (data || []).map((challan: any) => {
+    const rawItems = challan.items;
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+    // console.debug('jama item shape for', challan.jama_challan_number, { isArray: Array.isArray(rawItems), itemRow });
+    return {
+      challanNumber: challan.jama_challan_number,
+      date: challan.jama_date,
+      driverName: challan.driver_name,
+      clientNicName: challan.client.client_nic_name,
+      clientFullName: challan.client.client_name,
+      clientId: challan.client_id,
+      site: challan.alternative_site || challan.client.site,
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: itemRow,
+      totalItems: calculateTotalItems(itemRow),
+    };
+  });
+
+  // Debug: show a preview of transformed data (first 3 items)
+  console.debug('jama transformed preview:', transformedData.slice(0, 3));
 
     setJamaChallans(transformedData);
   };
@@ -312,7 +372,63 @@ const ChallanBook: React.FC = () => {
       <div className="flex">
         <div className="w-64" /> {/* Spacer for navbar */}
         <main className="flex-1 p-8">
-          <div className="bg-white rounded-lg shadow-md">
+            <button
+              onClick={() => navigate('/clients')}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-600"
+            >
+              <UserPlus size={20} />
+              <span>{t('addClient')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/udhar-challan')}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
+            >
+              <FileText size={20} />
+              <span>{t('udharChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/jama-challan')}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
+            >
+              <FileCheck size={20} />
+              <span>{t('jamaChallan')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/challan-book')}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-900 bg-gray-100 border-l-4 border-gray-600 rounded-lg"
+            >
+              <BookOpen size={20} />
+              <span>{t('challanBook')}</span>
+            </button>
+            <button
+              onClick={() => navigate('/stock')}
+              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50 hover:text-gray-600"
+            >
+              <Package size={20} />
+              <span>{t('stockManagement')}</span>
+            </button>
+          </div>
+        </nav>
+
+        <div className="p-4 space-y-4 border-t">
+          <div className="flex justify-center">
+            <LanguageToggle />
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
+          >
+            <LogOut size={20} />
+            <span>{t('logout')}</span>
+          </button>
+        </div>
+      </aside>
+
+      <main className="flex-1 overflow-auto">
+        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('challanBook')}</h2>
+
+          <div className="mb-6 bg-white rounded-lg shadow-md">
             <div className="border-b border-gray-200">
               <nav className="flex">
                 <button
@@ -459,8 +575,8 @@ const ChallanBook: React.FC = () => {
               )}
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
 
       <ChallanDetailsModal
         challan={selectedChallan}

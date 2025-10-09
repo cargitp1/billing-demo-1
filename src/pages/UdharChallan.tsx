@@ -1,25 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
 import ReceiptTemplate from '../components/ReceiptTemplate';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
+import Navbar from '../components/Navbar';
 
 const UdharChallan: React.FC = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { t } = useLanguage();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
@@ -97,7 +92,8 @@ const UdharChallan: React.FC = () => {
 
     const hasItems = Object.keys(items).some(key => {
       if (key.includes('qty') || key.includes('borrowed')) {
-        return items[key as keyof ItemsData] > 0;
+        const val = items[key as keyof ItemsData];
+        return typeof val === 'number' && val > 0;
       }
       return false;
     });
@@ -193,244 +189,183 @@ const UdharChallan: React.FC = () => {
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
-      <aside className="w-64 bg-white shadow-lg flex flex-col">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <Navbar />
+      <div className="flex">
+        <div className="w-64" /> {/* Spacer for navbar */}
+        <main className="flex-1 p-8">
+          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('udharChallanTitle')}</h2>
 
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <span>{t('dashboard')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/clients')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
-            >
-              <UserPlus size={20} />
-              <span>{t('addClient')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/udhar-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-red-50 text-red-600 border-l-4 border-red-600 rounded-lg"
-            >
-              <FileText size={20} />
-              <span>{t('udharChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/jama-challan')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
-            >
-              <FileCheck size={20} />
-              <span>{t('jamaChallan')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/challan-book')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <BookOpen size={20} />
-              <span>{t('challanBook')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/stock')}
-              className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
-            >
-              <Package size={20} />
-              <span>{t('stockManagement')}</span>
-            </button>
-          </div>
-        </nav>
-
-        <div className="p-4 border-t space-y-4">
-          <div className="flex justify-center">
-            <LanguageToggle />
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-          >
-            <LogOut size={20} />
-            <span>{t('logout')}</span>
-          </button>
-        </div>
-      </aside>
-
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-3xl font-bold text-gray-900 mb-8">{t('udharChallanTitle')}</h2>
-
-        <div className="space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('clientDetails')}</h3>
-
-            <div className="mb-4">
-              <button
-                onClick={() => setShowQuickAdd(!showQuickAdd)}
-                className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium min-h-[44px]"
-              >
-                {t('quickAddClient')}
-              </button>
-            </div>
-
-            {showQuickAdd && (
-              <div className="mb-6">
-                <ClientForm
-                  onSubmit={handleQuickAddClient}
-                  onCancel={() => setShowQuickAdd(false)}
-                  isQuickAdd={true}
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('selectClient')} *
-              </label>
-              <select
-                value={selectedClientId}
-                onChange={(e) => setSelectedClientId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-              >
-                <option value="">{t('selectClient')}</option>
-                {clients.map((client) => (
-                  <option key={client.id} value={client.id}>
-                    {client.client_nic_name} - {client.client_name}
-                  </option>
-                ))}
-              </select>
-              {errors.client && <p className="text-red-600 text-sm mt-1">{errors.client}</p>}
-            </div>
-
-            {selectedClient && (
-              <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-                <p><strong>{t('site')}:</strong> {selectedClient.site}</p>
-                <p><strong>{t('primaryPhone')}:</strong> {selectedClient.primary_phone_number}</p>
-              </div>
-            )}
-
-            <div className="mt-6 space-y-4">
-              <p className="text-sm text-gray-600 italic">{t('overrideNote')}</p>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('alternativeSite')}
-                </label>
-                <input
-                  type="text"
-                  value={alternativeSite}
-                  onChange={(e) => setAlternativeSite(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('secondaryPhone')}
-                </label>
-                <input
-                  type="text"
-                  value={secondaryPhone}
-                  onChange={(e) => setSecondaryPhone(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('challanDetails')}</h3>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('challanNumber')} *
-                </label>
-                <input
-                  type="text"
-                  value={challanNumber}
-                  onChange={(e) => setChallanNumber(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-                {errors.challanNumber && <p className="text-red-600 text-sm mt-1">{errors.challanNumber}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('date')} *
-                </label>
-                <input
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-                {errors.date && <p className="text-red-600 text-sm mt-1">{errors.date}</p>}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('driverName')}
-                </label>
-                <input
-                  type="text"
-                  value={driverName}
-                  onChange={(e) => setDriverName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">{t('itemsDetails')}</h3>
-            {errors.items && <p className="text-red-600 text-sm mb-4">{errors.items}</p>}
-            <ItemsTable items={items} onChange={setItems} />
-          </div>
-
-          {showSuccess ? (
             <div className="space-y-6">
-              <div className="bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg text-center">
-                <p className="font-semibold text-lg">Challan saved and receipt downloaded!</p>
-              </div>
-              <div className="flex justify-center">
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
-                >
-                  {t('backToDashboard')}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <button
-                onClick={handleSave}
-                className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
-              >
-                {t('save')}
-              </button>
-            </div>
-          )}
-        </div>
+              <div className="p-6 bg-white rounded-lg shadow">
+                <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('clientDetails')}</h3>
 
-        <div style={{ position: 'absolute', left: '-9999px' }}>
-          {selectedClient && (
-            <ReceiptTemplate
-              challanType="udhar"
-              challanNumber={challanNumber}
-              date={date}
-              clientName={selectedClient.client_name}
-              site={alternativeSite || selectedClient.site}
-              phone={secondaryPhone || selectedClient.primary_phone_number}
-              driverName={driverName}
-              items={items}
-            />
-          )}
-        </div>
-        </div>
-      </main>
+                <div className="mb-4">
+                  <button
+                    onClick={() => setShowQuickAdd(!showQuickAdd)}
+                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium min-h-[44px]"
+                  >
+                    {t('quickAddClient')}
+                  </button>
+                </div>
+
+                {showQuickAdd && (
+                  <div className="mb-6">
+                    <ClientForm
+                      onSubmit={handleQuickAddClient}
+                      onCancel={() => setShowQuickAdd(false)}
+                      isQuickAdd={true}
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    {t('selectClient')} *
+                  </label>
+                  <select
+                    value={selectedClientId}
+                    onChange={(e) => setSelectedClientId(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                  >
+                    <option value="">{t('selectClient')}</option>
+                    {clients.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.client_nic_name} - {client.client_name}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.client && <p className="mt-1 text-sm text-red-600">{errors.client}</p>}
+                </div>
+
+                {selectedClient && (
+                  <div className="p-4 mt-4 rounded-lg bg-gray-50">
+                    <p><strong>{t('site')}:</strong> {selectedClient.site}</p>
+                    <p><strong>{t('primaryPhone')}:</strong> {selectedClient.primary_phone_number}</p>
+                  </div>
+                )}
+
+                <div className="mt-6 space-y-4">
+                  <p className="text-sm italic text-gray-600">{t('overrideNote')}</p>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('alternativeSite')}
+                    </label>
+                    <input
+                      type="text"
+                      value={alternativeSite}
+                      onChange={(e) => setAlternativeSite(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('secondaryPhone')}
+                    </label>
+                    <input
+                      type="text"
+                      value={secondaryPhone}
+                      onChange={(e) => setSecondaryPhone(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-white rounded-lg shadow">
+                <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('challanDetails')}</h3>
+
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('challanNumber')} *
+                    </label>
+                    <input
+                      type="text"
+                      value={challanNumber}
+                      onChange={(e) => setChallanNumber(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                    {errors.challanNumber && <p className="mt-1 text-sm text-red-600">{errors.challanNumber}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('date')} *
+                    </label>
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                    {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('driverName')}
+                    </label>
+                    <input
+                      type="text"
+                      value={driverName}
+                      onChange={(e) => setDriverName(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-white rounded-lg shadow">
+                <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('itemsDetails')}</h3>
+                {errors.items && <p className="mb-4 text-sm text-red-600">{errors.items}</p>}
+                <ItemsTable items={items} onChange={setItems} />
+              </div>
+
+              {showSuccess ? (
+                <div className="space-y-6">
+                  <div className="px-6 py-4 text-center text-green-700 bg-green-100 border border-green-400 rounded-lg">
+                    <p className="text-lg font-semibold">{t('challanSaved')}</p>
+                  </div>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => navigate('/dashboard')}
+                      className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
+                    >
+                      {t('backToDashboard')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-center">
+                  <button
+                    onClick={handleSave}
+                    className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-lg min-h-[44px]"
+                  >
+                    {t('save')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div style={{ position: 'absolute', left: '-9999px' }}>
+              {selectedClient && (
+                <ReceiptTemplate
+                  challanType="udhar"
+                  challanNumber={challanNumber}
+                  date={date}
+                  clientName={selectedClient.client_name}
+                  site={alternativeSite || selectedClient.site}
+                  phone={secondaryPhone || selectedClient.primary_phone_number}
+                  driverName={driverName}
+                  items={items}
+                />
+              )}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
