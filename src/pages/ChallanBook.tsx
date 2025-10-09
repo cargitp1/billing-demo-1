@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Eye, Trash2, CreditCard as Edit, Download, Users } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen, Eye, Trash2, CreditCard as Edit, Download } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
@@ -416,13 +416,6 @@ const ChallanBook: React.FC = () => {
             >
               <Package size={20} />
               <span>{t('stockManagement')}</span>
-            </button>
-            <button
-              onClick={() => navigate('/client-ledger')}
-              className="flex items-center w-full gap-3 px-4 py-3 transition-colors rounded-lg bg-amber-50 text-amber-600"
-            >
-              <Users size={20} />
-              <span>{t('clientLedger')}</span>
             </button>
           </div>
         </nav>
