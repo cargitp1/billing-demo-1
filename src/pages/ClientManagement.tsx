@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, FileText, FileCheck, LogOut, Package, BookOpen } from 'lucide-react';
+import { UserPlus, FileText, FileCheck, Package, BookOpen } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
+import Header from '../components/Header';
 import { supabase } from '../utils/supabase';
 
 const ClientManagement: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const { t } = useLanguage();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [editingClient, setEditingClient] = useState<ClientFormData | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
@@ -106,74 +100,58 @@ const ClientManagement: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <aside className="flex flex-col w-64 bg-white shadow-lg">
-        <div className="p-6 border-b">
-          <h1 className="text-xl font-bold text-gray-900">{t('appName')}</h1>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <Header />
 
-        <nav className="flex-1 p-4">
-          <div className="space-y-2">
+      <nav className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex gap-1 overflow-x-auto py-2">
             <button
               onClick={() => navigate('/dashboard')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 whitespace-nowrap"
             >
               <span>{t('dashboard')}</span>
             </button>
             <button
               onClick={() => navigate('/clients')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-blue-600 border-l-4 border-blue-600 rounded-lg bg-blue-50"
+              className="flex items-center gap-2 px-4 py-2 text-blue-600 bg-blue-50 rounded-lg whitespace-nowrap font-medium"
             >
               <UserPlus size={20} />
               <span>{t('addClient')}</span>
             </button>
             <button
               onClick={() => navigate('/udhar-challan')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-red-50 hover:text-red-600 whitespace-nowrap"
             >
               <FileText size={20} />
               <span>{t('udharChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/jama-challan')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-green-50 hover:text-green-600 whitespace-nowrap"
             >
               <FileCheck size={20} />
               <span>{t('jamaChallan')}</span>
             </button>
             <button
               onClick={() => navigate('/challan-book')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 whitespace-nowrap"
             >
               <BookOpen size={20} />
               <span>{t('challanBook')}</span>
             </button>
             <button
               onClick={() => navigate('/stock')}
-              className="flex items-center w-full gap-3 px-4 py-3 text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
+              className="flex items-center gap-2 px-4 py-2 text-gray-700 transition-colors rounded-lg hover:bg-gray-100 whitespace-nowrap"
             >
               <Package size={20} />
               <span>{t('stockManagement')}</span>
             </button>
           </div>
-        </nav>
-
-        <div className="p-4 space-y-4 border-t">
-          <div className="flex justify-center">
-            <LanguageToggle />
-          </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center justify-center w-full gap-2 px-4 py-3 text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
-          >
-            <LogOut size={20} />
-            <span>{t('logout')}</span>
-          </button>
         </div>
-      </aside>
+      </nav>
 
-      <main className="flex-1 overflow-auto">
-        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('clientManagement')}</h2>
 
         <div className="p-6 mb-8 bg-white rounded-lg shadow">
@@ -200,10 +178,9 @@ const ClientManagement: React.FC = () => {
           )}
         </div>
 
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('clientList')}</h3>
-            <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
-          </div>
+        <div className="p-6 bg-white rounded-lg shadow">
+          <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('clientList')}</h3>
+          <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
         </div>
       </main>
     </div>
