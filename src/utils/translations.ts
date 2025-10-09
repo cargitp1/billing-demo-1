@@ -85,6 +85,7 @@ export const translations = {
     itemsDetails: 'વસ્તુઓની વિગતો',
     overrideNote: 'આ ક્લાયન્ટની ડિફોલ્ટ કિંમતોને ફક્ત આ ચલણ માટે બદલે છે',
     generateReceipt: 'રસીદ બનાવો',
+    challanSaved: 'ચલણ સફળતાપૂર્વક સેવ થયું',
 
     receiptTitle: 'રસીદ',
     generatedOn: 'બનાવ્યું',

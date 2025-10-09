@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
 import { useLanguage } from '../contexts/LanguageContext';
-import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import { supabase } from '../utils/supabase';
 
@@ -100,7 +99,6 @@ const ClientManagement: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Header />
       <Navbar />
 
       <main className="px-4 py-8 mx-auto ml-64 max-w-7xl sm:px-6 lg:px-8">
