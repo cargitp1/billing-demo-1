@@ -227,16 +227,16 @@ const StockManagement: React.FC = () => {
                       {t('totalStock')}
                     </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                      {t('onRent')}
+                      {t('available')}
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                      {t('totalOnRent')}
                     </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       {t('borrowed')}
                     </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       {t('lost')}
-                    </th>
-                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                      {t('available')}
                     </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                       {t('actions')}
@@ -273,8 +273,11 @@ const StockManagement: React.FC = () => {
                           stock.total_stock
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                        {stock.on_rent_stock}
+                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${getAvailabilityColor(stock.available_stock)}`}>
+                        {stock.available_stock}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
+                        {stock.on_rent_stock + stock.borrowed_stock}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                         {stock.borrowed_stock}
@@ -302,9 +305,6 @@ const StockManagement: React.FC = () => {
                         ) : (
                           stock.lost_stock
                         )}
-                      </td>
-                      <td className={`px-6 py-4 whitespace-nowrap text-sm ${getAvailabilityColor(stock.available_stock)}`}>
-                        {stock.available_stock}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                         {!editAllMode && editingSize === stock.size ? (
@@ -348,7 +348,7 @@ const StockManagement: React.FC = () => {
                       {t('available')}: {stock.available_stock}
                     </span>
                   </div>
-                  <div className="space-y-2 text-sm">
+                                      <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-gray-600">{t('totalStock')}:</span>
                       {editingSize === stock.size || editAllMode ? (
@@ -373,8 +373,14 @@ const StockManagement: React.FC = () => {
                       )}
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">{t('onRent')}:</span>
-                      <span className="font-medium">{stock.on_rent_stock}</span>
+                      <span className="text-gray-600">{t('available')}:</span>
+                      <span className={`font-medium ${getAvailabilityColor(stock.available_stock)}`}>
+                        {stock.available_stock}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">{t('totalOnRent')}:</span>
+                      <span className="font-medium">{stock.on_rent_stock + stock.borrowed_stock}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">{t('borrowed')}:</span>
