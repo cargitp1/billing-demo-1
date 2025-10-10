@@ -1,65 +1,557 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Building2, Truck, Award, Phone } from 'lucide-react';
+import { 
+  Building2, 
+  Truck, 
+  Award, 
+  Phone, 
+  ArrowRight,
+  CheckCircle,
+  Users,
+  Package,
+  FileText,
+  BarChart3,
+  Shield,
+  Zap,
+  Clock,
+  Star,
+  Mail,
+  MapPin,
+  Sparkles,
+  TrendingUp,
+  Globe,
+  MessageSquare
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import LanguageToggle from '../components/LanguageToggle';
 
 const Landing: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const [scrolled, setScrolled] = useState(false);
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const features = [
+    {
+      icon: Users,
+      title: 'Client Management',
+      description: 'Manage all your clients with detailed profiles and contact information',
+      color: 'from-blue-500 to-blue-600'
+    },
+    {
+      icon: FileText,
+      title: 'Udhar & Jama Challans',
+      description: 'Create and track rental and return challans effortlessly',
+      color: 'from-red-500 to-red-600'
+    },
+    {
+      icon: Package,
+      title: 'Stock Management',
+      description: 'Real-time inventory tracking with automated stock updates',
+      color: 'from-green-500 to-green-600'
+    },
+    {
+      icon: BarChart3,
+      title: 'Client Ledger',
+      description: 'Complete transaction history and balance tracking for each client',
+      color: 'from-purple-500 to-purple-600'
+    },
+    {
+      icon: Shield,
+      title: 'Secure & Reliable',
+      description: 'Your data is protected with enterprise-grade security',
+      color: 'from-yellow-500 to-yellow-600'
+    },
+    {
+      icon: Zap,
+      title: 'Lightning Fast',
+      description: 'Optimized performance for quick operations and smooth workflow',
+      color: 'from-pink-500 to-pink-600'
+    }
+  ];
+
+  const benefits = [
+    {
+      icon: Clock,
+      title: 'Save Time',
+      description: 'Automate repetitive tasks and focus on growing your business'
+    },
+    {
+      icon: TrendingUp,
+      title: 'Increase Efficiency',
+      description: 'Streamline operations with intelligent workflows'
+    },
+    {
+      icon: CheckCircle,
+      title: 'Reduce Errors',
+      description: 'Minimize manual mistakes with automated calculations'
+    },
+    {
+      icon: Globe,
+      title: 'Access Anywhere',
+      description: 'Cloud-based solution accessible from any device'
+    }
+  ];
+
+  const stats = [
+    { value: '1000+', label: 'Active Users' },
+    { value: '50K+', label: 'Challans Created' },
+    { value: '99.9%', label: 'Uptime' },
+    { value: '24/7', label: 'Support' }
+  ];
+
+  const testimonials = [
+    {
+      name: 'Rajesh Kumar',
+      role: 'Business Owner',
+      content: 'This system has transformed how we manage our rental business. Everything is organized and accessible.',
+      rating: 5
+    },
+    {
+      name: 'Priya Patel',
+      role: 'Operations Manager',
+      content: 'The client ledger feature is a game-changer. We can track everything in real-time without any hassle.',
+      rating: 5
+    },
+    {
+      name: 'Amit Shah',
+      role: 'Inventory Manager',
+      content: 'Stock management has never been easier. The automated updates save us hours of manual work every week.',
+      rating: 5
+    }
+  ];
+
+  const pricingPlans = [
+    {
+      name: 'Starter',
+      price: '₹999',
+      period: '/month',
+      features: [
+        'Up to 50 clients',
+        'Unlimited challans',
+        'Basic reporting',
+        'Email support'
+      ],
+      popular: false
+    },
+    {
+      name: 'Professional',
+      price: '₹1,999',
+      period: '/month',
+      features: [
+        'Unlimited clients',
+        'Unlimited challans',
+        'Advanced reporting',
+        'Priority support',
+        'Custom branding',
+        'API access'
+      ],
+      popular: true
+    },
+    {
+      name: 'Enterprise',
+      price: 'Custom',
+      period: '',
+      features: [
+        'Everything in Professional',
+        'Dedicated account manager',
+        'Custom integrations',
+        'On-premise deployment',
+        'SLA guarantee'
+      ],
+      popular: false
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100">
-      <div className="absolute top-4 right-4">
-        <LanguageToggle />
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="text-center mb-16">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">{t('heroTitle')}</h1>
-          <p className="text-2xl md:text-3xl text-gray-600 mb-8">{t('heroSubtitle')}</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="px-8 py-4 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
-          >
-            {t('getStarted')}
-          </button>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <Building2 className="text-blue-600" size={40} />
-              <h2 className="text-2xl font-semibold text-gray-900">{t('aboutUs')}</h2>
+    <div className="min-h-screen bg-white">
+      {/* Floating Navigation */}
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        scrolled ? 'bg-white shadow-lg' : 'bg-transparent'
+      }`}>
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <Sparkles className={`${scrolled ? 'text-blue-600' : 'text-white'}`} size={28} />
+              <span className={`text-xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>
+                {t('appName')}
+              </span>
             </div>
-            <p className="text-gray-700 text-lg leading-relaxed">{t('aboutText')}</p>
-          </div>
-
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <Truck className="text-blue-600" size={40} />
-              <h2 className="text-2xl font-semibold text-gray-900">{t('ourServices')}</h2>
+            <div className="flex items-center gap-4">
+              <LanguageToggle />
+              <button
+                onClick={() => navigate('/login')}
+                className="px-6 py-2 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+              >
+                {t('login')}
+              </button>
             </div>
-            <p className="text-gray-700 text-lg leading-relaxed">{t('servicesText')}</p>
-          </div>
-
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <Award className="text-blue-600" size={40} />
-              <h2 className="text-2xl font-semibold text-gray-900">{t('whyChooseUs')}</h2>
-            </div>
-            <p className="text-gray-700 text-lg leading-relaxed">{t('whyChooseText')}</p>
-          </div>
-
-          <div className="bg-white p-8 rounded-lg shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <Phone className="text-blue-600" size={40} />
-              <h2 className="text-2xl font-semibold text-gray-900">{t('contactUs')}</h2>
-            </div>
-            <p className="text-gray-700 text-lg leading-relaxed">{t('contactText')}</p>
           </div>
         </div>
+      </nav>
+
+      {/* Hero Section */}
+      <div className="relative pt-24 pb-32 overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700">
+        {/* Animated Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute bg-blue-400 rounded-full top-20 left-10 w-96 h-96 mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+          <div className="absolute bg-purple-400 rounded-full top-40 right-10 w-96 h-96 mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+          <div className="absolute bg-pink-400 rounded-full -bottom-8 left-1/2 w-96 h-96 mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        </div>
+
+        <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-white rounded-full bg-opacity-20 backdrop-blur-sm">
+              <Sparkles size={20} className="text-yellow-300" />
+              <span className="font-medium text-white">Modern Rental Management Solution</span>
+            </div>
+            <h1 className="mb-6 text-5xl font-bold leading-tight text-white md:text-7xl">
+              {t('heroTitle')}
+            </h1>
+            <p className="max-w-3xl mx-auto mb-10 text-xl text-blue-100 md:text-2xl">
+              {t('heroSubtitle')}
+            </p>
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
+              <button
+                onClick={() => navigate('/login')}
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold text-blue-600 transition-all transform bg-white shadow-xl group rounded-xl hover:bg-gray-50 hover:shadow-2xl hover:scale-105"
+              >
+                {t('getStarted')}
+                <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+              </button>
+              <button
+                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-8 py-4 text-lg font-semibold text-white transition-all bg-transparent border-2 border-white rounded-xl hover:bg-white hover:text-blue-600"
+              >
+                Learn More
+              </button>
+            </div>
+          </div>
+
+          {/* Stats Bar */}
+          <div className="grid grid-cols-2 gap-8 mt-20 md:grid-cols-4">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="mb-2 text-4xl font-bold text-white md:text-5xl">{stat.value}</div>
+                <div className="text-blue-200">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
+      {/* Features Section */}
+      <section id="features" className="py-24 bg-gray-50">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-blue-100 rounded-full">
+              <Sparkles size={20} className="text-blue-600" />
+              <span className="font-medium text-blue-600">Features</span>
+            </div>
+            <h2 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
+              Everything You Need
+            </h2>
+            <p className="max-w-3xl mx-auto text-xl text-gray-600">
+              Powerful features designed to streamline your rental business operations
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {features.map((feature, index) => (
+              <div
+                key={index}
+                className="p-8 transition-all bg-white border border-gray-100 shadow-sm group rounded-2xl hover:shadow-xl hover:border-transparent"
+              >
+                <div className={`inline-flex p-4 bg-gradient-to-br ${feature.color} rounded-xl mb-6 group-hover:scale-110 transition-transform shadow-lg`}>
+                  <feature.icon size={32} className="text-white" />
+                </div>
+                <h3 className="mb-3 text-xl font-bold text-gray-900">{feature.title}</h3>
+                <p className="leading-relaxed text-gray-600">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* About & Services Section */}
+      <section className="py-24 bg-white">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="grid items-center gap-12 mb-20 md:grid-cols-2">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-blue-100 rounded-full">
+                <Building2 size={20} className="text-blue-600" />
+                <span className="font-medium text-blue-600">About Us</span>
+              </div>
+              <h2 className="mb-6 text-4xl font-bold text-gray-900">{t('aboutUs')}</h2>
+              <p className="mb-6 text-lg leading-relaxed text-gray-600">{t('aboutText')}</p>
+              <div className="space-y-4">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="flex items-start gap-4">
+                    <div className="p-2 bg-green-100 rounded-lg">
+                      <benefit.icon size={20} className="text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="mb-1 font-semibold text-gray-900">{benefit.title}</h4>
+                      <p className="text-gray-600">{benefit.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 transform bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl rotate-3"></div>
+              <div className="relative p-8 bg-white shadow-xl rounded-2xl">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
+                    <Truck className="text-blue-600" size={40} />
+                    <div>
+                      <h4 className="font-bold text-gray-900">{t('ourServices')}</h4>
+                      <p className="text-sm text-gray-600">{t('servicesText')}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
+                    <Award className="text-purple-600" size={40} />
+                    <div>
+                      <h4 className="font-bold text-gray-900">{t('whyChooseUs')}</h4>
+                      <p className="text-sm text-gray-600">{t('whyChooseText')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-24 bg-gradient-to-br from-blue-600 to-purple-700">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-white rounded-full bg-opacity-20 backdrop-blur-sm">
+              <MessageSquare size={20} className="text-white" />
+              <span className="font-medium text-white">Testimonials</span>
+            </div>
+            <h2 className="mb-4 text-4xl font-bold text-white md:text-5xl">
+              What Our Clients Say
+            </h2>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="p-8 bg-white shadow-2xl rounded-2xl md:p-12">
+              <div className="flex gap-1 mb-6">
+                {[...Array(testimonials[activeTestimonial].rating)].map((_, i) => (
+                  <Star key={i} size={24} className="text-yellow-400 fill-current" />
+                ))}
+              </div>
+              <p className="mb-8 text-xl leading-relaxed text-gray-700 md:text-2xl">
+                "{testimonials[activeTestimonial].content}"
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center justify-center w-16 h-16 text-2xl font-bold text-white rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
+                  {testimonials[activeTestimonial].name.charAt(0)}
+                </div>
+                <div>
+                  <div className="font-bold text-gray-900">{testimonials[activeTestimonial].name}</div>
+                  <div className="text-gray-600">{testimonials[activeTestimonial].role}</div>
+                </div>
+              </div>
+              <div className="flex justify-center gap-2 mt-8">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setActiveTestimonial(index)}
+                    className={`w-3 h-3 rounded-full transition-all ${
+                      index === activeTestimonial ? 'bg-blue-600 w-8' : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-24 bg-gray-50">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="mb-16 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-blue-100 rounded-full">
+              <BarChart3 size={20} className="text-blue-600" />
+              <span className="font-medium text-blue-600">Pricing</span>
+            </div>
+            <h2 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
+              Choose Your Plan
+            </h2>
+            <p className="max-w-3xl mx-auto text-xl text-gray-600">
+              Flexible pricing options to match your business needs
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            {pricingPlans.map((plan, index) => (
+              <div
+                key={index}
+                className={`relative bg-white rounded-2xl shadow-lg p-8 ${
+                  plan.popular ? 'ring-2 ring-blue-600 transform scale-105' : ''
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute transform -translate-x-1/2 -top-4 left-1/2">
+                    <span className="px-4 py-1 text-sm font-semibold text-white bg-blue-600 rounded-full">
+                      Most Popular
+                    </span>
+                  </div>
+                )}
+                <h3 className="mb-2 text-2xl font-bold text-gray-900">{plan.name}</h3>
+                <div className="mb-6">
+                  <span className="text-5xl font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-gray-600">{plan.period}</span>
+                </div>
+                <ul className="mb-8 space-y-4">
+                  {plan.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-3">
+                      <CheckCircle size={20} className="text-green-600" />
+                      <span className="text-gray-700">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => navigate('/login')}
+                  className={`w-full py-3 rounded-xl font-semibold transition-all ${
+                    plan.popular
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                  }`}
+                >
+                  Get Started
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-24 bg-white">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="grid gap-12 md:grid-cols-2">
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-blue-100 rounded-full">
+                <Phone size={20} className="text-blue-600" />
+                <span className="font-medium text-blue-600">Contact Us</span>
+              </div>
+              <h2 className="mb-6 text-4xl font-bold text-gray-900">{t('contactUs')}</h2>
+              <p className="mb-8 text-lg text-gray-600">{t('contactText')}</p>
+              
+              <div className="space-y-6">
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <Mail size={24} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Email</div>
+                    <div className="text-gray-600">support@example.com</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Phone size={24} className="text-green-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Phone</div>
+                    <div className="text-gray-600">+91 98765 43210</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                  <div className="p-3 bg-purple-100 rounded-lg">
+                    <MapPin size={24} className="text-purple-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Location</div>
+                    <div className="text-gray-600">Ahmedabad, Gujarat, India</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl">
+              <h3 className="mb-6 text-2xl font-bold text-gray-900">Send us a message</h3>
+              <form className="space-y-4">
+                <input
+                  type="text"
+                  placeholder="Your Name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <input
+                  type="email"
+                  placeholder="Your Email"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <textarea
+                  rows={4}
+                  placeholder="Your Message"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-3 font-semibold text-white transition-all shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-700 hover:to-purple-700"
+                >
+                  Send Message
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 text-white bg-gray-900">
+        <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Sparkles size={24} />
+              <span className="text-2xl font-bold">{t('appName')}</span>
+            </div>
+            <p className="mb-8 text-gray-400">Modern Rental Management Solution</p>
+            <div className="text-sm text-gray-500">
+              © 2025 {t('appName')}. All rights reserved.
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      {/* CSS for animations */}
+      <style>{`
+        @keyframes blob {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(30px, -50px) scale(1.1); }
+          66% { transform: translate(-20px, 20px) scale(0.9); }
+        }
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 };

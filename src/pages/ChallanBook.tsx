@@ -1,6 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Trash2, CreditCard as Edit, Download } from 'lucide-react';
+import { 
+  Eye, 
+  Trash2, 
+  Edit as EditIcon, 
+  Download, 
+  Search,
+  RefreshCw,
+  FileText,
+  Package,
+  AlertCircle,
+  Calendar,
+  ChevronLeft,
+  ChevronRight
+} from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import ChallanDetailsModal from '../components/ChallanDetailsModal';
@@ -9,6 +22,7 @@ import Navbar from '../components/Navbar';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 import { format } from 'date-fns';
+import toast, { Toaster } from 'react-hot-toast';
 
 interface ItemsData {
   size_1_qty: number;
@@ -63,6 +77,7 @@ interface ChallanData {
   isSecondaryPhone: boolean;
   items: ItemsData;
   totalItems: number;
+  clientId?: string;
 }
 
 type TabType = 'udhar' | 'jama';
@@ -76,10 +91,13 @@ const ChallanBook: React.FC = () => {
   const [udharChallans, setUdharChallans] = useState<ChallanData[]>([]);
   const [jamaChallans, setJamaChallans] = useState<ChallanData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedChallan, setSelectedChallan] = useState<ChallanData | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
 
   useEffect(() => {
     loadChallans();
@@ -95,15 +113,21 @@ const ChallanBook: React.FC = () => {
     return total;
   };
 
-  const loadChallans = async () => {
-    setLoading(true);
+  const loadChallans = async (showRefreshToast = false) => {
+    if (showRefreshToast) setRefreshing(true);
+    else setLoading(true);
+
     try {
       await Promise.all([fetchUdharChallans(), fetchJamaChallans()]);
+      if (showRefreshToast) {
+        toast.success('Challans refreshed successfully');
+      }
     } catch (error) {
       console.error('Error loading challans:', error);
-      alert('Error loading challans');
+      toast.error('Failed to load challans');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -233,14 +257,19 @@ const ChallanBook: React.FC = () => {
 
   const handleEditSave = () => {
     loadChallans();
+    toast.success('Challan updated successfully');
   };
 
   const handleDownloadJPEG = async (challan: ChallanData) => {
+    const loadingToast = toast.loading('Generating JPEG...');
     try {
       await generateJPEG(activeTab, challan.challanNumber, challan.date);
+      toast.dismiss(loadingToast);
+      toast.success('JPEG downloaded successfully');
     } catch (error) {
+      toast.dismiss(loadingToast);
       console.error('Error generating JPEG:', error);
-      alert('Error generating JPEG');
+      toast.error('Failed to generate JPEG');
     }
   };
 
@@ -250,6 +279,8 @@ const ChallanBook: React.FC = () => {
     );
 
     if (!confirmed) return;
+
+    const loadingToast = toast.loading('Deleting challan...');
 
     try {
       const rpcFunction = activeTab === 'udhar' ? 'delete_udhar_challan_with_stock' : 'delete_jama_challan_with_stock';
@@ -276,191 +307,433 @@ const ChallanBook: React.FC = () => {
         p_size_9_borrowed: challan.items.size_9_borrowed,
       });
 
+      toast.dismiss(loadingToast);
+
       if (error) throw error;
 
       if (data && typeof data === 'object' && 'success' in data) {
         if (data.success) {
-          alert(t('challanDeleted'));
+          toast.success('Challan deleted successfully');
           loadChallans();
         } else {
-          alert(`Error: ${data.message}`);
+          toast.error(`Error: ${data.message}`);
         }
       } else {
-        alert(t('challanDeleted'));
+        toast.success('Challan deleted successfully');
         loadChallans();
       }
     } catch (error) {
+      toast.dismiss(loadingToast);
       console.error('Error deleting challan:', error);
-      alert('Error deleting challan');
+      toast.error('Failed to delete challan');
     }
   };
 
   const currentChallans = activeTab === 'udhar' ? udharChallans : jamaChallans;
-  const filteredChallans = currentChallans.filter((challan) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      challan.challanNumber.toLowerCase().includes(searchLower) ||
-      challan.clientNicName.toLowerCase().includes(searchLower) ||
-      challan.clientFullName.toLowerCase().includes(searchLower) ||
-      challan.site.toLowerCase().includes(searchLower)
-    );
-  });
+  
+  const filteredChallans = useMemo(() => {
+    return currentChallans.filter((challan) => {
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        challan.challanNumber.toLowerCase().includes(searchLower) ||
+        challan.clientNicName.toLowerCase().includes(searchLower) ||
+        challan.clientFullName.toLowerCase().includes(searchLower) ||
+        challan.site.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [currentChallans, searchTerm]);
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredChallans.length / itemsPerPage);
+  const paginatedChallans = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return filteredChallans.slice(startIndex, startIndex + itemsPerPage);
+  }, [filteredChallans, currentPage, itemsPerPage]);
+
+  // Reset to first page when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeTab]);
+
+  const totalUdharItems = useMemo(() => udharChallans.reduce((sum, c) => sum + c.totalItems, 0), [udharChallans]);
+  const totalJamaItems = useMemo(() => jamaChallans.reduce((sum, c) => sum + c.totalItems, 0), [jamaChallans]);
+
+  const SkeletonRow = () => (
+    <tr className="animate-pulse">
+      <td className="px-6 py-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-6 py-4"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-6 py-4">
+        <div className="w-32 h-4 mb-1 bg-gray-200 rounded"></div>
+        <div className="w-24 h-3 bg-gray-200 rounded"></div>
+      </td>
+      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
+      <td className="px-6 py-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-6 py-4"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-6 py-4"><div className="w-32 h-8 bg-gray-200 rounded"></div></td>
+    </tr>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-50">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <Navbar />
-      <div className="flex">
-        <div className="w-64" /> {/* Spacer for navbar */}
-        <main className="flex-1 p-8">
-          <div className="bg-white rounded-lg shadow-md">
+      <main className="flex-1 ml-64 overflow-auto">
+        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold text-gray-900">{t('challanBook')}</h2>
+            <button
+              onClick={() => loadChallans(true)}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+            >
+              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+              Refresh
+            </button>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid gap-6 mb-8 md:grid-cols-2">
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-red-50"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{t('totalUdharChallans')}</p>
+                    <p className="mt-2 text-3xl font-bold text-red-600">{udharChallans.length}</p>
+                    <p className="mt-1 text-sm text-gray-500">{totalUdharItems} total items</p>
+                  </div>
+                  <div className="p-3 bg-red-100 rounded-lg">
+                    <FileText size={32} className="text-red-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-green-50"></div>
+              <div className="relative p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{t('totalJamaChallans')}</p>
+                    <p className="mt-2 text-3xl font-bold text-green-600">{jamaChallans.length}</p>
+                    <p className="mt-1 text-sm text-gray-500">{totalJamaItems} total items</p>
+                  </div>
+                  <div className="p-3 bg-green-100 rounded-lg">
+                    <Package size={32} className="text-green-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Table Container */}
+          <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
+            {/* Tabs */}
             <div className="border-b border-gray-200">
-              <nav className="flex">
+              <nav className="flex -mb-px">
                 <button
                   onClick={() => setActiveTab('udhar')}
-                  className={`flex-1 py-4 px-6 text-center font-medium ${
+                  className={`flex-1 py-4 px-6 text-center font-semibold text-sm transition-colors ${
                     activeTab === 'udhar'
-                      ? 'border-b-2 border-red-600 text-red-600'
-                      : 'text-gray-600 hover:text-gray-800'
+                      ? 'border-b-2 border-red-600 text-red-600 bg-red-50'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                 >
-                  {t('udharChallans')}
+                  <div className="flex items-center justify-center gap-2">
+                    <FileText size={18} />
+                    {t('udharChallans')}
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${
+                      activeTab === 'udhar' 
+                        ? 'bg-red-100 text-red-700' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {udharChallans.length}
+                    </span>
+                  </div>
                 </button>
                 <button
                   onClick={() => setActiveTab('jama')}
-                  className={`flex-1 py-4 px-6 text-center font-medium ${
+                  className={`flex-1 py-4 px-6 text-center font-semibold text-sm transition-colors ${
                     activeTab === 'jama'
-                      ? 'border-b-2 border-green-600 text-green-600'
-                      : 'text-gray-600 hover:text-gray-800'
+                      ? 'border-b-2 border-green-600 text-green-600 bg-green-50'
+                      : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                 >
-                  {t('jamaChallans')}
+                  <div className="flex items-center justify-center gap-2">
+                    <Package size={18} />
+                    {t('jamaChallans')}
+                    <span className={`px-2 py-0.5 text-xs rounded-full ${
+                      activeTab === 'jama' 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {jamaChallans.length}
+                    </span>
+                  </div>
                 </button>
               </nav>
             </div>
 
-            <div className="p-6">
-              <div className="mb-4">
+            {/* Search Bar */}
+            <div className="p-6 border-b border-gray-200 bg-gray-50">
+              <div className="relative">
+                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={18} />
                 <input
                   type="text"
                   placeholder={t('searchChallan')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                 />
               </div>
+            </div>
 
+            {/* Table */}
+            <div className="overflow-x-auto">
               {loading ? (
-                <div className="py-12 text-center">
-                  <p className="text-gray-600">Loading challans...</p>
-                </div>
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('challanNumber')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('date')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('clientName')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('site')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('phone')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('totalItems')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('actions')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    <SkeletonRow />
+                    <SkeletonRow />
+                    <SkeletonRow />
+                    <SkeletonRow />
+                    <SkeletonRow />
+                  </tbody>
+                </table>
               ) : filteredChallans.length === 0 ? (
-                <div className="py-12 text-center">
-                  <p className="text-gray-600">{t('noChallansFound')}</p>
+                <div className="py-16 text-center">
+                  <FileText size={48} className="mx-auto mb-4 text-gray-300" />
+                  <p className="text-lg font-medium text-gray-500">{t('noChallansFound')}</p>
+                  <p className="mt-1 text-sm text-gray-400">Try adjusting your search criteria</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                          {t('challanNumber')}
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('challanNumber')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        <div className="flex items-center gap-2">
+                          <Calendar size={14} />
                           {t('date')}
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                          {t('clientName')}
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                          {t('site')}
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                          {t('phone')}
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                          {t('totalItems')}
-                        </th>
-                        <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                          {t('actions')}
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {filteredChallans.map((challan) => (
-                        <tr key={challan.challanNumber} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
-                            {challan.challanNumber}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                            {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
-                            <div>
-                              <div className="font-medium">{challan.clientNicName}</div>
-                              <div className="text-xs text-gray-500">{challan.clientFullName}</div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900">
+                        </div>
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('clientName')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('site')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('phone')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('totalItems')}
+                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        {t('actions')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {paginatedChallans.map((challan, index) => (
+                      <tr 
+                        key={challan.challanNumber} 
+                        className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
+                      >
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                          {challan.challanNumber}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                          {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <div>
+                            <div className="font-semibold">{challan.clientNicName}</div>
+                            <div className="text-xs text-gray-500">{challan.clientFullName}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900">
+                          <div className="flex items-center gap-2">
                             {challan.site}
                             {challan.isAlternativeSite && (
-                              <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-200 rounded">
-                                {t('alternative')}
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                <AlertCircle size={12} />
+                                Alt
                               </span>
                             )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
                             {challan.phone}
                             {challan.isSecondaryPhone && (
-                              <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-200 rounded">
-                                {t('alternative')}
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                <AlertCircle size={12} />
+                                Alt
                               </span>
                             )}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-sm whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <Package size={12} />
                             {challan.totalItems} {t('pieces')}
-                          </td>
-                          <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => handleViewDetails(challan)}
-                                className="p-2 text-blue-600 transition-colors rounded hover:bg-blue-50 hover:text-blue-800"
-                                title={t('viewDetails')}
-                              >
-                                <Eye size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleEdit(challan)}
-                                className="p-2 text-yellow-600 transition-colors rounded hover:bg-yellow-50 hover:text-yellow-800"
-                                title={t('edit')}
-                              >
-                                <Edit size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleDownloadJPEG(challan)}
-                                className="p-2 text-green-600 transition-colors rounded hover:bg-green-50 hover:text-green-800"
-                                title="Download JPEG"
-                              >
-                                <Download size={18} />
-                              </button>
-                              <button
-                                onClick={() => handleDelete(challan)}
-                                className="p-2 text-red-600 transition-colors rounded hover:bg-red-50 hover:text-red-800"
-                                title={t('delete')}
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => handleViewDetails(challan)}
+                              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-800"
+                              title={t('viewDetails')}
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleEdit(challan)}
+                              className="p-2 text-yellow-600 transition-colors rounded-lg hover:bg-yellow-50 hover:text-yellow-800"
+                              title={t('edit')}
+                            >
+                              <EditIcon size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDownloadJPEG(challan)}
+                              className="p-2 text-green-600 transition-colors rounded-lg hover:bg-green-50 hover:text-green-800"
+                              title="Download JPEG"
+                            >
+                              <Download size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(challan)}
+                              className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50 hover:text-red-800"
+                              title={t('delete')}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
+
+            {/* Pagination */}
+            {!loading && filteredChallans.length > 0 && (
+              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-600">
+                    Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
+                    <span className="font-medium">
+                      {Math.min(currentPage * itemsPerPage, filteredChallans.length)}
+                    </span>{' '}
+                    of <span className="font-medium">{filteredChallans.length}</span> challans
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    
+                    <div className="flex gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <button
+                            key={pageNum}
+                            onClick={() => setCurrentPage(pageNum)}
+                            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                              currentPage === pageNum
+                                ? activeTab === 'udhar'
+                                  ? 'bg-red-600 text-white'
+                                  : 'bg-green-600 text-white'
+                                : 'text-gray-600 hover:bg-gray-100'
+                            }`}
+                          >
+                            {pageNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    <button
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
 
       <ChallanDetailsModal
         challan={selectedChallan}

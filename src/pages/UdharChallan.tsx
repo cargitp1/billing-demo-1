@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { Search } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { 
+  Search, 
+  ArrowLeft, 
+  UserPlus, 
+  FileText, 
+  Calendar,
+  MapPin,
+  Phone,
+  User,
+  CheckCircle,
+  Package
+} from 'lucide-react';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
 import ReceiptTemplate from '../components/ReceiptTemplate';
@@ -10,6 +20,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 import Navbar from '../components/Navbar';
+import toast, { Toaster } from 'react-hot-toast';
 
 type Step = 'client-selection' | 'challan-details';
 
@@ -38,48 +49,94 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h3 className="text-xl font-semibold text-gray-900">{t('selectClient')}</h3>
+      {/* Header with Action */}
+      <div className="flex items-center justify-between p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900">{t('selectClient')}</h3>
+          <p className="mt-1 text-sm text-gray-500">Choose a client to create udhar challan</p>
+        </div>
         <button
           onClick={onAddNewClick}
-          className="px-4 py-2 font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md"
         >
-          + {t('addNewClient')}
+          <UserPlus size={18} />
+          {t('addNewClient')}
         </button>
       </div>
 
       {/* Search Box */}
       <div className="relative">
-        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-          <Search className="w-5 h-5 text-gray-400" />
-        </div>
+        <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={18} />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder={t('searchClients')}
-          className="w-full py-2 pl-10 pr-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full py-3 pl-10 pr-4 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
+      {/* Results Count */}
+      {searchQuery && (
+        <div className="px-4 py-2 border border-blue-200 rounded-lg bg-blue-50">
+          <p className="text-sm text-blue-700">
+            Found <span className="font-semibold">{filteredClients.length}</span> matching client{filteredClients.length !== 1 ? 's' : ''}
+          </p>
+        </div>
+      )}
+
       {/* Client Grid */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {filteredClients.map((client) => (
+      {filteredClients.length === 0 ? (
+        <div className="p-16 text-center bg-white border border-gray-200 shadow-sm rounded-xl">
+          <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gray-100 rounded-full">
+            <User size={32} className="text-gray-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-gray-900">No clients found</h3>
+          <p className="mb-4 text-gray-500">
+            {searchQuery ? 'Try adjusting your search criteria' : 'Add your first client to get started'}
+          </p>
           <button
-            key={client.id}
-            onClick={() => onClientSelect(client.id)}
-            className="p-4 text-left transition-shadow bg-white border border-gray-200 rounded-lg shadow hover:shadow-md hover:border-blue-500"
+            onClick={searchQuery ? () => onSearchChange('') : onAddNewClick}
+            className="px-4 py-2 text-sm font-medium text-blue-600 transition-colors rounded-lg hover:text-blue-700 hover:bg-blue-50"
           >
-            <h4 className="text-lg font-semibold text-gray-900">{client.client_nic_name}</h4>
-            <p className="text-gray-600">{client.client_name}</p>
-            <div className="mt-2 text-sm text-gray-500">
-              <p>{t('site')}: {client.site}</p>
-              <p>{t('phone')}: {client.primary_phone_number}</p>
-            </div>
+            {searchQuery ? 'Clear search' : 'Add New Client'}
           </button>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {filteredClients.map((client) => (
+            <button
+              key={client.id}
+              onClick={() => onClientSelect(client.id)}
+              className="p-5 text-left transition-all bg-white border border-gray-200 shadow-sm group rounded-xl hover:shadow-md hover:border-blue-500"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 transition-colors bg-blue-100 rounded-lg group-hover:bg-blue-200">
+                    <User size={20} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                      {client.client_nic_name}
+                    </h4>
+                    <p className="text-sm text-gray-600">{client.client_name}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="pt-3 mt-3 space-y-2 border-t border-gray-100">
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <MapPin size={14} className="text-gray-400" />
+                  <span className="truncate">{client.site}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <Phone size={14} className="text-gray-400" />
+                  <span>{client.primary_phone_number}</span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -128,116 +185,185 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Client Info Display */}
-      <div className="flex items-center justify-between">
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-4 p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
         <button
           onClick={onBack}
-          className="px-4 py-2 text-gray-600 hover:text-gray-900"
+          className="p-2 text-gray-600 transition-colors rounded-lg hover:text-gray-900 hover:bg-gray-100"
         >
-          ← {t('back')}
+          <ArrowLeft size={20} />
         </button>
-        <h3 className="text-xl font-semibold text-gray-900">{t('challanDetails')}</h3>
+        <div className="flex-1">
+          <h3 className="text-xl font-semibold text-gray-900">{t('challanDetails')}</h3>
+          <p className="mt-1 text-sm text-gray-500">Complete the challan information below</p>
+        </div>
       </div>
 
-      <div className="p-4 rounded-lg bg-gray-50">
-        <h4 className="font-medium text-gray-900">{selectedClient.client_nic_name}</h4>
-        <p className="text-gray-600">{selectedClient.client_name}</p>
-        <div className="mt-2 text-sm text-gray-500">
-          <p>{t('site')}: {selectedClient.site}</p>
-          <p>{t('phone')}: {selectedClient.primary_phone_number}</p>
+      {/* Selected Client Info */}
+      <div className="relative p-6 overflow-hidden border border-blue-200 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-100 rounded-bl-full opacity-30"></div>
+        <div className="relative flex items-start gap-4">
+          <div className="p-3 bg-blue-600 rounded-lg">
+            <User size={28} className="text-white" />
+          </div>
+          <div className="flex-1">
+            <h4 className="text-lg font-semibold text-gray-900">{selectedClient.client_nic_name}</h4>
+            <p className="text-gray-700">{selectedClient.client_name}</p>
+            <div className="grid grid-cols-1 gap-2 mt-3 md:grid-cols-2">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin size={14} className="text-blue-600" />
+                <span>{selectedClient.site}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Phone size={14} className="text-blue-600" />
+                <span>{selectedClient.primary_phone_number}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       <div className="space-y-6">
-        {/* Alternative Site and Secondary Phone */}
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('overrideDetails')}</h3>
+        {/* Override Details */}
+        <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-yellow-100 rounded-lg">
+              <FileText size={18} className="text-yellow-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">{t('overrideDetails')}</h3>
+          </div>
+          <p className="mb-4 text-sm text-gray-500">Optional: Override default site or phone for this challan</p>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                <MapPin size={14} />
                 {t('alternativeSite')}
               </label>
               <input
                 type="text"
                 value={alternativeSite}
                 onChange={(e) => setAlternativeSite(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Leave blank to use default site"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                <Phone size={14} />
                 {t('secondaryPhone')}
               </label>
               <input
                 type="text"
                 value={secondaryPhone}
                 onChange={(e) => setSecondaryPhone(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Leave blank to use primary phone"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
         </div>
 
-        {/* Challan Details */}
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('basicDetails')}</h3>
+        {/* Basic Challan Details */}
+        <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <FileText size={18} className="text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">{t('basicDetails')}</h3>
+          </div>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                {t('challanNumber')} *
+              <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                <FileText size={14} />
+                {t('challanNumber')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
                 value={challanNumber}
                 onChange={(e) => setChallanNumber(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter challan number"
+                className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.challanNumber ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
-              {errors.challanNumber && <p className="mt-1 text-sm text-red-600">{errors.challanNumber}</p>}
+              {errors.challanNumber && (
+                <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                  <span className="text-red-500">•</span> {errors.challanNumber}
+                </p>
+              )}
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
-                {t('date')} *
+              <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                <Calendar size={14} />
+                {t('date')} <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                  errors.date ? 'border-red-500' : 'border-gray-300'
+                }`}
               />
-              {errors.date && <p className="mt-1 text-sm text-red-600">{errors.date}</p>}
+              {errors.date && (
+                <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
+                  <span className="text-red-500">•</span> {errors.date}
+                </p>
+              )}
             </div>
             <div>
-              <label className="block mb-1 text-sm font-medium text-gray-700">
+              <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
+                <User size={14} />
                 {t('driverName')}
               </label>
               <input
                 type="text"
                 value={driverName}
                 onChange={(e) => setDriverName(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Optional driver name"
+                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
         </div>
 
         {/* Items Table */}
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('itemsDetails')}</h3>
-          {errors.items && <p className="mb-4 text-sm text-red-600">{errors.items}</p>}
+        <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Package size={18} className="text-green-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">{t('itemsDetails')}</h3>
+          </div>
+          {errors.items && (
+            <div className="p-3 mb-4 border border-red-200 rounded-lg bg-red-50">
+              <p className="flex items-center gap-2 text-sm text-red-600">
+                <span className="text-red-500">⚠</span> {errors.items}
+              </p>
+            </div>
+          )}
           <ItemsTable items={items} onChange={setItems} />
         </div>
 
-        {/* Save or Success */}
+        {/* Save or Success State */}
         {showSuccess ? (
           <div className="space-y-6">
-            <div className="px-6 py-4 text-center text-green-700 bg-green-100 border border-green-400 rounded-lg">
-              <p className="text-lg font-semibold">{t('challanSaved')}</p>
+            <div className="relative p-8 overflow-hidden text-center border border-green-200 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-green-100 rounded-bl-full opacity-30"></div>
+              <div className="relative">
+                <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-green-600 rounded-full">
+                  <CheckCircle size={32} className="text-white" />
+                </div>
+                <h3 className="mb-2 text-2xl font-bold text-gray-900">{t('challanSaved')}</h3>
+                <p className="text-gray-600">Challan has been created and JPEG is being generated</p>
+              </div>
             </div>
             <div className="flex justify-center">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="px-8 py-4 text-lg font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+                className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white transition-colors bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg"
               >
+                <ArrowLeft size={20} />
                 {t('backToDashboard')}
               </button>
             </div>
@@ -246,8 +372,9 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
           <div className="flex justify-center">
             <button
               onClick={onSave}
-              className="px-8 py-4 text-lg font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+              className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white transition-colors bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg"
             >
+              <CheckCircle size={20} />
               {t('save')}
             </button>
           </div>
@@ -300,12 +427,15 @@ const UdharChallan: React.FC = () => {
 
     if (error) {
       console.error('Error fetching clients:', error);
+      toast.error('Failed to load clients');
     } else {
       setClients(data || []);
     }
   };
 
   const handleQuickAddClient = async (clientData: ClientFormData) => {
+    const loadingToast = toast.loading('Creating client...');
+
     const { data, error } = await supabase
       .from('clients')
       .insert({
@@ -317,11 +447,13 @@ const UdharChallan: React.FC = () => {
       .select()
       .single();
 
+    toast.dismiss(loadingToast);
+
     if (error) {
       console.error('Error creating client:', error);
-      alert('Error creating client');
+      toast.error('Failed to create client');
     } else {
-      alert(t('saveSuccess'));
+      toast.success('Client created successfully');
       setShowQuickAdd(false);
       await fetchClients();
       if (data) {
@@ -360,7 +492,10 @@ const UdharChallan: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!validate()) return;
+    if (!validate()) {
+      toast.error('Please fill all required fields');
+      return;
+    }
 
     const { data: existingChallan } = await supabase
       .from('udhar_challans')
@@ -369,9 +504,11 @@ const UdharChallan: React.FC = () => {
       .maybeSingle();
 
     if (existingChallan) {
-      alert(t('duplicateChallan'));
+      toast.error(t('duplicateChallan'));
       return;
     }
+
+    const loadingToast = toast.loading('Creating challan...');
 
     const { error: challanError } = await supabase
       .from('udhar_challans')
@@ -385,8 +522,9 @@ const UdharChallan: React.FC = () => {
       });
 
     if (challanError) {
+      toast.dismiss(loadingToast);
       console.error('Error creating challan:', challanError);
-      alert('Error creating challan');
+      toast.error('Failed to create challan');
       return;
     }
 
@@ -398,8 +536,9 @@ const UdharChallan: React.FC = () => {
       });
 
     if (itemsError) {
+      toast.dismiss(loadingToast);
       console.error('Error creating items:', itemsError);
-      alert('Error creating items');
+      toast.error('Failed to create items');
       return;
     }
 
@@ -424,17 +563,22 @@ const UdharChallan: React.FC = () => {
         }
       }
     } catch (error) {
+      toast.dismiss(loadingToast);
       console.error('Error updating stock:', error);
-      alert('Challan saved but error updating stock. Please update stock manually.');
+      toast.warning('Challan saved but stock update failed. Please update manually.');
     }
 
+    toast.dismiss(loadingToast);
+    toast.success('Challan created successfully');
     setShowSuccess(true);
 
     setTimeout(async () => {
       try {
         await generateJPEG('udhar', challanNumber, date);
+        toast.success('JPEG generated successfully');
       } catch (error) {
         console.error('Error generating JPEG:', error);
+        toast.error('Failed to generate JPEG');
       }
     }, 500);
   };
@@ -451,74 +595,96 @@ const UdharChallan: React.FC = () => {
   const selectedClient = clients.find(c => c.id === selectedClientId);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-50">
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
       <Navbar />
-      <div className="flex">
-        <div className="w-64" /> {/* Spacer for navbar */}
-        <main className="flex-1 p-8">
-          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
-            {currentStep === 'client-selection' ? (
-              <>
-                <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('udharChallanTitle')}</h2>
-                {showQuickAdd ? (
-                  <div className="p-6 bg-white rounded-lg shadow">
-                    <ClientForm
-                      onSubmit={handleQuickAddClient}
-                      onCancel={() => setShowQuickAdd(false)}
-                      isQuickAdd={true}
-                    />
-                  </div>
-                ) : (
-                  <ClientSelectionStep
-                    clients={clients}
-                    onClientSelect={handleClientSelect}
-                    onAddNewClick={() => setShowQuickAdd(true)}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
+      <main className="flex-1 ml-64 overflow-auto">
+        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+          {currentStep === 'client-selection' ? (
+            <>
+              <div className="mb-8">
+                <h2 className="text-3xl font-bold text-gray-900">{t('udharChallanTitle')}</h2>
+                <p className="mt-2 text-gray-600">Create a new udhar challan for rental items</p>
+              </div>
+              {showQuickAdd ? (
+                <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+                  <ClientForm
+                    onSubmit={handleQuickAddClient}
+                    onCancel={() => setShowQuickAdd(false)}
+                    isQuickAdd={true}
                   />
-                )}
-              </>
-            ) : (
-              selectedClient && (
-                <ChallanDetailsStep
-                  selectedClient={selectedClient}
-                  onBack={handleBack}
-                  onSave={handleSave}
-                  challanNumber={challanNumber}
-                  setChallanNumber={setChallanNumber}
-                  date={date}
-                  setDate={setDate}
-                  driverName={driverName}
-                  setDriverName={setDriverName}
-                  alternativeSite={alternativeSite}
-                  setAlternativeSite={setAlternativeSite}
-                  secondaryPhone={secondaryPhone}
-                  setSecondaryPhone={setSecondaryPhone}
-                  items={items}
-                  setItems={setItems}
-                  errors={errors}
-                  showSuccess={showSuccess}
-                />
-              )
-            )}
-            
-            <div style={{ position: 'absolute', left: '-9999px' }}>
-              {selectedClient && (
-                <ReceiptTemplate
-                  challanType="udhar"
-                  challanNumber={challanNumber}
-                  date={date}
-                  clientName={selectedClient.client_name}
-                  site={alternativeSite || selectedClient.site}
-                  phone={secondaryPhone || selectedClient.primary_phone_number}
-                  driverName={driverName}
-                  items={items}
+                </div>
+              ) : (
+                <ClientSelectionStep
+                  clients={clients}
+                  onClientSelect={handleClientSelect}
+                  onAddNewClick={() => setShowQuickAdd(true)}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
                 />
               )}
-            </div>
+            </>
+          ) : (
+            selectedClient && (
+              <ChallanDetailsStep
+                selectedClient={selectedClient}
+                onBack={handleBack}
+                onSave={handleSave}
+                challanNumber={challanNumber}
+                setChallanNumber={setChallanNumber}
+                date={date}
+                setDate={setDate}
+                driverName={driverName}
+                setDriverName={setDriverName}
+                alternativeSite={alternativeSite}
+                setAlternativeSite={setAlternativeSite}
+                secondaryPhone={secondaryPhone}
+                setSecondaryPhone={setSecondaryPhone}
+                items={items}
+                setItems={setItems}
+                errors={errors}
+                showSuccess={showSuccess}
+              />
+            )
+          )}
+          
+          <div style={{ position: 'absolute', left: '-9999px' }}>
+            {selectedClient && (
+              <ReceiptTemplate
+                challanType="udhar"
+                challanNumber={challanNumber}
+                date={date}
+                clientName={selectedClient.client_name}
+                site={alternativeSite || selectedClient.site}
+                phone={secondaryPhone || selectedClient.primary_phone_number}
+                driverName={driverName}
+                items={items}
+              />
+            )}
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };
