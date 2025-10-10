@@ -101,38 +101,43 @@ const ClientManagement: React.FC = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
 
-      <main className="px-4 py-8 mx-auto ml-64 max-w-7xl sm:px-6 lg:px-8">
-        <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('clientManagement')}</h2>
+      <div className="flex">
+        <div className="flex-shrink-0 w-64" /> {/* Spacer for navbar */}
+        <main className="flex-1 px-4 py-8">
+          <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+            <h2 className="mb-8 text-3xl font-bold text-gray-900">{t('clientManagement')}</h2>
 
-        <div className="p-6 mb-8 bg-white rounded-lg shadow">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold text-gray-900">
-              {editingClient ? t('edit') : t('addNewClient')}
-            </h3>
-            {!showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium min-h-[44px]"
-              >
-                {t('addNewClient')}
-              </button>
-            )}
+            <div className="p-6 mb-8 bg-white rounded-lg shadow">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">
+                  {editingClient ? t('edit') : t('addNewClient')}
+                </h3>
+                {!showForm && (
+                  <button
+                    onClick={() => setShowForm(true)}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium min-h-[44px]"
+                  >
+                    {t('addNewClient')}
+                  </button>
+                )}
+              </div>
+
+              {showForm && (
+                <ClientForm
+                  initialData={editingClient}
+                  onSubmit={handleSubmit}
+                  onCancel={handleCancel}
+                />
+              )}
+            </div>
+
+            <div className="p-6 bg-white rounded-lg shadow">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('clientList')}</h3>
+              <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
+            </div>
           </div>
-
-          {showForm && (
-            <ClientForm
-              initialData={editingClient}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
-            />
-          )}
-        </div>
-
-        <div className="p-6 bg-white rounded-lg shadow">
-          <h3 className="mb-4 text-xl font-semibold text-gray-900">{t('clientList')}</h3>
-          <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
