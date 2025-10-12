@@ -45,12 +45,12 @@ export default function TransactionTable({
     }
 
     if (size.qty === 0) {
-      return <span><sup>+{size.borrowed}</sup></span>;
+      return <span><sup className="font-bold text-red-600">{size.borrowed}</sup></span>;
     }
 
     return (
       <span>
-        {size.qty}<sup>+{size.borrowed}</sup>
+        {size.qty + size.borrowed}<sup className="font-bold text-red-600">{size.borrowed}</sup>
       </span>
     );
   };
@@ -63,12 +63,12 @@ export default function TransactionTable({
     }
 
     if (sizeBalance.main === 0) {
-      return <span><sup>+{sizeBalance.borrowed}</sup></span>;
+      return <span><sup className="font-bold text-red-600">{sizeBalance.borrowed}</sup></span>;
     }
 
     return (
       <span>
-        {sizeBalance.total}<sup>{sizeBalance.main}+{sizeBalance.borrowed}</sup>
+        {sizeBalance.main + sizeBalance.borrowed}<sup className="font-bold text-red-600">{sizeBalance.borrowed}</sup>
       </span>
     );
   };
@@ -162,12 +162,12 @@ export default function TransactionTable({
           {sortedTransactions.map((transaction, index) => (
             <tr
               key={`${transaction.type}-${transaction.challanId}-${index}`}
-              className={transaction.type === 'udhar' ? 'bg-orange-50' : 'bg-green-50'}
+              className={transaction.type === 'udhar' ? 'bg-red-50' : 'bg-green-50'}
             >
               <td className="px-3 py-4 whitespace-nowrap">
                 <div className="flex items-center gap-2">
                   <div className={`w-3 h-3 rounded-full ${
-                    transaction.type === 'udhar' ? 'bg-orange-500' : 'bg-green-500'
+                    transaction.type === 'udhar' ? 'bg-red-500' : 'bg-green-500'
                   }`}></div>
                   <span>
                     {transaction.type === 'udhar' ? t.udhar : t.jama} #{transaction.challanNumber}
@@ -178,11 +178,10 @@ export default function TransactionTable({
                 {new Date(transaction.date).toLocaleDateString('en-GB')}
               </td>
               <td className="px-3 py-4 font-medium whitespace-nowrap">
-                {transaction.type === 'udhar' ? '+' : '-'}{transaction.grandTotal}
+                {transaction.grandTotal}
               </td>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
                 <td key={size} className="px-3 py-4 text-center whitespace-nowrap">
-                  {transaction.type === 'udhar' ? '+' : '-'}
                   {formatSizeValue(transaction.sizes[size])}
                 </td>
               ))}

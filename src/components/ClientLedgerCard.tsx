@@ -23,14 +23,14 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
     : 'bg-green-100 text-green-700';
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+    <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
       <div
-        className="p-5 cursor-pointer hover:bg-gray-50 transition-colors"
+        className="p-5 transition-colors cursor-pointer hover:bg-gray-50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="w-12 h-12 rounded-full bg-blue-500 text-white flex items-center justify-center text-xl font-bold">
+          <div className="flex items-center flex-1 gap-4">
+            <div className="flex items-center justify-center w-12 h-12 text-xl font-bold text-white bg-blue-500 rounded-full">
               {getInitial(ledger.clientNicName)}
             </div>
 
@@ -76,8 +76,8 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
       </div>
 
       {isExpanded && (
-        <div className="border-t border-gray-200 p-5 bg-gray-50">
-          <h4 className="text-md font-semibold mb-4 text-gray-700">
+        <div className="p-5 border-t border-gray-200 bg-gray-50">
+          <h4 className="mb-4 font-semibold text-gray-700 text-md">
             {t.transactionHistory}
           </h4>
           <TransactionTable
