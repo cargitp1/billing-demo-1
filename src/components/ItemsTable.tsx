@@ -35,9 +35,11 @@ export interface ItemsData {
 interface ItemsTableProps {
   items: ItemsData;
   onChange: (items: ItemsData) => void;
+  outstandingBalances?: { [key: number]: number };
+  borrowedOutstanding?: { [key: number]: number };
 }
 
-const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
+const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBalances, borrowedOutstanding }) => {
   const { t } = useLanguage();
 
   const handleChange = (field: keyof ItemsData, value: number | string) => {
@@ -48,20 +50,28 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
 
   return (
     <div className="space-y-6">
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden overflow-x-auto md:block">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 {t('size')}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {t('quantity')}
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {outstandingBalances && (
+                <>
+                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    {t('Outstanding')}
+                  </th>
+                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    {t('borrowed')}
+                  </th>
+                </>
+              )}
+
+              <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 {t('borrowed')}
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 {t('notes')}
               </th>
             </tr>
@@ -69,9 +79,27 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {sizes.map((size) => (
               <tr key={size}>
-                <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td className="px-4 py-4 text-sm font-medium text-gray-900 whitespace-nowrap">
                   {size}
                 </td>
+                {outstandingBalances && (
+                  <>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
+                        outstandingBalances[size] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {outstandingBalances[size] || 0}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
+                        (borrowedOutstanding && borrowedOutstanding[size] > 0) ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                      }`}>
+                        {borrowedOutstanding ? (borrowedOutstanding[size] || 0) : 0}
+                      </div>
+                    </td>
+                  </>
+                )}
                 <td className="px-4 py-4 whitespace-nowrap">
                   <input
                     type="number"
@@ -104,15 +132,27 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
         </table>
       </div>
 
-      <div className="md:hidden space-y-4">
+      <div className="space-y-4 md:hidden">
         {sizes.map((size) => (
-          <div key={size} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <h4 className="text-lg font-semibold text-gray-900 mb-3">
+          <div key={size} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+            <h4 className="mb-3 text-lg font-semibold text-gray-900">
               {t('size')} {size}
             </h4>
             <div className="space-y-3">
+              {outstandingBalances && (
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700">
+                    Outstanding
+                  </label>
+                  <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
+                    outstandingBalances[size] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                  }`}>
+                    {outstandingBalances[size] || 0}
+                  </div>
+                </div>
+              )}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   {t('quantity')}
                 </label>
                 <input
@@ -124,7 +164,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   {t('borrowed')}
                 </label>
                 <input
@@ -136,7 +176,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block mb-1 text-sm font-medium text-gray-700">
                   {t('notes')}
                 </label>
                 <input
@@ -152,7 +192,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange }) => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           {t('mainNote')}
         </label>
         <textarea

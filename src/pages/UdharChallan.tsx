@@ -110,17 +110,15 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
               onClick={() => onClientSelect(client.id)}
               className="p-5 text-left transition-all bg-white border border-gray-200 shadow-sm group rounded-xl hover:shadow-md hover:border-blue-500"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 transition-colors bg-blue-100 rounded-lg group-hover:bg-blue-200">
-                    <User size={20} className="text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
-                      {client.client_nic_name}
-                    </h4>
-                    <p className="text-sm text-gray-600">{client.client_name}</p>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 transition-colors bg-blue-100 rounded-lg group-hover:bg-blue-200">
+                  <User size={20} className="text-blue-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-blue-600">
+                    {client.client_nic_name}
+                  </h4>
+                  <p className="text-sm text-gray-600">{client.client_name}</p>
                 </div>
               </div>
               <div className="pt-3 mt-3 space-y-2 border-t border-gray-100">
@@ -428,9 +426,10 @@ const UdharChallan: React.FC = () => {
     if (error) {
       console.error('Error fetching clients:', error);
       toast.error('Failed to load clients');
-    } else {
-      setClients(data || []);
+      return;
     }
+
+    setClients(data || []);
   };
 
   const handleQuickAddClient = async (clientData: ClientFormData) => {

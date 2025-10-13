@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
@@ -139,14 +139,16 @@ const ClientManagement: React.FC = () => {
     setShowForm(false);
   };
 
-  // Calculate statistics
-  const totalClients = clients.length;
-  const uniqueSites = new Set(clients.map(c => c.site)).size;
-  const recentClients = clients.filter(c => {
-    const createdAt = new Date(c.created_at || '');
-    const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-    return daysSinceCreation <= 30;
-  }).length;
+  const statistics = useMemo(() => {
+    const totalClients = clients.length;
+    const uniqueSites = new Set(clients.map(c => c.site)).size;
+    const recentClients = clients.filter(c => {
+      const createdAt = new Date(c.created_at || '');
+      const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
+      return daysSinceCreation <= 30;
+    }).length;
+    return { totalClients, uniqueSites, recentClients };
+  }, [clients]);
 
   const SkeletonCard = () => (
     <div className="p-5 bg-white border border-gray-200 shadow-sm rounded-xl animate-pulse">
@@ -213,7 +215,7 @@ const ClientManagement: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">{t('totalClients') || 'Total Clients'}</p>
-                      <p className="mt-2 text-3xl font-bold text-blue-600">{totalClients}</p>
+                      <p className="mt-2 text-3xl font-bold text-blue-600">{statistics.totalClients}</p>
                     </div>
                     <div className="p-3 bg-blue-100 rounded-lg">
                       <Users size={28} className="text-blue-600" />
@@ -228,7 +230,7 @@ const ClientManagement: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">{t('uniqueSites') || 'Unique Sites'}</p>
-                      <p className="mt-2 text-3xl font-bold text-purple-600">{uniqueSites}</p>
+                      <p className="mt-2 text-3xl font-bold text-purple-600">{statistics.uniqueSites}</p>
                     </div>
                     <div className="p-3 bg-purple-100 rounded-lg">
                       <MapPin size={28} className="text-purple-600" />
@@ -243,7 +245,7 @@ const ClientManagement: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium text-gray-600">{t('recentClients') || 'New This Month'}</p>
-                      <p className="mt-2 text-3xl font-bold text-green-600">{recentClients}</p>
+                      <p className="mt-2 text-3xl font-bold text-green-600">{statistics.recentClients}</p>
                     </div>
                     <div className="p-3 bg-green-100 rounded-lg">
                       <TrendingUp size={28} className="text-green-600" />

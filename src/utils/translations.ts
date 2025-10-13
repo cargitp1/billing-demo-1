@@ -93,6 +93,8 @@ export const translations = {
     phone: 'ફોન',
     driver: 'ડ્રાઇવર',
     items: 'વસ્તુઓ',
+    notes: 'નોંધો',
+    Outstanding: 'બાકી',
 
     challanBook: 'ચલણ બુક',
     udharChallans: 'ઉધાર ચલણ',

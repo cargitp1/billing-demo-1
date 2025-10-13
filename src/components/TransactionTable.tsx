@@ -36,39 +36,69 @@ export default function TransactionTable({
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
-  const formatSizeValue = (size: { qty: number; borrowed: number }) => {
+  const formatSizeValue = (size: { qty: number; borrowed: number }, note?: string | null) => {
     const total = size.qty + size.borrowed;
-    if (total === 0) return '-';
+    if (total === 0 && !note) return '-';
 
-    if (size.borrowed === 0) {
-      return size.qty.toString();
+    const valueDisplay = (() => {
+      if (total === 0) return null;
+
+      if (size.borrowed === 0) {
+        return <span className="font-medium">{size.qty}</span>;
+      }
+
+      if (size.qty === 0) {
+        return (
+          <span className="font-bold text-red-700">
+          <sup className="ml-1 text-xs font-bold text-red-700">
+            {size.borrowed}
+          </sup>
+          </span>
+        );
+      }
+
+      return (
+        <span>
+          <span className="font-medium">{size.qty + size.borrowed}</span>
+          <sup className="ml-1 text-xs font-bold text-red-700">
+            {size.borrowed}{note ? ` ${note}` : ''}
+          </sup>
+        </span>
+      );
+    })();
+
+    if (note) {
+      return (
+        <div>
+          {valueDisplay && <div>{valueDisplay}</div>}
+        </div>
+      );
     }
 
-    if (size.qty === 0) {
-      return <span><sup className="font-bold text-red-600">{size.borrowed}</sup></span>;
-    }
-
-    return (
-      <span>
-        {size.qty + size.borrowed}<sup className="font-bold text-red-600">{size.borrowed}</sup>
-      </span>
-    );
+    return valueDisplay || '-';
   };
 
   const formatBalanceValue = (sizeBalance: { main: number; borrowed: number; total: number }) => {
     if (sizeBalance.total === 0) return '-';
 
     if (sizeBalance.borrowed === 0) {
-      return sizeBalance.main.toString();
+      return <span className="font-bold">{sizeBalance.main}</span>;
     }
 
     if (sizeBalance.main === 0) {
-      return <span><sup className="font-bold text-red-600">{sizeBalance.borrowed}</sup></span>;
+      return (
+        <span className="font-bold text-red-700">
+          {sizeBalance.borrowed}
+        </span>
+      );
     }
 
     return (
       <span>
-        {sizeBalance.main + sizeBalance.borrowed}<sup className="font-bold text-red-600">{sizeBalance.borrowed}</sup>
+        <span className="font-bold">{sizeBalance.main + sizeBalance.borrowed}</span>
+        <sup className="ml-1 text-xs font-bold text-red-700">
+          {sizeBalance.borrowed}
+        </sup>
       </span>
     );
   };
@@ -170,7 +200,7 @@ export default function TransactionTable({
                     transaction.type === 'udhar' ? 'bg-red-500' : 'bg-green-500'
                   }`}></div>
                   <span>
-                    {transaction.type === 'udhar' ? t.udhar : t.jama} #{transaction.challanNumber}
+                    #{transaction.challanNumber}
                   </span>
                 </div>
               </td>
@@ -180,11 +210,14 @@ export default function TransactionTable({
               <td className="px-3 py-4 font-medium whitespace-nowrap">
                 {transaction.grandTotal}
               </td>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
-                <td key={size} className="px-3 py-4 text-center whitespace-nowrap">
-                  {formatSizeValue(transaction.sizes[size])}
-                </td>
-              ))}
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => {
+                const sizeNote = transaction.items?.[`size_${size}_note`];
+                return (
+                  <td key={size} className="px-3 py-4 text-center">
+                    {formatSizeValue(transaction.sizes[size], sizeNote)}
+                  </td>
+                );
+              })}
               <td className="px-3 py-4 whitespace-nowrap">
                 {transaction.site}
               </td>

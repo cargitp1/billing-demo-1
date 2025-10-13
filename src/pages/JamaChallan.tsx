@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { 
-  Search, 
-  ArrowLeft, 
-  UserPlus, 
-  FileText, 
+import {
+  Search,
+  ArrowLeft,
+  UserPlus,
+  FileText,
   Calendar,
   MapPin,
   Phone,
@@ -21,6 +21,7 @@ import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
 import Navbar from '../components/Navbar';
 import toast, { Toaster } from 'react-hot-toast';
+import { fetchClientTransactions } from '../utils/challanFetching';
 
 interface ClientFormData {
   id?: string;
@@ -118,17 +119,15 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
               onClick={() => onClientSelect(client.id!)}
               className="p-5 text-left transition-all bg-white border border-gray-200 shadow-sm group rounded-xl hover:shadow-md hover:border-green-500"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 transition-colors bg-green-100 rounded-lg group-hover:bg-green-200">
-                    <User size={20} className="text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-green-600">
-                      {client.client_nic_name}
-                    </h4>
-                    <p className="text-sm text-gray-600">{client.client_name}</p>
-                  </div>
+              <div className="flex items-center gap-3 mb-3">
+                <div className="p-2 transition-colors bg-green-100 rounded-lg group-hover:bg-green-200">
+                  <User size={20} className="text-green-600" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-green-600">
+                    {client.client_nic_name}
+                  </h4>
+                  <p className="text-sm text-gray-600">{client.client_name}</p>
                 </div>
               </div>
               <div className="pt-3 mt-3 space-y-2 border-t border-gray-100">
@@ -176,6 +175,8 @@ const JamaChallan: React.FC = () => {
     size_6_note: '', size_7_note: '', size_8_note: '', size_9_note: '',
     main_note: '',
   });
+  const [outstandingBalances, setOutstandingBalances] = useState<{ [key: number]: number }>({});
+  const [borrowedOutstanding, setBorrowedOutstanding] = useState<{ [key: number]: number }>({});
 
   useEffect(() => {
     fetchClients();
@@ -190,20 +191,51 @@ const JamaChallan: React.FC = () => {
     if (error) {
       console.error('Error fetching clients:', error);
       toast.error('Failed to load clients');
-    } else {
-      setClients(data || []);
+      return;
     }
+
+    setClients(data || []);
   };
 
   const handleAddNewClick = () => {
     setShowAddClient(true);
   };
 
-  const handleClientSelect = (clientId: string) => {
+  const handleClientSelect = async (clientId: string) => {
     const client = clients.find(c => c.id === clientId);
     if (client) {
       setSelectedClient(client);
       setStep('challan-details');
+
+      const transactions = await fetchClientTransactions(clientId);
+
+      const balances: { [key: number]: number } = {};
+      for (let i = 1; i <= 9; i++) {
+        balances[i] = 0;
+      }
+
+      const borrowedBal: { [key: number]: number } = {};
+      for (let i = 1; i <= 9; i++) borrowedBal[i] = 0;
+
+      transactions.forEach(transaction => {
+        for (let i = 1; i <= 9; i++) {
+          const qty = transaction.items[`size_${i}_qty`] || 0;
+          const borrowed = transaction.items[`size_${i}_borrowed`] || 0;
+          // Only main qty counts towards outstanding balance (exclude borrowed)
+          const totalMain = qty;
+
+          if (transaction.type === 'udhar') {
+            balances[i] += totalMain;
+            borrowedBal[i] += borrowed;
+          } else {
+            balances[i] -= totalMain;
+            borrowedBal[i] -= borrowed;
+          }
+        }
+      });
+
+      setOutstandingBalances(balances);
+      setBorrowedOutstanding(borrowedBal);
     }
   };
 
@@ -498,7 +530,7 @@ const JamaChallan: React.FC = () => {
                     </p>
                   </div>
                 )}
-                <ItemsTable items={items} onChange={setItems} />
+                <ItemsTable items={items} onChange={setItems} outstandingBalances={outstandingBalances} borrowedOutstanding={borrowedOutstanding} />
               </div>
 
               {/* Save or Success State */}

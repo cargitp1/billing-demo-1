@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { CreditCard as Edit, Trash2, Search } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ClientFormData } from './ClientForm';
@@ -13,17 +13,21 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
 
-  const filteredClients = clients.filter(client =>
-    client.client_nic_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.site.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredClients = useMemo(() => {
+    if (!searchTerm) return clients;
+    const searchLower = searchTerm.toLowerCase();
+    return clients.filter(client =>
+      client.client_nic_name.toLowerCase().includes(searchLower) ||
+      client.client_name.toLowerCase().includes(searchLower) ||
+      client.site.toLowerCase().includes(searchLower)
+    );
+  }, [clients, searchTerm]);
 
-  const handleDelete = (id: string) => {
+  const handleDelete = React.useCallback((id: string) => {
     if (window.confirm(t('deleteConfirm'))) {
       onDelete(id);
     }
-  };
+  }, [onDelete, t]);
 
   return (
     <div className="space-y-4">
