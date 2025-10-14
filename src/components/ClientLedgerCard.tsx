@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, MapPin, Phone } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, Phone, Download } from 'lucide-react';
 import { ClientLedgerData } from '../pages/ClientLedger';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import TransactionTable from './TransactionTable';
+import ClientLedgerDownload from './ClientLedgerDownload';
+import { generateClientLedgerJPEG } from '../utils/generateLedgerJPEG';
+import toast from 'react-hot-toast';
 
 interface ClientLedgerCardProps {
   ledger: ClientLedgerData;
@@ -22,7 +25,18 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
     ? 'bg-red-100 text-red-700'
     : 'bg-green-100 text-green-700';
 
-  // Removed download handler
+  const handleDownloadLedger = async () => {
+    const loadingToast = toast.loading('Generating ledger image...');
+    try {
+      await generateClientLedgerJPEG(ledger.clientNicName);
+      toast.dismiss(loadingToast);
+      toast.success('Ledger downloaded successfully');
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      console.error('Error generating ledger:', error);
+      toast.error('Failed to generate ledger');
+    }
+  };
 
   return (
     <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
@@ -66,6 +80,17 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               </div>
             </div>
 
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadLedger();
+              }}
+              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-700"
+              title="Download Ledger"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+
             <button className="text-gray-400 hover:text-gray-600">
               {isExpanded ? (
                 <ChevronUp className="w-6 h-6" />
@@ -93,7 +118,16 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
         </div>
       )}
 
-
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        <ClientLedgerDownload
+          clientNicName={ledger.clientNicName}
+          clientFullName={ledger.clientFullName}
+          clientSite={ledger.clientSite}
+          clientPhone={ledger.clientPhone}
+          transactions={ledger.transactions}
+          currentBalance={ledger.currentBalance}
+        />
+      </div>
     </div>
   );
 }
