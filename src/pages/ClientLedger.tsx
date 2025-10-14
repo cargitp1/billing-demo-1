@@ -13,7 +13,7 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../utils/supabase';
-import { fetchClientTransactions, calculateTotalFromItems } from '../utils/challanFetching';
+import { fetchClientTransactions} from '../utils/challanFetching';
 import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
 import toast, { Toaster } from 'react-hot-toast';

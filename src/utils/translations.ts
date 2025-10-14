@@ -72,11 +72,16 @@ export const translations = {
     contactUs: 'સંપર્ક કરો',
     contactText: 'કોઈપણ પૂછપરછ માટે અમારો સંપર્ક કરો. અમે હંમેશા મદદ કરવા તૈયાર છીએ.',
     getStarted: 'શરૂ કરો',
+    Manage_your: 'શક્તિશાળી સાધનો સાથે તમારા ભાડા કાર્યક્ષમ રીતે મેનેજ કરો',
 
     clientManagement: 'ગ્રાહક મેનેજમેન્ટ',
     clientList: 'ગ્રાહક યાદી',
     addNewClient: 'નવો ગ્રાહક ઉમેરો',
     noClients: 'કોઈ ગ્રાહક મળ્યા નહીં',
+    Todays_Date: "આજની તારીખ",
+    Welcome: ', આપનું સ્વાગત કર છે. ',
+    Business_Overview: 'વ્યવસાયનું સારાંશ',
+    Quick_Actions: 'ઝડપી ક્રિયાઓ',
 
     udharChallanTitle: 'ઉધાર ચલણ બનાવો',
     jamaChallanTitle: 'જમા ચલણ બનાવો',

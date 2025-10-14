@@ -18,7 +18,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
-import LanguageToggle from '../components/LanguageToggle';
 import Navbar from '../components/Navbar';
 import { supabase } from '../utils/supabase';
 import toast, { Toaster } from 'react-hot-toast';
@@ -242,12 +241,12 @@ const Dashboard: React.FC = () => {
                   <Sparkles size={24} className="text-yellow-300" />
                   <p className="text-lg font-medium text-blue-100">{greeting}!</p>
                 </div>
-                <h1 className="mb-2 text-4xl font-bold">Welcome to {t('appName')}</h1>
-                <p className="text-lg text-blue-100">Manage your rentals efficiently with powerful tools</p>
+                <h1 className="mb-2 text-4xl font-bold">{t('appName')}{t('Welcome')}</h1>
+                <p className="text-lg text-blue-100">{t('Manage_your')}</p>
               </div>
               <div className="items-center hidden gap-4 lg:flex">
                 <div className="text-right">
-                  <p className="mb-1 text-sm text-blue-100">Today's Date</p>
+                  <p className="mb-1 text-sm text-blue-100">{t('Todays_Date')}</p>
                   <p className="text-xl font-semibold">{format(new Date(), 'dd MMM yyyy')}</p>
                 </div>
                 <Calendar size={48} className="text-blue-200" />
@@ -259,7 +258,7 @@ const Dashboard: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6">
               <BarChart3 size={24} className="text-gray-700" />
-              <h2 className="text-2xl font-bold text-gray-900">Business Overview</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('Business_Overview')}</h2>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               <StatCard 
@@ -303,7 +302,7 @@ const Dashboard: React.FC = () => {
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-6">
               <Activity size={24} className="text-gray-700" />
-              <h2 className="text-2xl font-bold text-gray-900">Quick Actions</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('Quick_Actions')}</h2>
             </div>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {quickActions.map((action) => (
