@@ -36,6 +36,8 @@ export const translations = {
     quickAddClient: 'ઝડપથી ગ્રાહક ઉમેરો',
     actions: 'ક્રિયાઓ',
     backToDashboard: 'ડેશબોર્ડ પર પાછા જાઓ',
+    overrideDetails: 'આ વિગતો ફક્ત આ ચલણ માટે ગ્રાહકની ડિફોલ્ટ વિગતોને ઓવરરાઈડ કરે છે',
+    basicDetails: 'મૂળભૂત વિગતો',
 
     stockManagement: 'સ્ટોક મેનેજમેન્ટ',
     totalStock: 'કુલ સ્ટોક',

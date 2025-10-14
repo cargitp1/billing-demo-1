@@ -39,10 +39,11 @@ interface ItemsTableProps {
   onChange: (items: ItemsData) => void;
   outstandingBalances?: { [key: number]: number };
   borrowedOutstanding?: { [key: number]: number };
+  hideColumns?: boolean;
 }
 
 
-const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBalances, borrowedOutstanding }) => {
+const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBalances, borrowedOutstanding, hideColumns = false }) => {
   const { t } = useLanguage();
 
 
@@ -81,13 +82,18 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBal
                   </th>
                 </>
               )}
-              {/* SWAPPED: Borrowed moved DOWN */}
-              <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                {t('borrowed')}
-              </th>
-              <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                {t('notes')}
-              </th>
+              {!hideColumns && (
+                <>
+                  {/* Borrowed column */}
+                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    {t('borrowed')}
+                  </th>
+                  {/* Notes column */}
+                  <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    {t('notes')}
+                  </th>
+                </>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -128,24 +134,27 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBal
                     </td>
                   </>
                 )}
-                {/* SWAPPED: Borrowed moved DOWN */}
-                <td className="px-4 py-4 whitespace-nowrap">
-                  <input
-                    type="number"
-                    min="0"
-                    value={items[`size_${size}_borrowed` as keyof ItemsData] as number}
-                    onChange={(e) => handleChange(`size_${size}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
-                    className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </td>
-                <td className="px-4 py-4">
-                  <input
-                    type="text"
-                    value={items[`size_${size}_note` as keyof ItemsData] as string}
-                    onChange={(e) => handleChange(`size_${size}_note` as keyof ItemsData, e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </td>
+                {!hideColumns && (
+                  <>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <input
+                        type="number"
+                        min="0"
+                        value={items[`size_${size}_borrowed` as keyof ItemsData] as number}
+                        onChange={(e) => handleChange(`size_${size}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                        className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </td>
+                    <td className="px-4 py-4">
+                      <input
+                        type="text"
+                        value={items[`size_${size}_note` as keyof ItemsData] as string}
+                        onChange={(e) => handleChange(`size_${size}_note` as keyof ItemsData, e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>
@@ -200,30 +209,33 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBal
                   </div>
                 </div>
               )}
-              {/* SWAPPED: Borrowed moved AFTER Borrowed Outstanding */}
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  {t('borrowed')}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={items[`size_${size}_borrowed` as keyof ItemsData] as number}
-                  onChange={(e) => handleChange(`size_${size}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-              </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  {t('notes')}
-                </label>
-                <input
-                  type="text"
-                  value={items[`size_${size}_note` as keyof ItemsData] as string}
-                  onChange={(e) => handleChange(`size_${size}_note` as keyof ItemsData, e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
-                />
-              </div>
+              {!hideColumns && (
+                <>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('borrowed')}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={items[`size_${size}_borrowed` as keyof ItemsData] as number}
+                      onChange={(e) => handleChange(`size_${size}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block mb-1 text-sm font-medium text-gray-700">
+                      {t('notes')}
+                    </label>
+                    <input
+                      type="text"
+                      value={items[`size_${size}_note` as keyof ItemsData] as string}
+                      onChange={(e) => handleChange(`size_${size}_note` as keyof ItemsData, e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ))}

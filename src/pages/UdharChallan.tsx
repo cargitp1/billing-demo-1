@@ -157,6 +157,8 @@ interface ChallanDetailsStepProps {
   setItems: (items: ItemsData) => void;
   errors: { [key: string]: string };
   showSuccess: boolean;
+  hideExtraColumns: boolean;
+  setHideExtraColumns: (value: boolean) => void;
 }
 
 const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
@@ -176,7 +178,9 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
   items,
   setItems,
   errors,
-  showSuccess
+  showSuccess,
+  hideExtraColumns,
+  setHideExtraColumns
 }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -269,6 +273,14 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
             </div>
             <h3 className="text-lg font-semibold text-gray-900">{t('basicDetails')}</h3>
           </div>
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => setHideExtraColumns(!hideExtraColumns)}
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100"
+            >
+              {hideExtraColumns ? 'Show' : 'Hide'} ઉધાર and નોંધો columns
+            </button>
+          </div>
           <div className="grid gap-4 md:grid-cols-3">
             <div>
               <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
@@ -323,7 +335,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
               />
             </div>
           </div>
-        </div>b
+        </div>
 
         {/* Items Table */}
         <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
@@ -340,7 +352,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
               </p>
             </div>
           )}
-          <ItemsTable items={items} onChange={setItems} />
+          <ItemsTable items={items} onChange={setItems} hideColumns={hideExtraColumns} />
         </div>
 
         {/* Save or Success State */}
@@ -412,6 +424,7 @@ const UdharChallan: React.FC = () => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showSuccess, setShowSuccess] = useState(false);
+  const [hideExtraColumns, setHideExtraColumns] = useState(true);
 
   useEffect(() => {
     fetchClients();
@@ -664,6 +677,8 @@ const UdharChallan: React.FC = () => {
                 setItems={setItems}
                 errors={errors}
                 showSuccess={showSuccess}
+                hideExtraColumns={hideExtraColumns}
+                setHideExtraColumns={setHideExtraColumns}
               />
             )
           )}
