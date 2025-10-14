@@ -291,13 +291,17 @@ const JamaChallan: React.FC = () => {
       hasErrors = true;
     }
 
-    // Check if any quantities are filled
+    // Check if any quantities or borrowed items are filled
     const hasQuantities = Object.entries(items)
       .filter(([key]) => key.includes('_qty'))
       .some(([_, value]) => value > 0);
+      
+    const hasBorrowedItems = Object.entries(items)
+      .filter(([key]) => key.includes('_borrowed'))
+      .some(([_, value]) => value > 0);
 
-    if (!hasQuantities) {
-      newErrors.items = 'At least one item quantity must be greater than 0';
+    if (!hasQuantities && !hasBorrowedItems) {
+      newErrors.items = 'At least one item quantity or borrowed quantity must be greater than 0';
       hasErrors = true;
     }
 

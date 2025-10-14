@@ -276,7 +276,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
           <div className="flex items-center justify-between mb-4">
             <button
               onClick={() => setHideExtraColumns(!hideExtraColumns)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100"
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-blue-600 transition-colors rounded-lg bg-blue-50 hover:bg-blue-100"
             >
               {hideExtraColumns ? 'Show' : 'Hide'} ઉધાર and નોંધો columns
             </button>
@@ -426,8 +426,55 @@ const UdharChallan: React.FC = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [hideExtraColumns, setHideExtraColumns] = useState(true);
 
+  const generateNextChallanNumber = async () => {
+    try {
+      // Fetch the most recent challan
+      const { data, error } = await supabase
+        .from("udhar_challans")
+        .select("udhar_challan_number")
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+      
+      let nextNumber = "1"; // Default for first challan
+      
+      if (data && data.length > 0) {
+        const lastChallanNumber = data[0].udhar_challan_number;
+        // Split into prefix and numeric suffix
+        const match = lastChallanNumber.match(/(\d+)$/);
+        
+        if (match) {
+          const currentNumber = match[0];
+          const prefix = lastChallanNumber.slice(0, -currentNumber.length);
+          const lastNumber = parseInt(currentNumber);
+          const incrementedNumber = lastNumber + 1;
+          // Preserve leading zeros
+          const paddedNumber = incrementedNumber.toString().padStart(currentNumber.length, '0');
+          nextNumber = prefix + paddedNumber;
+        } else {
+          // No trailing digits found, append "1"
+          nextNumber = lastChallanNumber + "1";
+        }
+      }
+      
+      console.log('Generated next challan number:', nextNumber);
+      setChallanNumber(nextNumber); // Always set the new number
+      
+    } catch (error) {
+      console.error("Error generating challan number:", error);
+      const fallback = "1";
+      setChallanNumber(fallback);
+    }
+  };
+
+  // Initialize data
   useEffect(() => {
-    fetchClients();
+    const init = async () => {
+      await fetchClients();
+      await generateNextChallanNumber();
+    };
+    init();
   }, []);
 
   const fetchClients = async () => {
@@ -517,6 +564,8 @@ const UdharChallan: React.FC = () => {
 
     if (existingChallan) {
       toast.error(t('duplicateChallan'));
+      // Generate next number if duplicate found
+      await generateNextChallanNumber();
       return;
     }
 
@@ -577,7 +626,7 @@ const UdharChallan: React.FC = () => {
     } catch (error) {
       toast.dismiss(loadingToast);
       console.error('Error updating stock:', error);
-      toast.warning('Challan saved but stock update failed. Please update manually.');
+      toast.error('Challan saved but stock update failed. Please update manually.');
     }
 
     toast.dismiss(loadingToast);
