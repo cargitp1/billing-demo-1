@@ -49,24 +49,24 @@ const Login: React.FC = () => {
       icon: Shield,
       title: 'Secure',
       description: 'Your data is protected',
-      gradient: 'from-blue-500 to-blue-600'
+      color: '#2563eb'
     },
     {
       icon: TrendingUp,
       title: 'Efficient',
       description: 'Streamline operations',
-      gradient: 'from-green-500 to-green-600'
+      color: '#16a34a'
     },
     {
       icon: Users,
       title: 'Client Management',
       description: 'Track everything easily',
-      gradient: 'from-purple-500 to-purple-600'
+      color: '#0891b2'
     }
   ];
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen px-4 py-8 overflow-hidden bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="relative flex items-center justify-center min-h-screen px-4 py-8" style={{ backgroundColor: '#f9fafb' }}>
       <Toaster 
         position="top-right"
         toastOptions={{
@@ -90,12 +90,6 @@ const Login: React.FC = () => {
         }}
       />
 
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute bg-blue-300 rounded-full top-20 left-10 w-72 h-72 mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-        <div className="absolute bg-purple-300 rounded-full top-40 right-10 w-72 h-72 mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute bg-pink-300 rounded-full -bottom-8 left-20 w-72 h-72 mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
-      </div>
 
       {/* Language Toggle */}
       <div className="absolute z-10 top-6 right-6">
@@ -112,7 +106,7 @@ const Login: React.FC = () => {
             </div>
             <h1 className="text-5xl font-bold leading-tight text-gray-900">
               Welcome to<br />
-              <span className="text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+              <span style={{ color: '#2563eb' }}>
                 {t('appName')}
               </span>
             </h1>
@@ -128,7 +122,7 @@ const Login: React.FC = () => {
                 key={index}
                 className="flex items-start gap-4 p-4 transition-all bg-white shadow-sm bg-opacity-60 backdrop-blur-sm rounded-xl hover:shadow-md group"
               >
-                <div className={`p-3 bg-gradient-to-br ${feature.gradient} rounded-lg text-white group-hover:scale-110 transition-transform`}>
+                <div className="p-3 rounded-lg text-white" style={{ backgroundColor: feature.color }}>
                   <feature.icon size={24} />
                 </div>
                 <div>
@@ -142,21 +136,20 @@ const Login: React.FC = () => {
 
         {/* Right Side - Login Form */}
         <div className="relative">
-          <div className="absolute inset-0 transform bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl blur-2xl opacity-20 rotate-6"></div>
           
           <div className="relative p-8 bg-white border border-gray-100 shadow-2xl md:p-10 rounded-2xl">
             {/* Mobile Logo */}
             <div className="mb-6 text-center lg:hidden">
-              <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text">
+              <h1 className="text-2xl font-bold" style={{ color: '#2563eb' }}>
                 {t('appName')}
               </h1>
             </div>
 
             <div className="mb-8 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 mb-4 shadow-lg bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl">
-                <LogIn className="text-white" size={32} />
+              <div className="inline-flex items-center justify-center w-20 h-20 mb-4 rounded-full" style={{ backgroundColor: '#2563eb' }}>
+                <LogIn className="text-white" size={40} />
               </div>
-              <h2 className="mb-2 text-3xl font-bold text-gray-900">{t('login')}</h2>
+              <h2 className="mb-2 font-bold text-gray-900" style={{ fontSize: '24px' }}>{t('login')}</h2>
               <p className="text-gray-600">Enter your credentials to continue</p>
             </div>
 
@@ -204,7 +197,8 @@ const Login: React.FC = () => {
 
               <button
                 type="submit"
-                className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                className="btn-primary w-full flex items-center justify-center gap-2"
+                style={{ minHeight: '48px' }}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -231,23 +225,6 @@ const Login: React.FC = () => {
         </div>
       </div>
 
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 };

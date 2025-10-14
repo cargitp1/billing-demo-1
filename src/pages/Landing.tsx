@@ -51,37 +51,37 @@ const Landing: React.FC = () => {
       icon: Users,
       title: 'Client Management',
       description: 'Manage all your clients with detailed profiles and contact information',
-      color: 'from-blue-500 to-blue-600'
+      color: '#2563eb'
     },
     {
       icon: FileText,
       title: 'Udhar & Jama Challans',
       description: 'Create and track rental and return challans effortlessly',
-      color: 'from-red-500 to-red-600'
+      color: '#dc2626'
     },
     {
       icon: Package,
       title: 'Stock Management',
       description: 'Real-time inventory tracking with automated stock updates',
-      color: 'from-green-500 to-green-600'
+      color: '#16a34a'
     },
     {
       icon: BarChart3,
       title: 'Client Ledger',
       description: 'Complete transaction history and balance tracking for each client',
-      color: 'from-purple-500 to-purple-600'
+      color: '#0891b2'
     },
     {
       icon: Shield,
       title: 'Secure & Reliable',
       description: 'Your data is protected with enterprise-grade security',
-      color: 'from-yellow-500 to-yellow-600'
+      color: '#f59e0b'
     },
     {
       icon: Zap,
       title: 'Lightning Fast',
       description: 'Optimized performance for quick operations and smooth workflow',
-      color: 'from-pink-500 to-pink-600'
+      color: '#059669'
     }
   ];
 
@@ -206,37 +206,32 @@ const Landing: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative pt-24 pb-32 overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-purple-700">
-        {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute bg-blue-400 rounded-full top-20 left-10 w-96 h-96 mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-          <div className="absolute bg-purple-400 rounded-full top-40 right-10 w-96 h-96 mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-          <div className="absolute bg-pink-400 rounded-full -bottom-8 left-1/2 w-96 h-96 mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-        </div>
-
+      <div className="relative pt-24 pb-32 overflow-hidden" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' }}>
         <div className="relative px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-6 bg-white rounded-full bg-opacity-20 backdrop-blur-sm">
               <Sparkles size={20} className="text-yellow-300" />
               <span className="font-medium text-white">Modern Rental Management Solution</span>
             </div>
-            <h1 className="mb-6 text-5xl font-bold leading-tight text-white md:text-7xl">
+            <h1 className="mb-6 leading-tight text-white" style={{ fontSize: '48px', fontWeight: 700 }}>
               {t('heroTitle')}
             </h1>
-            <p className="max-w-3xl mx-auto mb-10 text-xl text-blue-100 md:text-2xl">
+            <p className="max-w-3xl mx-auto mb-10 text-xl text-white" style={{ opacity: 0.9 }}>
               {t('heroSubtitle')}
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <button
                 onClick={() => navigate('/login')}
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 text-lg font-semibold text-blue-600 transition-all transform bg-white shadow-xl group rounded-xl hover:bg-gray-50 hover:shadow-2xl hover:scale-105"
+                className="btn-primary inline-flex items-center justify-center gap-2 bg-white text-blue-600 hover:bg-gray-50"
+                style={{ minHeight: '48px', fontSize: '18px' }}
               >
                 {t('getStarted')}
-                <ArrowRight size={20} className="transition-transform group-hover:translate-x-1" />
+                <ArrowRight size={20} />
               </button>
               <button
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-4 text-lg font-semibold text-white transition-all bg-transparent border-2 border-white rounded-xl hover:bg-white hover:text-blue-600"
+                className="btn-secondary border-2 border-white text-white hover:bg-white hover:text-blue-600"
+                style={{ minHeight: '48px', fontSize: '18px', background: 'transparent' }}
               >
                 Learn More
               </button>
@@ -247,8 +242,8 @@ const Landing: React.FC = () => {
           <div className="grid grid-cols-2 gap-8 mt-20 md:grid-cols-4">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
-                <div className="mb-2 text-4xl font-bold text-white md:text-5xl">{stat.value}</div>
-                <div className="text-blue-200">{stat.label}</div>
+                <div className="mb-2 font-bold text-white" style={{ fontSize: '40px' }}>{stat.value}</div>
+                <div className="text-white" style={{ opacity: 0.8 }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -275,13 +270,14 @@ const Landing: React.FC = () => {
             {features.map((feature, index) => (
               <div
                 key={index}
-                className="p-8 transition-all bg-white border border-gray-100 shadow-sm group rounded-2xl hover:shadow-xl hover:border-transparent"
+                className="card p-8 bg-white"
+                style={{ minHeight: '180px' }}
               >
-                <div className={`inline-flex p-4 bg-gradient-to-br ${feature.color} rounded-xl mb-6 group-hover:scale-110 transition-transform shadow-lg`}>
-                  <feature.icon size={32} className="text-white" />
+                <div className="inline-flex p-4 rounded-xl mb-6" style={{ backgroundColor: feature.color }}>
+                  <feature.icon size={48} className="text-white" />
                 </div>
-                <h3 className="mb-3 text-xl font-bold text-gray-900">{feature.title}</h3>
-                <p className="leading-relaxed text-gray-600">{feature.description}</p>
+                <h3 className="mb-3 font-semibold text-gray-900" style={{ fontSize: '20px' }}>{feature.title}</h3>
+                <p className="leading-relaxed text-gray-600" style={{ fontSize: '16px' }}>{feature.description}</p>
               </div>
             ))}
           </div>
@@ -314,7 +310,7 @@ const Landing: React.FC = () => {
               </div>
             </div>
             <div className="relative">
-              <div className="absolute inset-0 transform bg-gradient-to-br from-blue-400 to-purple-600 rounded-2xl rotate-3"></div>
+              <div className="absolute inset-0 transform rounded-2xl rotate-3" style={{ backgroundColor: '#2563eb' }}></div>
               <div className="relative p-8 bg-white shadow-xl rounded-2xl">
                 <div className="space-y-6">
                   <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl">
@@ -324,8 +320,8 @@ const Landing: React.FC = () => {
                       <p className="text-sm text-gray-600">{t('servicesText')}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 p-4 bg-purple-50 rounded-xl">
-                    <Award className="text-purple-600" size={40} />
+                  <div className="flex items-center gap-4 p-4 bg-green-50 rounded-xl">
+                    <Award className="text-green-600" size={40} />
                     <div>
                       <h4 className="font-bold text-gray-900">{t('whyChooseUs')}</h4>
                       <p className="text-sm text-gray-600">{t('whyChooseText')}</p>
@@ -339,7 +335,7 @@ const Landing: React.FC = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-gradient-to-br from-blue-600 to-purple-700">
+      <section className="py-24" style={{ background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' }}>
         <div className="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 bg-white rounded-full bg-opacity-20 backdrop-blur-sm">
@@ -362,7 +358,7 @@ const Landing: React.FC = () => {
                 "{testimonials[activeTestimonial].content}"
               </p>
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-16 h-16 text-2xl font-bold text-white rounded-full bg-gradient-to-br from-blue-500 to-purple-600">
+                <div className="flex items-center justify-center w-16 h-16 text-2xl font-bold text-white rounded-full" style={{ backgroundColor: '#2563eb' }}>
                   {testimonials[activeTestimonial].name.charAt(0)}
                 </div>
                 <div>
@@ -478,8 +474,8 @@ const Landing: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                  <div className="p-3 bg-purple-100 rounded-lg">
-                    <MapPin size={24} className="text-purple-600" />
+                  <div className="p-3 bg-blue-100 rounded-lg">
+                    <MapPin size={24} className="text-blue-600" />
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900">Location</div>
@@ -489,7 +485,7 @@ const Landing: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-8 bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl">
+            <div className="p-8 rounded-2xl" style={{ backgroundColor: '#f0f9ff' }}>
               <h3 className="mb-6 text-2xl font-bold text-gray-900">Send us a message</h3>
               <form className="space-y-4">
                 <input
@@ -509,7 +505,7 @@ const Landing: React.FC = () => {
                 />
                 <button
                   type="submit"
-                  className="w-full py-3 font-semibold text-white transition-all shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl hover:from-blue-700 hover:to-purple-700"
+                  className="btn-primary w-full"
                 >
                   Send Message
                 </button>
@@ -535,23 +531,6 @@ const Landing: React.FC = () => {
         </div>
       </footer>
 
-      {/* CSS for animations */}
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(30px, -50px) scale(1.1); }
-          66% { transform: translate(-20px, 20px) scale(0.9); }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
     </div>
   );
 };
