@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, MapPin, Phone } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, Phone, Download } from 'lucide-react';
 import { ClientLedgerData } from '../pages/ClientLedger';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import TransactionTable from './TransactionTable';
+import LedgerReceiptTemplate from './LedgerReceiptTemplate';
+import { generateLedgerJPEG } from '../utils/generateLedgerJPEG';
+import toast from 'react-hot-toast';
 
 interface ClientLedgerCardProps {
   ledger: ClientLedgerData;
@@ -21,6 +24,19 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
   const balanceColor = ledger.currentBalance.grandTotal > 0
     ? 'bg-red-100 text-red-700'
     : 'bg-green-100 text-green-700';
+
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card expansion
+    const loadingToast = toast.loading('Generating ledger statement...');
+    try {
+      await generateLedgerJPEG(ledger.clientNicName);
+      toast.dismiss(loadingToast);
+      toast.success('Ledger statement downloaded successfully');
+    } catch (error) {
+      toast.dismiss(loadingToast);
+      toast.error('Failed to generate ledger statement');
+    }
+  };
 
   return (
     <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
@@ -64,6 +80,14 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               </div>
             </div>
 
+            <button
+              onClick={handleDownload}
+              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
+              title="Download Ledger Statement"
+            >
+              <Download size={20} />
+            </button>
+
             <button className="text-gray-400 hover:text-gray-600">
               {isExpanded ? (
                 <ChevronUp className="w-6 h-6" />
@@ -90,6 +114,11 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
           />
         </div>
       )}
+
+      {/* Hidden template for JPEG generation */}
+      <div style={{ position: 'absolute', left: '-9999px' }} id="ledger-template">
+        <LedgerReceiptTemplate ledgerData={ledger} />
+      </div>
     </div>
   );
 }

@@ -8,19 +8,11 @@ import { generateJPEG } from '../utils/generateJPEG';
 interface TransactionTableProps {
   transactions?: Transaction[];
   currentBalance: ClientBalance;
-  clientNicName: string;
-  clientFullName: string;
-  clientSite: string;
-  clientPhone: string;
 }
 
 export default function TransactionTable({
   transactions,
   currentBalance,
-  clientNicName,
-  clientFullName,
-  clientSite,
-  clientPhone
 }: TransactionTableProps) {
   const { language } = useLanguage();
   const t = translations[language];
@@ -38,44 +30,49 @@ export default function TransactionTable({
 
   const formatSizeValue = (size: { qty: number; borrowed: number }, note?: string | null) => {
     const total = size.qty + size.borrowed;
+    
+    // If no movement and no note, return dash
     if (total === 0 && !note) return '-';
 
-    const valueDisplay = (() => {
-      if (total === 0) return null;
-
+    // Create the value display for quantities
+    let valueDisplay = null;
+    if (total > 0) {
       if (size.borrowed === 0) {
-        return <span className="font-medium">{size.qty}</span>;
-      }
-
-      if (size.qty === 0) {
-        return (
-          <span className="font-bold text-red-700">
-          <sup className="ml-1 text-xs font-bold text-red-700">
-            {size.borrowed}
-          </sup>
+        // Only regular quantity
+        valueDisplay = (
+          <span>
+            <span className="font-medium">{size.qty}</span>
+            {note && <sup className="ml-1 text-xs font-bold text-red-700">({note})</sup>}
+          </span>
+        );
+      } else if (size.qty === 0) {
+        // Only borrowed quantity
+        valueDisplay = (
+          <span>
+            <span className="font-bold text-red-700">{size.borrowed}</span>
+            {note && <sup className="ml-1 text-xs font-bold text-red-700">({note})</sup>}
+          </span>
+        );
+      } else {
+        // Both regular and borrowed quantities
+        valueDisplay = (
+          <span>
+            <span className="font-medium">{size.qty + size.borrowed}</span>
+            <sup className="ml-1 text-xs font-bold text-red-700">
+              {size.borrowed}
+              {note && <span>({note})</span>}
+            </sup>
           </span>
         );
       }
-
-      return (
-        <span>
-          <span className="font-medium">{size.qty + size.borrowed}</span>
-          <sup className="ml-1 text-xs font-bold text-red-700">
-            {size.borrowed}{note ? ` ${note}` : ''}
-          </sup>
-        </span>
-      );
-    })();
-
-    if (note) {
-      return (
-        <div>
-          {valueDisplay && <div>{valueDisplay}</div>}
-        </div>
-      );
     }
 
-    return valueDisplay || '-';
+    // Show note even if there's no quantity
+    if (!valueDisplay && note) {
+      valueDisplay = <sup className="text-xs font-bold text-red-700">({note})</sup>;
+    }
+
+    return <div>{valueDisplay || '-'}</div>;
   };
 
   const formatBalanceValue = (sizeBalance: { main: number; borrowed: number; total: number }) => {
@@ -104,20 +101,13 @@ export default function TransactionTable({
   };
 
   const handleDownloadChallan = async (transaction: Transaction) => {
-    const challanData = {
-      challanNumber: transaction.challanNumber,
-      date: transaction.date,
-      clientNicName,
-      clientName: clientFullName,
-      site: transaction.site,
-      phone: clientPhone,
-      driverName: transaction.driverName,
-      items: transaction.items,
-      type: transaction.type
-    };
-
     try {
-      await generateJPEG(challanData, language);
+      const formattedDate = new Date(transaction.date).toLocaleDateString('en-GB');
+      await generateJPEG(
+        transaction.type as 'udhar' | 'jama',
+        transaction.challanNumber.toString(),
+        formattedDate
+      );
     } catch (error) {
       console.error('Error generating JPEG:', error);
     }
