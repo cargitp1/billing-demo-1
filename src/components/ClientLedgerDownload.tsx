@@ -94,19 +94,19 @@ export default function ClientLedgerDownload({
 
   return (
     <div id="client-ledger-download" className="p-8 bg-white" style={{ width: '1920px' }}>
-      <div className="mb-6 text-center border-b-2 border-gray-800 pb-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Ledger</h1>
+      <div className="pb-4 mb-6 text-center border-b-2 border-gray-800">
+        <h1 className="mb-2 text-3xl font-bold text-gray-900">Client Ledger</h1>
         <div className="text-lg text-gray-700">
           <p className="font-semibold">{clientNicName} - {clientFullName}</p>
-          <p className="text-sm mt-1">{clientSite} | {clientPhone}</p>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm">{clientSite} | {clientPhone}</p>
+          <p className="mt-1 text-sm text-gray-500">
             Generated on: {new Date().toLocaleDateString('en-GB')} at {new Date().toLocaleTimeString('en-GB')}
           </p>
         </div>
       </div>
 
       <div className="overflow-x-auto">
-        <table className="min-w-full border-collapse border border-gray-300">
+        <table className="min-w-full border border-collapse border-gray-300">
           <thead>
             <tr className="bg-gray-100">
               <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">
@@ -191,23 +191,23 @@ export default function ClientLedgerDownload({
         </table>
       </div>
 
-      <div className="mt-6 pt-4 border-t-2 border-gray-300">
+      <div className="pt-4 mt-6 border-t-2 border-gray-300">
         <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="p-3 bg-red-50 rounded border border-red-200">
+          <div className="p-3 border border-red-200 rounded bg-red-50">
             <p className="font-semibold text-red-700">Udhar Challans</p>
-            <p className="text-2xl font-bold text-red-800 mt-1">
+            <p className="mt-1 text-2xl font-bold text-red-800">
               {transactions.filter(t => t.type === 'udhar').length}
             </p>
           </div>
-          <div className="p-3 bg-green-50 rounded border border-green-200">
+          <div className="p-3 border border-green-200 rounded bg-green-50">
             <p className="font-semibold text-green-700">Jama Challans</p>
-            <p className="text-2xl font-bold text-green-800 mt-1">
+            <p className="mt-1 text-2xl font-bold text-green-800">
               {transactions.filter(t => t.type === 'jama').length}
             </p>
           </div>
-          <div className="p-3 bg-blue-50 rounded border border-blue-200">
+          <div className="p-3 border border-blue-200 rounded bg-blue-50">
             <p className="font-semibold text-blue-700">Outstanding Balance</p>
-            <p className="text-2xl font-bold text-blue-800 mt-1">
+            <p className="mt-1 text-2xl font-bold text-blue-800">
               {currentBalance.grandTotal}
             </p>
           </div>

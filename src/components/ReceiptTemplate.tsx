@@ -1,5 +1,4 @@
 import React from 'react';
-import { format } from 'date-fns';
 import { ItemsData } from './ItemsTable';
 
 interface ReceiptTemplateProps {
@@ -21,79 +20,223 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
   site,
   phone,
   driverName,
-  items,
+  items
 }) => {
+  // Ensure items exists and has the required properties
+  const getQtyOrZero = (qty: number | undefined) => (qty || 0).toString();
+
+  // Convert items data to sizes format
+  const sizes = {
+    '2x3': { pattern: getQtyOrZero(items?.size_1_qty), detail: '' },
+    '21x3': { pattern: getQtyOrZero(items?.size_2_qty), detail: '' },
+    '18x3': { pattern: getQtyOrZero(items?.size_3_qty), detail: '' },
+    '15x3': { pattern: getQtyOrZero(items?.size_4_qty), detail: '' },
+    '12x3': { pattern: getQtyOrZero(items?.size_5_qty), detail: '' },
+    '9x3': { pattern: getQtyOrZero(items?.size_6_qty), detail: '' },
+    'patra': { pattern: getQtyOrZero(items?.size_7_qty), detail: '' },
+    '2x2': { pattern: getQtyOrZero(items?.size_8_qty), detail: '' },
+    '2foot': { pattern: getQtyOrZero(items?.size_9_qty), detail: '' }
+  };
+
   return (
-    <div id="receipt-template" style={{ width: '1200px', padding: '40px', backgroundColor: 'white', fontFamily: 'Arial, sans-serif' }}>
-      <div style={{ textAlign: 'center', borderBottom: '3px solid #000', paddingBottom: '20px', marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0 0 8px 0' }}>NILKANTH PLAT DEPO</h1>
-        <h2 style={{ fontSize: '28px', margin: '0', fontWeight: 'normal' }}>નીલકંઠ પ્લેટ ડેપો</h2>
-      </div>
+    <div id="receipt-template" className="flex justify-center p-8 bg-gray-100">
+      <div className="w-full max-w-4xl bg-white" style={{ border: '4px solid #c84545' }}>
+        {/* Header */}
+        <div className="relative" style={{ borderBottom: '3px solid #c84545' }}>
+          <div className="flex items-start p-4">
+            {/* Logo Box */}
+            <div className="flex-shrink-0 mr-4" style={{ width: '80px', height: '100px', border: '2px solid #c84545', backgroundColor: '#f5a8a8' }}>
+              <div className="mt-1 text-xs text-center">©←</div>
+              <div className="flex items-center justify-center h-full text-5xl font-bold text-red-700" style={{ marginTop: '-20px' }}>PB</div>
+            </div>
+            
+            {/* Center Content */}
+            <div className="flex-1 text-center">
+              <div className="mb-1 text-sm" style={{ color: '#c84545' }}>દાયકાકા<br/>રુપાવટીવાળા</div>
+              <div className="mb-1 text-4xl font-bold" style={{ color: '#c84545' }}>શ્રી 9<br/>શ્રી ગણેશાય નમઃ</div>
+            </div>
 
-      <div style={{ textAlign: 'center', backgroundColor: '#f3f4f6', padding: '15px', marginBottom: '20px', borderRadius: '8px' }}>
-        <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0' }}>
-          {challanType === 'udhar' ? 'UDHAR CHALLAN / ઉધાર ચલણ' : 'JAMA CHALLAN / જમા ચલણ'}
-        </h2>
-      </div>
-
-      <div style={{ marginBottom: '20px', lineHeight: '1.8', fontSize: '18px' }}>
-        <p style={{ margin: '8px 0' }}><strong>Challan No. / ચલણ નંબર:</strong> {challanNumber}</p>
-        <p style={{ margin: '8px 0' }}><strong>Date / તારીખ:</strong> {format(new Date(date), 'dd/MM/yyyy')}</p>
-        <p style={{ margin: '8px 0' }}><strong>Client / ક્લાયન્ટ:</strong> {clientName}</p>
-        <p style={{ margin: '8px 0' }}><strong>Site / સાઇટ:</strong> {site}</p>
-        <p style={{ margin: '8px 0' }}><strong>Phone / ફોન:</strong> {phone}</p>
-        {driverName && <p style={{ margin: '8px 0' }}><strong>Driver / ડ્રાઇવર:</strong> {driverName}</p>}
-      </div>
-
-      <div style={{ border: '2px solid #000', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
-        <div style={{ backgroundColor: '#e5e7eb', padding: '12px', borderBottom: '2px solid #000' }}>
-          <h3 style={{ fontSize: '20px', fontWeight: 'bold', margin: '0', textAlign: 'center' }}>ITEMS / વસ્તુઓ</h3>
+            {/* Right Side Contact */}
+            <div className="flex-shrink-0 text-sm text-right" style={{ color: '#c84545' }}>
+              <div>સુરેશભાઈ પોવારા - ૯૩૨૬૮ ૨૮૨૨૮</div>
+              <div>હરેશભાઈ કૃમર - ૯૭૩૯૯ ૧૨૫૧૬</div>
+              <div>હરેશભાઈ પોવારા - ૯૦૯૬૨ ૬૪૪૩૬</div>
+            </div>
+          </div>
         </div>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+
+        {/* Title Section */}
+        <div className="flex" style={{ borderBottom: '3px solid #c84545' }}>
+          <div className="flex-1 p-3 text-center">
+            <div className="text-5xl font-bold" style={{ color: '#c84545' }}>નિલંકઠે</div>
+            <div className="mt-1 text-sm" style={{ color: '#c84545' }}>કોઈપણ સાઈઝની સેન્ટિંગ પ્લેટ ભાડેથી મળશે.</div>
+          </div>
+          <div className="p-3 text-center" style={{ borderLeft: '3px solid #c84545', minWidth: '200px' }}>
+            <div className="text-3xl font-bold" style={{ color: '#c84545' }}>પ્લેટ ડેપો</div>
+            <div className="px-4 py-1 mt-2 text-2xl font-bold" style={{ border: '2px solid #c84545', borderRadius: '20px', color: '#c84545', display: 'inline-block' }}>ઉધાર ચલણ</div>
+          </div>
+        </div>
+
+        {/* Challan Number and Date */}
+        <div className="flex" style={{ borderBottom: '2px solid #c84545' }}>
+          <div className="flex items-center flex-1 p-2" style={{ borderRight: '2px solid #c84545' }}>
+            <span className="mr-2 font-bold" style={{ color: '#c84545' }}>ચલણ નંબર :</span>
+            <input 
+              type="text" 
+              className="flex-1 px-2 border-b border-gray-400 outline-none"
+              value={challanNumber}
+              readOnly={true}
+            ></input>
+          </div>
+          <div className="flex items-center p-2" style={{ minWidth: '300px' }}>
+            <span className="mr-2 font-bold" style={{ color: '#c84545' }}>તારીખ :</span>
+            <input 
+              type="text" 
+              className="flex-1 px-2 border-b border-gray-400 outline-none"
+              value={date}
+              readOnly={true}
+            ></input>
+          </div>
+        </div>
+
+        {/* Customer Details */}
+        <div className="p-3" style={{ borderBottom: '3px solid #c84545' }}>
+          <div className="flex mb-2">
+            <div className="flex items-center flex-1">
+              <span className="mr-2 font-bold" style={{ color: '#c84545' }}>નામ:</span>
+              <input 
+                type="text" 
+                className="flex-1 px-2 border-b border-gray-400 outline-none"
+                value={clientName}
+                readOnly={true}
+              ></input>
+            </div>
+            <div className="flex items-center ml-8" style={{ minWidth: '200px' }}>
+              <span className="mr-2 font-bold" style={{ color: '#c84545' }}>Driver:</span>
+              <input 
+                type="text" 
+                className="flex-1 px-2 border-b border-gray-400 outline-none"
+                value={driverName || ''}
+                readOnly={true}
+              ></input>
+            </div>
+          </div>
+          <div className="flex mb-2">
+            <span className="mr-2 font-bold" style={{ color: '#c84545' }}>સાઈટ:</span>
+            <input 
+              type="text" 
+              className="flex-1 px-2 border-b border-gray-400 outline-none"
+              value={site}
+              readOnly={true}
+            ></input>
+          </div>
+          <div className="flex">
+            <span className="mr-2 font-bold" style={{ color: '#c84545' }}>મોબાઇલ:</span>
+            <input 
+              type="text" 
+              className="flex-1 px-2 border-b border-gray-400 outline-none"
+              value={phone}
+              readOnly={true}
+            ></input>
+          </div>
+        </div>
+
+        {/* Items Table */}
+        <table className="w-full" style={{ borderCollapse: 'collapse' }}>
           <thead>
-            <tr style={{ backgroundColor: '#f9fafb', borderBottom: '2px solid #000' }}>
-              <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', fontSize: '16px', borderRight: '1px solid #d1d5db' }}>
-                Size / સાઇઝ
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', fontSize: '16px', borderRight: '1px solid #d1d5db' }}>
-                Qty / સંખ્યા
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', fontSize: '16px', borderRight: '1px solid #d1d5db' }}>
-                Borrowed / ઉધાર સ્ટોક
-              </th>
-              <th style={{ padding: '12px', textAlign: 'left', fontWeight: 'bold', fontSize: '16px' }}>
-                Note / નોંધ
-              </th>
+            <tr style={{ backgroundColor: '#c84545', color: 'white' }}>
+              <th className="p-2 font-bold" style={{ border: '2px solid #c84545', width: '15%' }}>સાઈઝ</th>
+              <th className="p-2 font-bold" style={{ border: '2px solid #c84545', width: '25%' }}>પ્લેટનંગ</th>
+              <th className="p-2 font-bold" style={{ border: '2px solid #c84545', width: '25%' }}></th>
+              <th className="p-2 font-bold" style={{ border: '2px solid #c84545', width: '35%' }}>વિગત</th>
             </tr>
           </thead>
           <tbody>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size, index) => (
-              <tr key={size} style={{ borderBottom: index < 8 ? '1px solid #d1d5db' : 'none' }}>
-                <td style={{ padding: '10px', fontSize: '16px', borderRight: '1px solid #d1d5db' }}>{size}</td>
-                <td style={{ padding: '10px', fontSize: '16px', borderRight: '1px solid #d1d5db' }}>
-                  {items[`size_${size}_qty` as keyof ItemsData]}
-                </td>
-                <td style={{ padding: '10px', fontSize: '16px', borderRight: '1px solid #d1d5db' }}>
-                  {items[`size_${size}_borrowed` as keyof ItemsData]}
-                </td>
-                <td style={{ padding: '10px', fontSize: '16px' }}>
-                  {items[`size_${size}_note` as keyof ItemsData]}
-                </td>
-              </tr>
-            ))}
+            {Object.entries(sizes).map(([size, value], index) => {
+              const displaySize = size === 'patra' ? 'પતરા' : size === '2foot' ? '૨ ફુટ' : size.toUpperCase();
+              const isLastRow = index === Object.entries(sizes).length - 1;
+              
+              return (
+                <tr key={size}>
+                  <td className="p-2 font-bold text-center" style={{ border: '2px solid #c84545', color: '#c84545' }}>
+                    {displaySize}
+                  </td>
+                  <td className="p-1" style={{ border: '2px solid #c84545' }}>
+                    <input 
+                      type="text" 
+                      className="w-full px-2 outline-none"
+                      value={value.pattern}
+                      readOnly={true}
+                    ></input>
+                  </td>
+                  <td className="p-1" style={{ border: '2px solid #c84545' }}>
+                    {isLastRow && (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center" style={{ width: '120px', border: '2px solid #c84545' }}>
+                          <div className="py-1 text-xs" style={{ backgroundColor: '#f5a8a8', borderBottom: '2px solid #c84545' }}>©←</div>
+                          <div className="py-4 text-4xl font-bold" style={{ color: '#c84545' }}>PB</div>
+                        </div>
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-1" style={{ border: '2px solid #c84545' }} rowSpan={isLastRow ? 1 : undefined}>
+                    {isLastRow ? (
+                      <div className="p-2 text-xs" style={{ color: '#c84545' }}>
+                        <div className="mb-1 font-bold">Driver: {driverName || 'N/A'}</div>
+                        <div className="text-xs leading-relaxed">પ્લેટ લેવા તથા મુકવા આવો ત્યારે ફોન કરીને આવવું. બપોરે ૧૨.૩૦ થી ૨.૩૦ વાગ્યા સુધી બંધ રહેશે.</div>
+                      </div>
+                    ) : (
+                      <input 
+                        type="text" 
+                        className="w-full px-2 outline-none"
+                        value={value.detail}
+                        readOnly={true}
+                      ></input>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
-      </div>
 
-      {items.main_note && (
-        <div style={{ marginBottom: '20px', padding: '15px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #d1d5db' }}>
-          <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', fontSize: '18px' }}>Main Note / મુખ્ય નોંધ:</p>
-          <p style={{ margin: '0', fontSize: '16px', lineHeight: '1.6' }}>{items.main_note}</p>
+        {/* Notes Section */}
+        <div className="p-3 text-xs leading-relaxed" style={{ borderTop: '2px solid #c84545', borderBottom: '2px solid #c84545', color: '#c84545' }}>
+          <div className="mb-2">
+            <span className="font-bold">નોંધ :- (૧)</span> સેન્ટિંગ પ્લેટની ડીલીવરી આપ્યા પછી તમામ જવાબદારી કોન્ટ્રાક્ટર ના શીરે રહેશે. <span className="font-bold">(૨)</span> સેન્ટીંગ પ્લેટ ખોવાય અથવા તુટી જાય તો તેના રુપિયા નુકસાની અલગથી આપવાની રહેશે. <span className="font-bold">(૩)</span> હર રવિવારે તથા જાહેર તહેવારે દુકાન બંધ રહેશે. <span className="font-bold">(૪)</span> ભરના ઉતારવાની મજૂરી <span className="font-bold">.1.5</span>... રૂ. નંગ દીઠ ઓડકે આપવાની રહેશે.
+          </div>
         </div>
-      )}
 
-      <div style={{ textAlign: 'center', fontSize: '16px', color: '#6b7280', paddingTop: '20px', borderTop: '1px solid #d1d5db' }}>
-        <p style={{ margin: '0' }}>Generated / બનાવ્યું: {format(new Date(), 'dd/MM/yyyy hh:mm a')}</p>
+        {/* Footer */}
+        <div className="p-3" style={{ borderTop: '2px solid #c84545' }}>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center">
+              <span className="mr-2 font-bold" style={{ color: '#c84545' }}>આથી હું સહી કરનાર લખી આપુ છુ મને પ્લેટ નંગ ..................... મળેલ છે.</span>
+            </div>
+          </div>
+          <div className="flex justify-between">
+            <div className="flex items-center">
+              <span className="mr-2 font-bold" style={{ color: '#c84545' }}>લેનારની સહી</span>
+              <input 
+                type="text" 
+                className="px-2 border-b border-gray-400 outline-none"
+                style={{ width: '200px' }}
+                value="_________________"
+                readOnly={true}
+              ></input>
+            </div>
+            <div className="flex items-center">
+              <span className="mr-2 font-bold" style={{ color: '#c84545' }}>આપનારની સહી</span>
+              <input 
+                type="text" 
+                className="px-2 border-b border-gray-400 outline-none"
+                style={{ width: '200px' }}
+                value="_________________"
+                readOnly={true}
+              ></input>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

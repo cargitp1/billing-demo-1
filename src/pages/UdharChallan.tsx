@@ -790,16 +790,18 @@ const UdharChallan: React.FC = () => {
           
           <div style={{ position: 'absolute', left: '-9999px' }}>
             {selectedClient && (
-              <ReceiptTemplate
-                challanType="udhar"
-                challanNumber={challanNumber}
-                date={date}
-                clientName={selectedClient.client_name}
-                site={alternativeSite || selectedClient.site}
-                phone={secondaryPhone || selectedClient.primary_phone_number}
-                driverName={driverName}
-                items={items}
-              />
+              <div id="receipt-template">
+                <ReceiptTemplate
+                  challanType="udhar"
+                  challanNumber={challanNumber}
+                  date={new Date(date).toLocaleDateString('en-GB')}
+                  clientName={selectedClient.client_name}
+                  site={alternativeSite || selectedClient.site}
+                  phone={secondaryPhone || selectedClient.primary_phone_number}
+                  driverName={driverName}
+                  items={items}
+                />
+              </div>
             )}
           </div>
         </div>

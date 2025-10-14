@@ -4,19 +4,78 @@ import { Transaction, ClientBalance } from '../utils/ledgerCalculations';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { generateJPEG } from '../utils/generateJPEG';
+import ReceiptTemplate from './ReceiptTemplate';
+import toast from 'react-hot-toast';
 
 interface TransactionTableProps {
   transactions?: Transaction[];
   currentBalance: ClientBalance;
+  clientNicName: string;
+  clientFullName: string;
+  clientSite: string;
+  clientPhone: string;
 }
 
 export default function TransactionTable({
   transactions,
   currentBalance,
+  clientNicName,
+  clientFullName,
+  clientSite,
+  clientPhone
 }: TransactionTableProps) {
   const { language } = useLanguage();
   const t = translations[language];
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  
+  const handleDownloadChallan = async (transaction: Transaction) => {
+    try {
+      const node = document.createElement('div');
+      node.style.position = 'absolute';
+      node.style.left = '-9999px';
+      document.body.appendChild(node);
+
+      // Create a temporary container for the receipt
+      const receiptContainer = document.createElement('div');
+      receiptContainer.id = 'receipt-template';
+      node.appendChild(receiptContainer);
+
+      // Render the receipt into the temporary container
+      const receipt = <ReceiptTemplate
+        challanType={transaction.type}
+        challanNumber={transaction.challanNumber}
+        date={new Date(transaction.date).toLocaleDateString('en-GB')}
+        clientName={clientFullName}
+        site={transaction.site || clientSite}
+        phone={clientPhone}
+        driverName={transaction.driverName}
+        items={transaction.items}
+      />;
+
+      // Use ReactDOM to render the receipt
+      const root = await import('react-dom/client');
+      const reactRoot = root.createRoot(receiptContainer);
+      await new Promise<void>(resolve => {
+        reactRoot.render(receipt);
+        setTimeout(resolve, 100); // Give React time to render
+      });
+
+      // Generate and download the JPEG
+      await generateJPEG(
+        transaction.type as 'udhar' | 'jama',
+        transaction.challanNumber.toString(),
+        new Date(transaction.date).toLocaleDateString('en-GB')
+      );
+
+      // Clean up
+      reactRoot.unmount();
+      document.body.removeChild(node);
+      toast.success(t.challanDownloadSuccess);
+    } catch (error) {
+      console.error('Error downloading challan:', error);
+      toast.error(t.challanDownloadError);
+    }
+  };
 
   const sortedTransactions = transactions ? [...transactions].sort((a, b) => {
     const dateA = new Date(a.date).getTime();
@@ -100,18 +159,7 @@ export default function TransactionTable({
     );
   };
 
-  const handleDownloadChallan = async (transaction: Transaction) => {
-    try {
-      const formattedDate = new Date(transaction.date).toLocaleDateString('en-GB');
-      await generateJPEG(
-        transaction.type as 'udhar' | 'jama',
-        transaction.challanNumber.toString(),
-        formattedDate
-      );
-    } catch (error) {
-      console.error('Error generating JPEG:', error);
-    }
-  };
+
 
   if (!transactions || transactions.length === 0) {
     return (
@@ -152,7 +200,7 @@ export default function TransactionTable({
             <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               {t.driver}
             </th>
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+            <th className="px-3 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
               {t.actions}
             </th>
           </tr>
@@ -214,10 +262,10 @@ export default function TransactionTable({
               <td className="px-3 py-4 whitespace-nowrap">
                 {transaction.driverName || '-'}
               </td>
-              <td className="px-3 py-4 whitespace-nowrap">
+              <td className="px-3 py-4 text-center whitespace-nowrap">
                 <button
                   onClick={() => handleDownloadChallan(transaction)}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="inline-flex items-center justify-center p-1 text-blue-600 rounded hover:text-blue-800 hover:bg-blue-100"
                   title={t.downloadJPEG}
                 >
                   <Download className="w-4 h-4" />

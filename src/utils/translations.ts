@@ -95,6 +95,9 @@ export const translations = {
     overrideNote: 'આ ગ્રાહકની ડિફોલ્ટ કિંમતોને ફક્ત આ ચલણ માટે બદલે છે',
     generateReceipt: 'રસીદ બનાવો',
     challanSaved: 'ચલણ સફળતાપૂર્વક સેવ થયું',
+    challanDownloadSuccess: 'ચલણ સફળતાપૂર્વક ડાઉનલોડ થયું',
+    challanDownloadError: 'ચલણ ડાઉનલોડ કરવામાં ભૂલ આવી',
+    downloadJPEG: 'ચલણ ડાઉનલોડ કરો',
 
     receiptTitle: 'રસીદ',
     generatedOn: 'બનાવ્યું',

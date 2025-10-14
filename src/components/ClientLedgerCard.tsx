@@ -6,6 +6,8 @@ import { translations } from '../utils/translations';
 import TransactionTable from './TransactionTable';
 import ClientLedgerDownload from './ClientLedgerDownload';
 import { generateClientLedgerJPEG } from '../utils/generateLedgerJPEG';
+import { generateJPEG } from '../utils/generateJPEG';
+import ReceiptTemplate from './ReceiptTemplate';
 import toast from 'react-hot-toast';
 
 interface ClientLedgerCardProps {
