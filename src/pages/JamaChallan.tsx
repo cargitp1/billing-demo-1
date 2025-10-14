@@ -165,6 +165,7 @@ const JamaChallan: React.FC = () => {
   const [driverName, setDriverName] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showSuccess, setShowSuccess] = useState(false);
+  const [hideExtraColumns, setHideExtraColumns] = useState(true);
 
   const [items, setItems] = useState<ItemsData>({
     size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
@@ -457,6 +458,14 @@ const JamaChallan: React.FC = () => {
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">{t('challanDetails')}</h3>
                 </div>
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    onClick={() => setHideExtraColumns(!hideExtraColumns)}
+                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-green-600 transition-colors rounded-lg bg-green-50 hover:bg-green-100"
+                  >
+                    {hideExtraColumns ? 'Show' : 'Hide'} Borrowed Outstanding + ઉધાર and નોંધો
+                  </button>
+                </div>
                 <div className="grid gap-4 md:grid-cols-3">
                   <div>
                     <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
@@ -530,7 +539,13 @@ const JamaChallan: React.FC = () => {
                     </p>
                   </div>
                 )}
-                <ItemsTable items={items} onChange={setItems} outstandingBalances={outstandingBalances} borrowedOutstanding={borrowedOutstanding} />
+                <ItemsTable
+                  items={items}
+                  onChange={setItems}
+                  outstandingBalances={outstandingBalances}
+                  borrowedOutstanding={borrowedOutstanding}
+                  hideColumns={hideExtraColumns}
+                />
               </div>
 
               {/* Save or Success State */}

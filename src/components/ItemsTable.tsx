@@ -75,7 +75,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBal
               <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                 {t('quantity')}
               </th>
-              {outstandingBalances && (
+              {outstandingBalances && !hideColumns && (
                 <>
                   <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
                     Borrowed Outstanding
@@ -122,7 +122,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBal
                     className="w-24 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </td>
-                {outstandingBalances && (
+                {outstandingBalances && !hideColumns && (
                   <>
                     {/* SWAPPED: Borrowed Outstanding moved AFTER Quantity */}
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -197,7 +197,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({ items, onChange, outstandingBal
                 />
               </div>
               {/* SWAPPED: Quantity before Borrowed Outstanding */}
-              {outstandingBalances && (
+              {outstandingBalances && !hideColumns && (
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
                     Borrowed Outstanding
