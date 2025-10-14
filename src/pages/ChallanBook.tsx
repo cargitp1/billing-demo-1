@@ -1,19 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Eye, 
-  Trash2, 
-  Edit as EditIcon, 
-  Download, 
-  Search,
-  RefreshCw,
-  FileText,
-  Package,
-  AlertCircle,
-  Calendar,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import ReceiptTemplate from '../components/ReceiptTemplate';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import ChallanDetailsModal from '../components/ChallanDetailsModal';
@@ -262,16 +250,70 @@ const ChallanBook: React.FC = () => {
     toast.success('Challan updated successfully');
   };
 
+  // Transform items to match ReceiptTemplate requirements
+  const transformItems = (items: ItemsData) => {
+    return {
+      ...items,
+      size_1_note: items.size_1_note || '',
+      size_2_note: items.size_2_note || '',
+      size_3_note: items.size_3_note || '',
+      size_4_note: items.size_4_note || '',
+      size_5_note: items.size_5_note || '',
+      size_6_note: items.size_6_note || '',
+      size_7_note: items.size_7_note || '',
+      size_8_note: items.size_8_note || '',
+      size_9_note: items.size_9_note || '',
+      main_note: items.main_note || ''
+    };
+  };
+
   const handleDownloadJPEG = async (challan: ChallanData) => {
     const loadingToast = toast.loading('Generating JPEG...');
     try {
-      await generateJPEG(activeTab, challan.challanNumber, challan.date);
+      // Create a temporary container for the receipt
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      document.body.appendChild(container);
+
+      // Create React root and render the receipt
+      const root = await import('react-dom/client');
+      const reactRoot = root.createRoot(container);
+      
+      await new Promise<void>((resolve) => {
+        reactRoot.render(
+          <ReceiptTemplate
+            challanType={activeTab}
+            challanNumber={challan.challanNumber}
+            date={new Date(challan.date).toLocaleDateString('en-GB')}
+            clientName={challan.clientFullName}
+            site={challan.site}
+            phone={challan.phone}
+            driverName={challan.driverName || ''}
+            items={transformItems(challan.items)}
+          />
+        );
+        // Give React time to render
+        setTimeout(resolve, 100);
+      });
+
+      // Generate and download JPEG
+      await generateJPEG(
+        activeTab,
+        challan.challanNumber,
+        new Date(challan.date).toLocaleDateString('en-GB')
+      );
+
+      // Clean up
+      reactRoot.unmount();
+      document.body.removeChild(container);
+      
       toast.dismiss(loadingToast);
-      toast.success('JPEG downloaded successfully');
+      toast.success(t('challanDownloadSuccess'));
     } catch (error) {
       toast.dismiss(loadingToast);
       console.error('Error generating JPEG:', error);
-      toast.error('Failed to generate JPEG');
+      toast.error(t('challanDownloadError'));
     }
   };
 
@@ -682,10 +724,10 @@ const ChallanBook: React.FC = () => {
                             </button>
                             <button
                               onClick={() => handleDownloadJPEG(challan)}
-                              className="p-2 text-green-600 transition-colors rounded-lg hover:bg-green-50 hover:text-green-800"
-                              title="Download JPEG"
+                              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-800"
+                              title={t('downloadJPEG')}
                             >
-                              <Download size={16} />
+                              <Download size={16} className={refreshing ? 'animate-bounce' : ''} />
                             </button>
                             <button
                               onClick={() => handleDelete(challan)}
