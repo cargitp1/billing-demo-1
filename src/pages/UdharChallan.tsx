@@ -149,6 +149,9 @@ interface ChallanDetailsStepProps {
   setDate: (value: string) => void;
   driverName: string;
   setDriverName: (value: string) => void;
+  previousDrivers: string[];
+  previousDriversVisible: boolean;
+  setPreviousDriversVisible: (value: boolean) => void;
   alternativeSite: string;
   setAlternativeSite: (value: string) => void;
   secondaryPhone: string;
@@ -171,6 +174,9 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
   setDate,
   driverName,
   setDriverName,
+  previousDrivers,
+  previousDriversVisible,
+  setPreviousDriversVisible,
   alternativeSite,
   setAlternativeSite,
   secondaryPhone,
@@ -326,13 +332,35 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                 <User size={14} />
                 {t('driverName')}
               </label>
-              <input
-                type="text"
-                value={driverName}
-                onChange={(e) => setDriverName(e.target.value)}
-                placeholder="Optional driver name"
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={driverName}
+                  onChange={(e) => setDriverName(e.target.value)}
+                  onFocus={() => setPreviousDriversVisible(true)}
+                  placeholder="Optional driver name"
+                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                {previousDriversVisible && previousDrivers.length > 0 && (
+                  <div 
+                    className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg"
+                    onBlur={() => setPreviousDriversVisible(false)}
+                  >
+                    {previousDrivers.map((driver, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          setDriverName(driver);
+                          setPreviousDriversVisible(false);
+                        }}
+                        className="w-full px-4 py-2 text-left hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                      >
+                        {driver}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -411,6 +439,8 @@ const UdharChallan: React.FC = () => {
   const [challanNumber, setChallanNumber] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [driverName, setDriverName] = useState('');
+  const [previousDrivers, setPreviousDrivers] = useState<string[]>([]);
+  const [previousDriversVisible, setPreviousDriversVisible] = useState(false);
   const [alternativeSite, setAlternativeSite] = useState('');
   const [secondaryPhone, setSecondaryPhone] = useState('');
   const [items, setItems] = useState<ItemsData>({
@@ -469,10 +499,33 @@ const UdharChallan: React.FC = () => {
   };
 
   // Initialize data
+  const fetchPreviousDriverNames = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('udhar_challans')
+        .select('driver_name')
+        .not('driver_name', 'is', null)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Create unique list of driver names, limit to top 10 most recent
+      const uniqueDrivers = [...new Set(data.map(row => row.driver_name))]
+        .filter(name => name && name.trim()) // Remove empty/whitespace-only names
+        .map(name => name.trim()) // Normalize by trimming whitespace
+        .slice(0, 10); // Limit to top 10
+
+      setPreviousDrivers(uniqueDrivers);
+    } catch (error) {
+      console.error('Error fetching previous driver names:', error);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       await fetchClients();
       await generateNextChallanNumber();
+      await fetchPreviousDriverNames();
     };
     init();
   }, []);
@@ -718,6 +771,9 @@ const UdharChallan: React.FC = () => {
                 setDate={setDate}
                 driverName={driverName}
                 setDriverName={setDriverName}
+                previousDrivers={previousDrivers}
+                previousDriversVisible={previousDriversVisible}
+                setPreviousDriversVisible={setPreviousDriversVisible}
                 alternativeSite={alternativeSite}
                 setAlternativeSite={setAlternativeSite}
                 secondaryPhone={secondaryPhone}

@@ -163,8 +163,52 @@ const JamaChallan: React.FC = () => {
   const [challanNumber, setChallanNumber] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [driverName, setDriverName] = useState('');
+  const [previousDrivers, setPreviousDrivers] = useState<string[]>([]);
+  const [previousDriversVisible, setPreviousDriversVisible] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  const generateNextChallanNumber = async () => {
+    try {
+      // Fetch the most recent challan
+      const { data, error } = await supabase
+        .from("jama_challans")
+        .select("jama_challan_number")
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+      
+      let nextNumber = "1"; // Default for first challan
+      
+      if (data && data.length > 0) {
+        const lastChallanNumber = data[0].jama_challan_number;
+        // Split into prefix and numeric suffix
+        const match = lastChallanNumber.match(/(\d+)$/);
+        
+        if (match) {
+          const currentNumber = match[0];
+          const prefix = lastChallanNumber.slice(0, -currentNumber.length);
+          const lastNumber = parseInt(currentNumber);
+          const incrementedNumber = lastNumber + 1;
+          // Preserve leading zeros
+          const paddedNumber = incrementedNumber.toString().padStart(currentNumber.length, '0');
+          nextNumber = prefix + paddedNumber;
+        } else {
+          // No trailing digits found, append "1"
+          nextNumber = lastChallanNumber + "1";
+        }
+      }
+      
+      console.log('Generated next jama challan number:', nextNumber);
+      setChallanNumber(nextNumber); // Always set the new number
+      
+    } catch (error) {
+      console.error("Error generating challan number:", error);
+      const fallback = "1";
+      setChallanNumber(fallback);
+    }
+  };
   const [hideExtraColumns, setHideExtraColumns] = useState(true);
 
   const [items, setItems] = useState<ItemsData>({
@@ -179,8 +223,46 @@ const JamaChallan: React.FC = () => {
   const [outstandingBalances, setOutstandingBalances] = useState<{ [key: number]: number }>({});
   const [borrowedOutstanding, setBorrowedOutstanding] = useState<{ [key: number]: number }>({});
 
+  const fetchPreviousDriverNames = async () => {
+    try {
+      // Fetch from both jama and udhar challans
+      const [jamaResponse, udharResponse] = await Promise.all([
+        supabase
+          .from('jama_challans')
+          .select('driver_name, created_at')
+          .not('driver_name', 'is', null),
+        supabase
+          .from('udhar_challans')
+          .select('driver_name, created_at')
+          .not('driver_name', 'is', null)
+      ]);
+
+      if (jamaResponse.error) throw jamaResponse.error;
+      if (udharResponse.error) throw udharResponse.error;
+
+      // Combine and sort all driver names by created_at
+      const allDrivers = [...(jamaResponse.data || []), ...(udharResponse.data || [])]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      // Create unique list of driver names, limit to top 10 most recent
+      const uniqueDrivers = [...new Set(allDrivers.map(row => row.driver_name))]
+        .filter(name => name && name.trim()) // Remove empty/whitespace-only names
+        .map(name => name.trim()) // Normalize by trimming whitespace
+        .slice(0, 10); // Limit to top 10
+
+      setPreviousDrivers(uniqueDrivers);
+    } catch (error) {
+      console.error('Error fetching previous driver names:', error);
+    }
+  };
+
   useEffect(() => {
-    fetchClients();
+    const init = async () => {
+      await fetchClients();
+      await generateNextChallanNumber();
+      await fetchPreviousDriverNames();
+    };
+    init();
   }, []);
 
   const fetchClients = async () => {
@@ -315,6 +397,21 @@ const JamaChallan: React.FC = () => {
 
     try {
       if (!selectedClient?.id) return;
+
+      // Check for duplicate challan number
+      const { data: existingChallan } = await supabase
+        .from('jama_challans')
+        .select('jama_challan_number')
+        .eq('jama_challan_number', challanNumber)
+        .maybeSingle();
+
+      if (existingChallan) {
+        toast.dismiss(loadingToast);
+        toast.error(t('duplicateChallan'));
+        // Generate next number if duplicate found
+        await generateNextChallanNumber();
+        return;
+      }
 
       const { error } = await supabase.from('jama_challans').insert([
         {
@@ -517,13 +614,42 @@ const JamaChallan: React.FC = () => {
                       <User size={14} />
                       {t('driverName')}
                     </label>
-                    <input
-                      type="text"
-                      value={driverName}
-                      onChange={(e) => setDriverName(e.target.value)}
-                      placeholder="Optional driver name"
-                      className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={driverName}
+                        onChange={(e) => setDriverName(e.target.value)}
+                        onFocus={() => setPreviousDriversVisible(true)}
+                        onBlur={(e) => {
+                          // Only hide if not clicking on a suggestion
+                          const relatedTarget = e.relatedTarget as HTMLElement;
+                          if (!relatedTarget?.closest('.driver-suggestions')) {
+                            setPreviousDriversVisible(false);
+                          }
+                        }}
+                        placeholder="Optional driver name"
+                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      />
+                      {previousDriversVisible && previousDrivers.length > 0 && (
+                        <div 
+                          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg driver-suggestions"
+                        >
+                          {previousDrivers.map((driver, index) => (
+                            <button
+                              key={index}
+                              onMouseDown={(e) => {
+                                e.preventDefault(); // Prevent input blur
+                                setDriverName(driver);
+                                setPreviousDriversVisible(false);
+                              }}
+                              className="w-full px-4 py-2 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none"
+                            >
+                              {driver}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
