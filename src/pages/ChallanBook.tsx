@@ -107,8 +107,10 @@ const ChallanBook: React.FC = () => {
     const safeItems = items || emptyItems;
     let total = 0;
     for (let size = 1; size <= 9; size++) {
-      const val = (safeItems[`size_${size}_qty` as keyof ItemsData] as unknown) as number;
-      total += (val || 0);
+      // Add both regular quantity and borrowed quantity
+      const qty = (safeItems[`size_${size}_qty` as keyof ItemsData] as unknown) as number || 0;
+      const borrowed = (safeItems[`size_${size}_borrowed` as keyof ItemsData] as unknown) as number || 0;
+      total += qty + borrowed;
     }
     return total;
   };
@@ -422,7 +424,16 @@ const ChallanBook: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{t('totalUdharChallans')}</p>
                     <p className="mt-2 text-3xl font-bold text-red-600">{udharChallans.length}</p>
-                    <p className="mt-1 text-sm text-gray-500">{totalUdharItems} total items</p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {totalUdharItems} items ({udharChallans.reduce((sum, c) => 
+                        sum + Object.keys(c.items)
+                          .filter(key => key.includes('_qty'))
+                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} reg, {' '}
+                      {udharChallans.reduce((sum, c) => 
+                        sum + Object.keys(c.items)
+                          .filter(key => key.includes('_borrowed'))
+                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} borrowed)
+                    </p>
                   </div>
                   <div className="p-3 bg-red-100 rounded-lg">
                     <FileText size={32} className="text-red-600" />
@@ -438,7 +449,16 @@ const ChallanBook: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-gray-600">{t('totalJamaChallans')}</p>
                     <p className="mt-2 text-3xl font-bold text-green-600">{jamaChallans.length}</p>
-                    <p className="mt-1 text-sm text-gray-500">{totalJamaItems} total items</p>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {totalJamaItems} items ({jamaChallans.reduce((sum, c) => 
+                        sum + Object.keys(c.items)
+                          .filter(key => key.includes('_qty'))
+                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} reg, {' '}
+                      {jamaChallans.reduce((sum, c) => 
+                        sum + Object.keys(c.items)
+                          .filter(key => key.includes('_borrowed'))
+                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} borrowed)
+                    </p>
                   </div>
                   <div className="p-3 bg-green-100 rounded-lg">
                     <Package size={32} className="text-green-600" />
@@ -624,10 +644,25 @@ const ChallanBook: React.FC = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm whitespace-nowrap">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                            <Package size={12} />
-                            {challan.totalItems} {t('pieces')}
-                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              <Package size={12} />
+                              {challan.totalItems} {t('pieces')} total
+                            </span>
+                            <div className="flex gap-1 text-xs text-gray-500">
+                              <span>
+                                Regular: {Object.keys(challan.items)
+                                  .filter(key => key.includes('_qty'))
+                                  .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
+                              </span>
+                              <span>•</span>
+                              <span>
+                                Borrowed: {Object.keys(challan.items)
+                                  .filter(key => key.includes('_borrowed'))
+                                  .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
+                              </span>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
                           <div className="flex gap-1">

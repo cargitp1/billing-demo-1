@@ -38,6 +38,8 @@ export const translations = {
     backToDashboard: 'ડેશબોર્ડ પર પાછા જાઓ',
     overrideDetails: 'આ વિગતો ફક્ત આ ચલણ માટે ગ્રાહકની ડિફોલ્ટ વિગતોને ઓવરરાઈડ કરે છે',
     basicDetails: 'મૂળભૂત વિગતો',
+    totalUdharChallans: 'કુલ ઉધાર ચલણ',
+    totalJamaChallans: 'કુલ જમા ચલણ',
 
     stockManagement: 'સ્ટોક મેનેજમેન્ટ',
     totalStock: 'કુલ સ્ટોક',
