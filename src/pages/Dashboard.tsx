@@ -69,7 +69,6 @@ const Dashboard: React.FC = () => {
       const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
       const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
-      // Fetch all stats in parallel
       const [
         clientsData,
         udharData,
@@ -98,7 +97,7 @@ const Dashboard: React.FC = () => {
         availableStock: totalAvailableStock,
         monthlyUdhar: monthlyUdharData.count || 0,
         monthlyJama: monthlyJamaData.count || 0,
-        clientsWithBalance: 0, // This would require complex calculation
+        clientsWithBalance: 0,
         lowStockItems: lowStock,
       });
     } catch (error) {
@@ -118,7 +117,7 @@ const Dashboard: React.FC = () => {
   const quickActions = [
     {
       title: t('addClient'),
-      description: 'Add new clients to your system',
+      description: 'Add new clients',
       icon: UserPlus,
       path: '/clients',
       gradient: 'from-blue-500 to-blue-700',
@@ -126,7 +125,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('udharChallan'),
-      description: 'Create rental challan',
+      description: 'Create rental',
       icon: FileText,
       path: '/udhar-challan',
       gradient: 'from-red-500 to-red-700',
@@ -134,7 +133,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('jamaChallan'),
-      description: 'Record returned items',
+      description: 'Record returns',
       icon: FileCheck,
       path: '/jama-challan',
       gradient: 'from-green-500 to-green-700',
@@ -142,7 +141,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('stockManagement'),
-      description: 'Manage inventory levels',
+      description: 'Manage inventory',
       icon: Package,
       path: '/stock',
       gradient: 'from-purple-500 to-purple-700',
@@ -158,7 +157,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('clientLedger'),
-      description: 'Track client balances',
+      description: 'Track balances',
       icon: BookMarked,
       path: '/client-ledger',
       gradient: 'from-indigo-500 to-indigo-700',
@@ -183,41 +182,43 @@ const Dashboard: React.FC = () => {
     gradient: string;
     loading?: boolean;
   }) => (
-    <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} rounded-xl shadow-lg p-6 text-white group hover:shadow-xl transition-all`}>
-      <div className="absolute top-0 right-0 w-32 h-32 transition-transform transform bg-white rounded-bl-full opacity-10 group-hover:scale-110"></div>
+    <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-5 text-white group hover:shadow-xl transition-all touch-manipulation active:scale-[0.98]`}>
+      <div className="absolute top-0 right-0 w-16 h-16 transition-transform bg-white rounded-bl-full sm:w-24 sm:h-24 lg:w-28 lg:h-28 opacity-10 group-hover:scale-110"></div>
       <div className="relative">
-        <div className="flex items-center justify-between mb-4">
-          <div className="p-3 bg-white rounded-lg bg-opacity-20 backdrop-blur-sm">
-            <Icon size={24} />
+        <div className="flex items-center justify-between mb-2 sm:mb-3">
+          <div className="p-1.5 sm:p-2 bg-white rounded-md sm:rounded-lg bg-opacity-20 backdrop-blur-sm">
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
           </div>
           {trend && trendValue && (
-            <div className={`flex items-center gap-1 text-sm font-medium px-2 py-1 rounded-full ${
+            <div className={`hidden sm:flex items-center gap-0.5 sm:gap-1 text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full ${
               trend === 'up' ? 'bg-green-500 bg-opacity-30' : 'bg-red-500 bg-opacity-30'
             }`}>
-              <TrendingUp size={14} className={trend === 'down' ? 'rotate-180' : ''} />
-              {trendValue}
+              <TrendingUp className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${trend === 'down' ? 'rotate-180' : ''}`} />
+              <span className="hidden lg:inline text-[10px] sm:text-xs">{trendValue}</span>
             </div>
           )}
         </div>
-        <p className="mb-1 text-sm font-medium text-white text-opacity-90">{title}</p>
+        <p className="mb-0.5 sm:mb-1 text-[10px] sm:text-xs font-medium text-white text-opacity-90 leading-tight">{title}</p>
         {loading ? (
-          <div className="w-20 h-8 bg-white rounded bg-opacity-20 animate-pulse"></div>
+          <div className="w-12 h-5 bg-white rounded sm:w-16 sm:h-6 lg:w-20 lg:h-7 bg-opacity-20 animate-pulse"></div>
         ) : (
-          <p className="text-3xl font-bold">{value}</p>
+          <p className="text-xl font-bold leading-none sm:text-2xl lg:text-3xl">{value}</p>
         )}
       </div>
     </div>
   );
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="relative flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Toaster 
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            fontSize: '13px',
+            padding: '10px 14px',
           },
           success: {
             iconTheme: {
@@ -229,38 +230,46 @@ const Dashboard: React.FC = () => {
       />
       <Navbar />
       
-      <main className="flex-1 ml-64 overflow-auto">
-        <div className="px-4 py-8 mx-auto max-w-7xl sm:px-6 lg:px-8">
-          {/* Welcome Section */}
-          <div className="relative p-8 mb-8 overflow-hidden text-white shadow-xl bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl">
-            <div className="absolute top-0 right-0 w-64 h-64 -mt-32 -mr-32 bg-white rounded-full opacity-5"></div>
-            <div className="absolute bottom-0 left-0 w-48 h-48 -mb-24 -ml-24 bg-white rounded-full opacity-5"></div>
-            <div className="relative flex items-center justify-between">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Sparkles size={24} className="text-yellow-300" />
-                  <p className="text-lg font-medium text-blue-100">{greeting}!</p>
-                </div>
-                <h1 className="mb-2 text-4xl font-bold">{t('appName')}{t('Welcome')}</h1>
-                <p className="text-lg text-blue-100">{t('Manage_your')}</p>
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+        <div className="w-full px-3 py-3 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-8 max-w-7xl">
+          {/* Welcome Section - Compact Mobile */}
+          <div className="relative p-3 mb-3 overflow-hidden text-white rounded-lg shadow-lg sm:p-5 sm:mb-5 lg:p-8 lg:mb-8 bg-gradient-to-r from-blue-600 to-indigo-700 sm:rounded-xl lg:rounded-2xl">
+            <div className="absolute top-0 right-0 w-24 h-24 -mt-12 -mr-12 bg-white rounded-full sm:w-40 sm:h-40 lg:w-64 lg:h-64 sm:-mt-20 sm:-mr-20 lg:-mt-32 lg:-mr-32 opacity-5"></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 -mb-10 -ml-10 bg-white rounded-full sm:w-32 sm:h-32 lg:w-48 lg:h-48 sm:-mb-16 sm:-ml-16 lg:-mb-24 lg:-ml-24 opacity-5"></div>
+            <div className="relative">
+              <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-1.5">
+                <Sparkles className="w-4 h-4 text-yellow-300 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                <p className="text-xs font-medium text-blue-100 sm:text-sm lg:text-base">{greeting}!</p>
               </div>
-              <div className="items-center hidden gap-4 lg:flex">
+              <h1 className="mb-1 sm:mb-1.5 text-xl sm:text-2xl lg:text-4xl font-bold leading-tight">
+                {t('appName')}{t('Welcome')}
+              </h1>
+              <p className="mb-2 text-xs text-blue-100 sm:text-sm lg:text-base sm:mb-0">{t('Manage_your')}</p>
+              
+              {/* Mobile Date Display */}
+              <div className="flex items-center gap-1.5 mt-2 sm:hidden">
+                <Calendar className="w-3.5 h-3.5 text-blue-200" />
+                <p className="text-xs font-medium">{format(new Date(), 'dd MMM yyyy')}</p>
+              </div>
+              
+              {/* Desktop Date Display */}
+              <div className="absolute items-center hidden gap-3 top-3 right-3 sm:flex sm:top-4 sm:right-4 lg:top-6 lg:right-6">
                 <div className="text-right">
-                  <p className="mb-1 text-sm text-blue-100">{t('Todays_Date')}</p>
-                  <p className="text-xl font-semibold">{format(new Date(), 'dd MMM yyyy')}</p>
+                  <p className="mb-0.5 text-[10px] sm:text-xs text-blue-100">{t('Todays_Date')}</p>
+                  <p className="text-sm font-semibold sm:text-base lg:text-xl">{format(new Date(), 'dd MMM yyyy')}</p>
                 </div>
-                <Calendar size={48} className="text-blue-200" />
+                <Calendar className="w-8 h-8 text-blue-200 sm:w-9 sm:h-9 lg:w-12 lg:h-12" />
               </div>
             </div>
           </div>
 
-          {/* Statistics Grid */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6">
-              <BarChart3 size={24} className="text-gray-700" />
-              <h2 className="text-2xl font-bold text-gray-900">{t('Business_Overview')}</h2>
+          {/* Statistics Grid - Compact Mobile */}
+          <div className="mb-3 sm:mb-5 lg:mb-8">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 sm:mb-4 lg:mb-6">
+              <BarChart3 className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('Business_Overview')}</h2>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4 lg:gap-5">
               <StatCard 
                 title="Total Clients"
                 value={stats.totalClients}
@@ -282,7 +291,7 @@ const Dashboard: React.FC = () => {
                 value={stats.totalUdharChallans}
                 icon={FileText}
                 trend="up"
-                trendValue={`${stats.monthlyUdhar} this month`}
+                trendValue={`${stats.monthlyUdhar} month`}
                 gradient="from-red-500 to-red-700"
                 loading={loading}
               />
@@ -291,72 +300,72 @@ const Dashboard: React.FC = () => {
                 value={stats.totalJamaChallans}
                 icon={FileCheck}
                 trend="up"
-                trendValue={`${stats.monthlyJama} this month`}
+                trendValue={`${stats.monthlyJama} month`}
                 gradient="from-purple-500 to-purple-700"
                 loading={loading}
               />
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-6">
-              <Activity size={24} className="text-gray-700" />
-              <h2 className="text-2xl font-bold text-gray-900">{t('Quick_Actions')}</h2>
+          {/* Quick Actions - Compact Mobile */}
+          <div className="mb-3 sm:mb-5 lg:mb-8">
+            <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 sm:mb-4 lg:mb-6">
+              <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('Quick_Actions')}</h2>
             </div>
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 lg:gap-5">
               {quickActions.map((action) => (
                 <button
                   key={action.path}
                   onClick={() => navigate(action.path)}
-                  className={`group relative overflow-hidden bg-gradient-to-br ${action.gradient} ${action.hoverGradient} rounded-xl shadow-lg p-6 text-white transition-all transform hover:scale-105 hover:shadow-2xl`}
+                  className={`group relative overflow-hidden bg-gradient-to-br ${action.gradient} ${action.hoverGradient} rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-5 text-white transition-all transform active:scale-[0.97] sm:hover:scale-105 hover:shadow-2xl touch-manipulation`}
                 >
-                  <div className="absolute top-0 right-0 w-32 h-32 transition-transform transform bg-white rounded-bl-full opacity-10 group-hover:scale-110"></div>
+                  <div className="absolute top-0 right-0 w-20 h-20 transition-transform bg-white rounded-bl-full sm:w-24 sm:h-24 lg:w-28 lg:h-28 opacity-10 group-hover:scale-110"></div>
                   <div className="relative">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="p-3 bg-white rounded-lg bg-opacity-20 backdrop-blur-sm">
-                        <action.icon size={28} />
+                    <div className="flex items-start justify-between mb-2 sm:mb-3">
+                      <div className="p-1.5 sm:p-2 lg:p-2.5 bg-white rounded-md sm:rounded-lg bg-opacity-20 backdrop-blur-sm">
+                        <action.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
                       </div>
-                      <ArrowUpRight size={20} className="transition-opacity opacity-0 group-hover:opacity-100" />
+                      <ArrowUpRight className="hidden w-4 h-4 transition-opacity opacity-0 sm:block sm:w-4 sm:h-4 lg:w-5 lg:h-5 group-hover:opacity-100" />
                     </div>
-                    <h3 className="mb-2 text-xl font-bold">{action.title}</h3>
-                    <p className="text-sm text-white text-opacity-90">{action.description}</p>
+                    <h3 className="mb-1 text-sm font-bold leading-tight sm:text-base lg:text-lg">{action.title}</h3>
+                    <p className="text-[10px] sm:text-xs text-white text-opacity-90 leading-snug line-clamp-1 sm:line-clamp-none">{action.description}</p>
                   </div>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Recent Activity Placeholder */}
-          <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <Activity size={24} className="text-gray-700" />
-                <h2 className="text-2xl font-bold text-gray-900">Recent Activity</h2>
+          {/* Recent Activity - Compact Mobile */}
+          <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
+            <div className="flex flex-col items-start justify-between gap-2 mb-3 sm:flex-row sm:items-center sm:gap-0 sm:mb-5">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+                <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">Recent Activity</h2>
               </div>
               <button 
                 onClick={() => navigate('/challan-book')}
-                className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="flex items-center gap-0.5 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95"
               >
                 View All
-                <ArrowUpRight size={16} />
+                <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             </div>
-            <div className="py-12 text-center">
-              <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gray-100 rounded-full">
-                <Activity size={32} className="text-gray-400" />
+            <div className="py-6 text-center sm:py-8 lg:py-12">
+              <div className="inline-flex items-center justify-center w-10 h-10 mb-2 bg-gray-100 rounded-full sm:w-12 sm:h-12 sm:mb-3 lg:w-16 lg:h-16 lg:mb-4">
+                <Activity className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
               </div>
-              <p className="mb-4 text-gray-500">Your recent challans will appear here</p>
-              <div className="flex justify-center gap-3">
+              <p className="mb-3 text-xs text-gray-500 sm:text-sm sm:mb-4">Your recent challans will appear here</p>
+              <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-2.5">
                 <button
                   onClick={() => navigate('/udhar-challan')}
-                  className="px-4 py-2 text-sm font-medium text-white transition-colors bg-red-600 rounded-lg hover:bg-red-700"
+                  className="w-full px-3 py-2 text-xs font-medium text-white transition-all bg-red-600 rounded-lg sm:w-auto sm:text-sm sm:px-4 hover:bg-red-700 touch-manipulation active:scale-95"
                 >
                   Create Udhar
                 </button>
                 <button
                   onClick={() => navigate('/jama-challan')}
-                  className="px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
+                  className="w-full px-3 py-2 text-xs font-medium text-white transition-all bg-green-600 rounded-lg sm:w-auto sm:text-sm sm:px-4 hover:bg-green-700 touch-manipulation active:scale-95"
                 >
                   Create Jama
                 </button>

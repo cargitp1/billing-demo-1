@@ -58,6 +58,9 @@ export const translations = {
     inStock: 'સ્ટોકમાં છે',
     stockUpdated: 'સ્ટોક સફળતાપૂર્વક અપડેટ થયો',
     invalidStock: 'અમાન્ય સ્ટોક મૂલ્ય',
+    recentClients: 'તાજેતરના ગ્રાહકો',
+    uniqueSites: 'અનન્ય સાઇટ્સ',
+    totalClients: 'કુલ ગ્રાહકો',
 
     saveSuccess: 'સફળતાપૂર્વક સેવ થયું',
     deleteConfirm: 'શું તમે ખરેખર ડિલીટ કરવા માંગો છો?',
