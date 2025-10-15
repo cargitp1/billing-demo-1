@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { 
-  UserPlus, 
-  FileText, 
-  FileCheck, 
-  Package, 
-  BookOpen, 
-  BookMarked, 
+import {
+  UserPlus,
+  FileText,
+  FileCheck,
+  Package,
+  BookOpen,
+  BookMarked,
   LogOut,
   LayoutDashboard,
   Sparkles,
-  ChevronRight,
   Menu,
   X
 } from 'lucide-react';
@@ -24,8 +23,7 @@ const Navbar: React.FC = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const { logout } = useAuth();
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -33,215 +31,177 @@ const Navbar: React.FC = () => {
     toast.success('Logged out successfully');
   };
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
-
   const navItems = [
-    { 
-      path: '/dashboard', 
-      label: t('dashboard'), 
+    {
+      path: '/dashboard',
+      label: t('dashboard'),
       icon: LayoutDashboard,
       colorClass: 'blue'
     },
-    { 
-      path: '/clients', 
-      label: t('addClient'), 
+    {
+      path: '/clients',
+      label: t('addClient'),
       icon: UserPlus,
       colorClass: 'blue'
     },
-    { 
-      path: '/udhar-challan', 
-      label: t('udharChallan'), 
+    {
+      path: '/udhar-challan',
+      label: t('udharChallan'),
       icon: FileText,
       colorClass: 'red'
     },
-    { 
-      path: '/jama-challan', 
-      label: t('jamaChallan'), 
+    {
+      path: '/jama-challan',
+      label: t('jamaChallan'),
       icon: FileCheck,
       colorClass: 'green'
     },
-    { 
-      path: '/stock', 
-      label: t('stockManagement'), 
+    {
+      path: '/stock',
+      label: t('stockManagement'),
       icon: Package,
-      colorClass: 'purple'
+      colorClass: 'orange'
     },
-    { 
-      path: '/challan-book', 
-      label: t('challanBook'), 
+    {
+      path: '/challan-book',
+      label: t('challanBook'),
       icon: BookOpen,
-      colorClass: 'teal'
+      colorClass: 'cyan'
     },
-    { 
-      path: '/client-ledger', 
-      label: t('clientLedger'), 
+    {
+      path: '/client-ledger',
+      label: t('clientLedger'),
       icon: BookMarked,
-      colorClass: 'indigo'
+      colorClass: 'slate'
     },
   ];
 
-  const getColorClasses = (colorClass: string) => {
-    const colors = {
-      blue: {
-        gradient: 'from-blue-500 to-blue-600',
-        bg: 'bg-blue-50',
-        text: 'text-blue-600',
-        hoverBg: 'hover:bg-blue-50',
-        hoverText: 'hover:text-blue-600',
-        iconBg: 'bg-blue-50',
-        iconHoverBg: 'group-hover:bg-blue-100'
-      },
-      red: {
-        gradient: 'from-red-500 to-red-600',
-        bg: 'bg-red-50',
-        text: 'text-red-600',
-        hoverBg: 'hover:bg-red-50',
-        hoverText: 'hover:text-red-600',
-        iconBg: 'bg-red-50',
-        iconHoverBg: 'group-hover:bg-red-100'
-      },
-      green: {
-        gradient: 'from-green-500 to-green-600',
-        bg: 'bg-green-50',
-        text: 'text-green-600',
-        hoverBg: 'hover:bg-green-50',
-        hoverText: 'hover:text-green-600',
-        iconBg: 'bg-green-50',
-        iconHoverBg: 'group-hover:bg-green-100'
-      },
-      purple: {
-        gradient: 'from-purple-500 to-purple-600',
-        bg: 'bg-purple-50',
-        text: 'text-purple-600',
-        hoverBg: 'hover:bg-purple-50',
-        hoverText: 'hover:text-purple-600',
-        iconBg: 'bg-purple-50',
-        iconHoverBg: 'group-hover:bg-purple-100'
-      },
-      teal: {
-        gradient: 'from-teal-500 to-teal-600',
-        bg: 'bg-teal-50',
-        text: 'text-teal-600',
-        hoverBg: 'hover:bg-teal-50',
-        hoverText: 'hover:text-teal-600',
-        iconBg: 'bg-teal-50',
-        iconHoverBg: 'group-hover:bg-teal-100'
-      },
-      indigo: {
-        gradient: 'from-indigo-500 to-indigo-600',
-        bg: 'bg-indigo-50',
-        text: 'text-indigo-600',
-        hoverBg: 'hover:bg-indigo-50',
-        hoverText: 'hover:text-indigo-600',
-        iconBg: 'bg-indigo-50',
-        iconHoverBg: 'group-hover:bg-indigo-100'
-      }
+  const getActiveColor = (colorClass: string): string => {
+    const colors: Record<string, string> = {
+      blue: '#2563eb',
+      red: '#dc2626',
+      green: '#16a34a',
+      orange: '#f59e0b',
+      cyan: '#0891b2',
+      slate: '#475569'
     };
-    return colors[colorClass as keyof typeof colors];
+    return colors[colorClass] || colors.blue;
   };
+
+  const SidebarContent = () => (
+    <>
+      <div className="p-5" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
+            <Sparkles size={20} className="text-white" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold text-white">{t('appName')}</h1>
+            <p className="text-xs" style={{ color: '#9ca3af' }}>Rental Management</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex-1 p-4 overflow-y-auto">
+        <div className="space-y-1">
+          {navItems.map(({ path, label, icon: Icon, colorClass }) => {
+            const isActive = location.pathname === path;
+            const activeColor = getActiveColor(colorClass);
+
+            return (
+              <button
+                key={path}
+                onClick={() => {
+                  navigate(path);
+                  setMobileMenuOpen(false);
+                }}
+                className="flex items-center w-full gap-3 px-5 py-3 font-medium transition-all"
+                style={{
+                  fontSize: '16px',
+                  color: isActive ? '#60a5fa' : '#9ca3af',
+                  backgroundColor: isActive ? 'rgba(37, 99, 235, 0.1)' : 'transparent',
+                  borderLeft: isActive ? `4px solid ${activeColor}` : '4px solid transparent',
+                  borderRadius: '0'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
+                    e.currentTarget.style.color = 'white';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.color = '#9ca3af';
+                  }
+                }}
+              >
+                <Icon size={20} />
+                <span className="flex-1 text-left">{label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="p-4 space-y-3" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex justify-center">
+          <LanguageToggle />
+        </div>
+
+        <button
+          onClick={handleLogout}
+          className="btn-error flex items-center justify-center w-full gap-2"
+          style={{ minHeight: '44px', color: '#f87171' }}
+        >
+          <LogOut size={20} />
+          <span className="font-medium">{t('logout')}</span>
+        </button>
+      </div>
+    </>
+  );
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button 
-        onClick={toggleMenu}
-        className="fixed top-4 right-4 z-50 p-2 rounded-lg bg-white shadow-lg lg:hidden"
-      >
-        {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Mobile Menu Overlay */}
-      {isMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={toggleMenu}
-        />
-      )}
-
-      {/* Sidebar Navigation */}
-      <nav className={`
-        fixed top-0 left-0 z-50 flex flex-col w-64 h-screen bg-white border-r border-gray-100 shadow-xl
-        transition-transform duration-300 ease-in-out
-        ${isMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0
-      `}>
-        {/* Header with App Name */}
-        <div className="relative p-6 overflow-hidden bg-gradient-to-br from-blue-600 to-indigo-700">
-          <div className="absolute top-0 right-0 w-32 h-32 -mt-16 -mr-16 bg-white rounded-full opacity-10"></div>
-          <div className="absolute bottom-0 left-0 w-24 h-24 -mb-12 -ml-12 bg-white rounded-full opacity-10"></div>
-          <div className="relative flex items-center gap-3">
-            <div className="p-2 bg-white rounded-lg bg-opacity-20 backdrop-blur-sm">
-              <Sparkles size={24} className="text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">{t('appName')}</h1>
-              <p className="text-xs text-blue-100">Rental Management</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation Items */}
-        <div className="flex-1 p-4 overflow-y-auto">
-          <div className="space-y-1">
-            {navItems.map(({ path, label, icon: Icon, colorClass }) => {
-              const isActive = location.pathname === path;
-              const isHovered = hoveredItem === path;
-              const colors = getColorClasses(colorClass);
-              
-              return (
-                <button
-                  key={path}
-                  onClick={() => {
-                    navigate(path);
-                    setIsMenuOpen(false);
-                  }}
-                  onMouseEnter={() => setHoveredItem(path)}
-                  onMouseLeave={() => setHoveredItem(null)}
-                  className={`group relative flex items-center w-full gap-3 px-4 py-3 transition-all duration-200 rounded-xl font-medium ${
-                    isActive
-                      ? `bg-gradient-to-r ${colors.gradient} text-white shadow-lg transform scale-105`
-                      : `text-gray-600 ${colors.hoverBg} ${colors.hoverText} ${isHovered ? 'translate-x-1' : ''}`
-                  }`}
-                >
-                  <div className={`p-2 rounded-lg transition-colors duration-200 ${
-                    isActive 
-                      ? 'bg-white bg-opacity-20 backdrop-blur-sm' 
-                      : `${colors.iconBg} ${colors.iconHoverBg}`
-                  }`}>
-                    <Icon size={20} className={isActive ? 'text-white' : ''} />
-                  </div>
-                  <span className="flex-1 text-left">{label}</span>
-                  {isActive && (
-                    <ChevronRight size={18} className="text-white animate-pulse" />
-                  )}
-                  {!isActive && isHovered && (
-                    <ChevronRight size={18} className={colors.text} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Footer with Language Toggle and Logout */}
-        <div className="p-4 space-y-3 border-t border-gray-100 bg-gray-50">
-          <div className="mb-3">
-            <LanguageToggle />
-          </div>
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2.5 text-red-600 transition-all duration-200 bg-red-50 rounded-xl hover:bg-red-100 group"
-          >
-            <div className="p-2 mr-3 bg-red-100 rounded-lg group-hover:bg-red-200">
-              <LogOut size={18} />
-            </div>
-            <span className="font-medium">{t('logout')}</span>
-          </button>
-        </div>
+      <nav className="fixed top-0 left-0 z-50 flex-col hidden h-screen lg:flex" style={{ width: '250px', backgroundColor: '#1f2937' }}>
+        <SidebarContent />
       </nav>
+
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 bg-white border-b lg:hidden" style={{ height: '56px', borderColor: '#e5e7eb' }}>
+        <button
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="p-2"
+          style={{ color: '#2563eb' }}
+        >
+          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
+        <h1 className="font-bold" style={{ fontSize: '18px', color: '#1f2937' }}>{t('appName')}</h1>
+        <div style={{ width: '40px' }}>
+          <LanguageToggle />
+        </div>
+      </div>
+
+      {mobileMenuOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 lg:hidden"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          <nav
+            className="fixed top-0 left-0 z-50 flex flex-col h-screen lg:hidden"
+            style={{
+              width: '280px',
+              backgroundColor: '#1f2937',
+              boxShadow: '4px 0 6px rgba(0,0,0,0.1)',
+              transition: 'transform 0.3s ease'
+            }}
+          >
+            <SidebarContent />
+          </nav>
+        </>
+      )}
     </>
   );
 };
