@@ -69,23 +69,23 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleDownloadLedger();
               }}
-              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-700"
+              className="p-2 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
               title="Download Ledger"
             >
               <Download className="w-5 h-5" />
             </button>
 
-            <button className="text-gray-400 hover:text-gray-600">
+            <button className="p-2 text-gray-400 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-600">
               {isExpanded ? (
-                <ChevronUp className="w-6 h-6" />
+                <ChevronUp className="w-5 h-5" />
               ) : (
-                <ChevronDown className="w-6 h-6" />
+                <ChevronDown className="w-5 h-5" />
               )}
             </button>
           </div>
@@ -105,13 +105,26 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 {ledger.clientFullName}
               </p>
             </div>
-            <button className="flex-shrink-0 text-gray-400">
-              {isExpanded ? (
-                <ChevronUp className="w-5 h-5" />
-              ) : (
-                <ChevronDown className="w-5 h-5" />
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownloadLedger();
+                }}
+                className="p-2 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
+                title="Download Ledger"
+              >
+                <Download className="w-5 h-5" />
+              </button>
+
+              <button className="p-2 text-gray-400 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-600">
+                {isExpanded ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 text-xs text-gray-600">
@@ -123,19 +136,6 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               <Phone className="flex-shrink-0 w-3.5 h-3.5" />
               <span>{ledger.clientPhone}</span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2 mt-3">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownloadLedger();
-              }}
-              className="flex-shrink-0 p-2.5 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
-              title="Download Ledger"
-            >
-              <Download className="w-5 h-5" />
-            </button>
           </div>
         </div>
       </div>
