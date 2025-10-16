@@ -54,19 +54,19 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             </div>
 
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-base font-bold text-gray-900">
                 {ledger.clientNicName}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-xs text-gray-500">
                 {ledger.clientFullName}
               </p>
-              <div className="flex items-center gap-4 mt-1 text-sm text-gray-600">
+              <div className="flex items-center gap-4 mt-0.5 text-xs text-gray-600">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-3.5 h-3.5" />
                   {ledger.clientSite}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" />
+                  <Phone className="w-3.5 h-3.5" />
                   {ledger.clientPhone}
                 </span>
               </div>
@@ -127,7 +127,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             </button>
           </div>
 
-          <div className="space-y-2 text-xs text-gray-600">
+          <div className="flex items-center gap-4 text-xs text-gray-600">
             <div className="flex items-center gap-1.5">
               <MapPin className="flex-shrink-0 w-3.5 h-3.5" />
               <span className="truncate">{ledger.clientSite}</span>
