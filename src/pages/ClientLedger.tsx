@@ -1,14 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+
 import { 
   Search, 
   Filter, 
-  RefreshCw, 
-  Users, 
-  TrendingUp, 
-  TrendingDown,
-  FileText,
-  ChevronDown
+  RefreshCw,
+  ChevronDown,
+  Users
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
@@ -22,17 +19,6 @@ import toast, { Toaster } from 'react-hot-toast';
 type SortOption = 'nameAZ' | 'nameZA' | 'balanceHighLow' | 'balanceLowHigh';
 
 
-interface ItemsData {
-  size_1_qty: number;
-  size_2_qty: number;
-  size_3_qty: number;
-  size_4_qty: number;
-  size_5_qty: number;
-  size_6_qty: number;
-  size_7_qty: number;
-  size_8_qty: number;
-  size_9_qty: number;
-}
 
 
 interface SizeBalance {
@@ -84,7 +70,7 @@ export interface ClientLedgerData {
 
 
 export default function ClientLedger() {
-  const navigate = useNavigate();
+
   const { language } = useLanguage();
   const t = translations[language];
 
@@ -320,22 +306,7 @@ export default function ClientLedger() {
   };
 
 
-  const summaryStats = useMemo(() => {
-    const totalClients = ledgers.length;
-    const clientsWithBalance = ledgers.filter(l => l.currentBalance.grandTotal > 0).length;
-    const totalOutstanding = ledgers.reduce((sum, l) => sum + l.currentBalance.grandTotal, 0);
-    const totalUdharChallans = ledgers.reduce((sum, l) => sum + l.udharCount, 0);
-    const totalJamaChallans = ledgers.reduce((sum, l) => sum + l.jamaCount, 0);
 
-
-    return {
-      totalClients,
-      clientsWithBalance,
-      totalOutstanding,
-      totalUdharChallans,
-      totalJamaChallans
-    };
-  }, [ledgers]);
 
 
   const SkeletonCard = () => (
@@ -406,73 +377,7 @@ export default function ClientLedger() {
           </div>
 
 
-          {/* Summary Statistics Cards */}
-          {!loading && (
-            <div className="grid gap-3 mb-4 sm:gap-4 md:grid-cols-2 lg:grid-cols-4 sm:mb-6 lg:mb-8 lg:gap-6">
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-blue-50"></div>
-                <div className="relative p-3 sm:p-4 lg:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.totalClients || 'Total Clients'}</p>
-                      <p className="mt-1 text-xl font-bold text-blue-600 sm:mt-2 sm:text-2xl">{summaryStats.totalClients}</p>
-                    </div>
-                    <div className="p-2 bg-blue-100 rounded-md sm:p-2.5 sm:rounded-lg">
-                      <Users className="w-5 h-5 text-blue-600 sm:w-6 sm:h-6" />
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-orange-50"></div>
-                <div className="relative p-3 sm:p-4 lg:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.withBalance || 'With Balance'}</p>
-                      <p className="mt-1 text-xl font-bold text-orange-600 sm:mt-2 sm:text-2xl">{summaryStats.clientsWithBalance}</p>
-                    </div>
-                    <div className="p-2 bg-orange-100 rounded-md sm:p-2.5 sm:rounded-lg">
-                      <TrendingUp className="w-5 h-5 text-orange-600 sm:w-6 sm:h-6" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-red-50"></div>
-                <div className="relative p-3 sm:p-4 lg:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.udharChallans || 'Udhar'}</p>
-                      <p className="mt-1 text-xl font-bold text-red-600 sm:mt-2 sm:text-2xl">{summaryStats.totalUdharChallans}</p>
-                    </div>
-                    <div className="p-2 bg-red-100 rounded-md sm:p-2.5 sm:rounded-lg">
-                      <FileText className="w-5 h-5 text-red-600 sm:w-6 sm:h-6" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-green-50"></div>
-                <div className="relative p-3 sm:p-4 lg:p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.jamaChallans || 'Jama'}</p>
-                      <p className="mt-1 text-xl font-bold text-green-600 sm:mt-2 sm:text-2xl">{summaryStats.totalJamaChallans}</p>
-                    </div>
-                    <div className="p-2 bg-green-100 rounded-md sm:p-2.5 sm:rounded-lg">
-                      <FileText className="w-5 h-5 text-green-600 sm:w-6 sm:h-6" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
 
           {/* Search and Filter Section */}
