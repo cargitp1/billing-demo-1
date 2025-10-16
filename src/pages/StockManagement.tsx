@@ -8,7 +8,6 @@ import {
   AlertCircle, 
   CheckCircle, 
   RefreshCw, 
-  Search,
   Download,
   Upload,
   TrendingDown,
@@ -47,8 +46,6 @@ const StockManagement: React.FC = () => {
   });
   const [editAllMode, setEditAllMode] = useState(false);
   const [allEditValues, setAllEditValues] = useState<{ [key: number]: { total_stock: number; lost_stock: number } }>({});
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterMode, setFilterMode] = useState<'all' | 'low' | 'out'>('all');
   const [sortField, setSortField] = useState<SortField>('size');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -245,16 +242,7 @@ const StockManagement: React.FC = () => {
 
 
   const filteredAndSortedStocks = useMemo(() => {
-    let filtered = stocks.filter(stock => {
-      const matchesSearch = stock.size.toString().includes(searchTerm);
-      
-      if (filterMode === 'out') return matchesSearch && stock.available_stock === 0;
-      if (filterMode === 'low') return matchesSearch && stock.available_stock > 0 && stock.available_stock < 10;
-      return matchesSearch;
-    });
-
-
-    filtered.sort((a, b) => {
+    return [...stocks].sort((a, b) => {
       const aVal = a[sortField];
       const bVal = b[sortField];
       
@@ -264,10 +252,7 @@ const StockManagement: React.FC = () => {
         return aVal < bVal ? 1 : -1;
       }
     });
-
-
-    return filtered;
-  }, [stocks, searchTerm, filterMode, sortField, sortOrder]);
+  }, [stocks, sortField, sortOrder]);
 
 
   const totalAvailable = useMemo(() => stocks.reduce((sum, stock) => sum + stock.available_stock, 0), [stocks]);
@@ -383,65 +368,11 @@ const StockManagement: React.FC = () => {
           </div>
 
 
-          {/* Table Container */}
+            {/* Table Container */}
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl">
             {/* Table Header with Controls */}
             <div className="p-3 border-b border-gray-200 sm:p-4 lg:p-6">
-              <div className="flex flex-col gap-3 sm:gap-4">
-                <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-0">
-                  <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('stockOverview')}</h3>
-                  
-                  <div className="flex flex-col w-full gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
-                    {/* Search */}
-                    <div className="relative flex-1 sm:flex-initial">
-                      <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      <input
-                        type="text"
-                        placeholder="Search size..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 sm:pr-4 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
-                      />
-                    </div>
-
-
-                    {/* Filter Buttons */}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setFilterMode('all')}
-                        className={`flex-1 sm:flex-initial px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
-                          filterMode === 'all' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        All
-                      </button>
-                      <button
-                        onClick={() => setFilterMode('low')}
-                        className={`flex-1 sm:flex-initial px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
-                          filterMode === 'low' 
-                            ? 'bg-yellow-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Low
-                      </button>
-                      <button
-                        onClick={() => setFilterMode('out')}
-                        className={`flex-1 sm:flex-initial px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
-                          filterMode === 'out' 
-                            ? 'bg-red-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        Out
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-
+              <div className="flex items-center justify-end">
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                   {!editAllMode && !editingSize && (
@@ -471,8 +402,6 @@ const StockManagement: React.FC = () => {
                 </div>
               </div>
             </div>
-
-
             {/* Desktop Table */}
             <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full divide-y divide-gray-200">
