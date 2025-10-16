@@ -170,8 +170,10 @@ export default function TransactionTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200">
+    <div className="overflow-x-auto -mx-5 md:mx-0">
+      <div className="inline-block min-w-full align-middle">
+        <div className="overflow-hidden border border-gray-200 rounded-lg md:border-0">
+          <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
             <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
@@ -275,6 +277,8 @@ export default function TransactionTable({
           ))}
         </tbody>
       </table>
+        </div>
+      </div>
     </div>
   );
 }

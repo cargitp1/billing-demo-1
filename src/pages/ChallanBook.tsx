@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Phone } from 'lucide-react';
 import ReceiptTemplate from '../components/ReceiptTemplate';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -573,8 +573,8 @@ const ChallanBook: React.FC = () => {
               </div>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
+            {/* Desktop Table */}
+            <div className="hidden overflow-x-auto md:block">
               {loading ? (
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -743,6 +743,144 @@ const ChallanBook: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
+              )}
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="p-4 space-y-4 md:hidden">
+              {loading ? (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 bg-white border border-gray-200 rounded-xl animate-pulse">
+                      <div className="w-32 h-6 mb-3 bg-gray-200 rounded"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                        <div className="h-4 bg-gray-200 rounded"></div>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : filteredChallans.length === 0 ? (
+                <div className="py-12 text-center">
+                  <FileText size={48} className="mx-auto mb-3 text-gray-300" />
+                  <p className="font-medium text-gray-500">{t('noChallansFound')}</p>
+                </div>
+              ) : (
+                paginatedChallans.map((challan) => (
+                  <div
+                    key={challan.challanNumber}
+                    className={`p-4 border shadow-sm rounded-xl ${
+                      activeTab === 'udhar'
+                        ? 'bg-red-50 border-red-200'
+                        : 'bg-green-50 border-green-200'
+                    }`}
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <div className="text-sm font-semibold text-gray-900">
+                          {challan.challanNumber}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                        activeTab === 'udhar'
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-green-100 text-green-800'
+                      }`}>
+                        <Package size={12} />
+                        {challan.totalItems} {t('pieces')}
+                      </span>
+                    </div>
+
+                    {/* Client Info */}
+                    <div className="pb-3 mb-3 space-y-2 text-sm border-b border-gray-300">
+                      <div>
+                        <span className="font-semibold text-gray-900">{challan.clientNicName}</span>
+                        <div className="text-xs text-gray-600">{challan.clientFullName}</div>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <MapPin size={14} />
+                        {challan.site}
+                        {challan.isAlternativeSite && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            <AlertCircle size={10} />
+                            Alt
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-700">
+                        <Phone size={14} />
+                        {challan.phone}
+                        {challan.isSecondaryPhone && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                            <AlertCircle size={10} />
+                            Alt
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Item Breakdown */}
+                    <div className="pb-3 mb-3 text-xs border-b border-gray-300">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Regular:</span>
+                        <span className="font-semibold">
+                          {Object.keys(challan.items)
+                            .filter(key => key.includes('_qty'))
+                            .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Borrowed:</span>
+                        <span className="font-semibold">
+                          {Object.keys(challan.items)
+                            .filter(key => key.includes('_borrowed'))
+                            .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="grid grid-cols-4 gap-2">
+                      <button
+                        onClick={() => handleViewDetails(challan)}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-blue-600 transition-colors bg-white rounded-lg hover:bg-blue-50"
+                        title={t('viewDetails')}
+                      >
+                        <Eye size={18} />
+                        <span className="text-xs">View</span>
+                      </button>
+                      <button
+                        onClick={() => handleEdit(challan)}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-yellow-600 transition-colors bg-white rounded-lg hover:bg-yellow-50"
+                        title={t('edit')}
+                      >
+                        <EditIcon size={18} />
+                        <span className="text-xs">Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDownloadJPEG(challan)}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-blue-600 transition-colors bg-white rounded-lg hover:bg-blue-50"
+                        title={t('downloadJPEG')}
+                      >
+                        <Download size={18} />
+                        <span className="text-xs">Download</span>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(challan)}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-red-600 transition-colors bg-white rounded-lg hover:bg-red-50"
+                        title={t('delete')}
+                      >
+                        <Trash2 size={18} />
+                        <span className="text-xs">Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                ))
               )}
             </div>
 

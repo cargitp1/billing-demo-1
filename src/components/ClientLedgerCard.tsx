@@ -43,10 +43,11 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
   return (
     <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
       <div
-        className="p-5 transition-colors cursor-pointer hover:bg-gray-50"
+        className="p-4 transition-colors cursor-pointer sm:p-5 hover:bg-gray-50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        <div className="flex items-center justify-between">
+        {/* Desktop Layout */}
+        <div className="items-center justify-between hidden md:flex">
           <div className="flex items-center flex-1 gap-4">
             <div className="flex items-center justify-center w-12 h-12 text-xl font-bold text-white bg-blue-500 rounded-full">
               {getInitial(ledger.clientNicName)}
@@ -102,13 +103,72 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             </button>
           </div>
         </div>
+
+        {/* Mobile Layout */}
+        <div className="md:hidden">
+          <div className="flex items-start gap-3 mb-3">
+            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-lg font-bold text-white bg-blue-500 rounded-full">
+              {getInitial(ledger.clientNicName)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-gray-900 truncate">
+                {ledger.clientNicName}
+              </h3>
+              <p className="text-xs text-gray-500 truncate">
+                {ledger.clientFullName}
+              </p>
+            </div>
+            <button className="flex-shrink-0 text-gray-400">
+              {isExpanded ? (
+                <ChevronUp className="w-5 h-5" />
+              ) : (
+                <ChevronDown className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
+          <div className="space-y-2 text-xs text-gray-600">
+            <div className="flex items-center gap-1.5">
+              <MapPin className="flex-shrink-0 w-3.5 h-3.5" />
+              <span className="truncate">{ledger.clientSite}</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Phone className="flex-shrink-0 w-3.5 h-3.5" />
+              <span>{ledger.clientPhone}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 mt-3">
+            <div className={`flex-1 px-4 py-2.5 rounded-lg ${balanceColor}`}>
+              <div className="text-xl font-bold">
+                {ledger.currentBalance.grandTotal}
+              </div>
+              <div className="text-xs font-medium">
+                {t.totalOutstanding}
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadLedger();
+              }}
+              className="flex-shrink-0 p-2.5 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
+              title="Download Ledger"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {isExpanded && (
         <div className="p-5 border-t border-gray-200 bg-gray-50">
-          <h4 className="mb-4 font-semibold text-gray-700 text-md">
-            {t.transactionHistory}
-          </h4>
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-semibold text-gray-700 text-md">
+              {t.transactionHistory}
+            </h4>
+            <span className="text-xs text-gray-500 md:hidden">Swipe to scroll →</span>
+          </div>
           <TransactionTable
             transactions={ledger.transactions || []}
             currentBalance={ledger.currentBalance}
