@@ -478,7 +478,8 @@ const JamaChallan: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 ml-64 overflow-auto">
+      <main className="flex-1 ml-0 overflow-auto lg:ml-64" style={{ marginTop: '56px' }}>
+        <div className="lg:mt-0"></div>
         <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
           {step === 'client-selection' ? (
             <>
