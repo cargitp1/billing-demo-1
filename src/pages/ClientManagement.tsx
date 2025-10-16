@@ -194,16 +194,26 @@ const ClientManagement: React.FC = () => {
         <div className="lg:mt-0"></div>
         <div className="w-full px-4 py-6 mx-auto lg:px-8 lg:py-8 max-w-7xl">
           {/* Header Section */}
-          <div className="flex flex-col items-start justify-between gap-3 mb-6 sm:flex-row sm:items-center lg:mb-8" style={{ padding: '24px 0' }}>
-            <div>
-              <h2 className="font-bold text-gray-900" style={{ fontSize: '24px' }}>{t('clientManagement')}</h2>
-              <p className="mt-1 text-sm text-gray-600">Manage all your clients and their information</p>
+          <div className="mb-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:mb-6 lg:mb-8">
+            <div className="flex items-center justify-between w-full sm:w-auto sm:block">
+              <div>
+                <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('clientManagement')}</h1>
+                <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">Manage and track client information</p>
+              </div>
+              <button
+                onClick={() => fetchClients(true)}
+                disabled={refreshing}
+                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg sm:hidden touch-manipulation active:scale-95"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                <span className="hidden xs:inline">Refresh</span>
+              </button>
             </div>
             <div className="flex gap-3">
               <button
                 onClick={() => fetchClients(true)}
                 disabled={refreshing}
-                className="btn-secondary inline-flex items-center gap-2"
+                className="items-center hidden gap-2 sm:inline-flex btn-secondary"
                 style={{ minHeight: '44px' }}
               >
                 <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -211,7 +221,7 @@ const ClientManagement: React.FC = () => {
               </button>
               <button
                 onClick={() => setShowForm(true)}
-                className="btn-primary hidden lg:inline-flex items-center gap-2"
+                className="items-center hidden gap-2 btn-primary lg:inline-flex"
                 style={{ minHeight: '44px' }}
               >
                 <UserPlus size={20} />
