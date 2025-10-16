@@ -334,49 +334,48 @@ const StockManagement: React.FC = () => {
 
 
           {/* Summary Cards */}
-          <div className="grid gap-3 mb-4 sm:gap-4 md:grid-cols-3 sm:mb-6 lg:mb-8 lg:gap-6">
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-50"></div>
-              <div className="relative p-3 sm:p-4 lg:p-6">
+                    {/* Summary Cards */}
+          <div className="flex gap-2 mb-4 sm:gap-4 lg:gap-6 sm:mb-6 lg:mb-8">
+            <div className="relative flex-1 overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-50"></div>
+              <div className="relative p-2 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalAvailable')}</p>
-                    <p className="mt-1 text-2xl font-bold text-green-600 sm:mt-2 sm:text-3xl">{totalAvailable}</p>
+                    <p className="text-[8px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalAvailable')}</p>
+                    <p className="mt-0.5 text-lg font-bold text-green-600 sm:mt-2 sm:text-3xl">{totalAvailable}</p>
                   </div>
-                  <div className="p-2 bg-green-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                    <Package className="w-5 h-5 text-green-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
+                  <div className="p-1.5 bg-green-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <Package className="w-4 h-4 text-green-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
             </div>
 
-
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-blue-50"></div>
-              <div className="relative p-3 sm:p-4 lg:p-6">
+            <div className="relative flex-1 overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-blue-50"></div>
+              <div className="relative p-2 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('onRent')}</p>
-                    <p className="mt-1 text-2xl font-bold text-blue-600 sm:mt-2 sm:text-3xl">{totalOnRent}</p>
+                    <p className="text-[8px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('onRent')}</p>
+                    <p className="mt-0.5 text-lg font-bold text-blue-600 sm:mt-2 sm:text-3xl">{totalOnRent}</p>
                   </div>
-                  <div className="p-2 bg-blue-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                    <FileText className="w-5 h-5 text-blue-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
+                  <div className="p-1.5 bg-blue-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <FileText className="w-4 h-4 text-blue-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
             </div>
 
-
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-red-50"></div>
-              <div className="relative p-3 sm:p-4 lg:p-6">
+            <div className="relative flex-1 overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-red-50"></div>
+              <div className="relative p-2 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('lost')}</p>
-                    <p className="mt-1 text-2xl font-bold text-red-600 sm:mt-2 sm:text-3xl">{totalLost}</p>
+                    <p className="text-[8px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('lost')}</p>
+                    <p className="mt-0.5 text-lg font-bold text-red-600 sm:mt-2 sm:text-3xl">{totalLost}</p>
                   </div>
-                  <div className="p-2 bg-red-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                    <Package className="w-5 h-5 text-red-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
+                  <div className="p-1.5 bg-red-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <Package className="w-4 h-4 text-red-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
