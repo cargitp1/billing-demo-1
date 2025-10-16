@@ -11,7 +11,9 @@ import {
   Phone,
   User,
   CheckCircle,
-  Package
+  Package,
+  ChevronRight,
+  Plus
 } from 'lucide-react';
 import ClientForm from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
@@ -23,6 +25,7 @@ import Navbar from '../components/Navbar';
 import toast, { Toaster } from 'react-hot-toast';
 import { fetchClientTransactions } from '../utils/challanFetching';
 
+
 interface ClientFormData {
   id?: string;
   client_nic_name: string;
@@ -31,7 +34,9 @@ interface ClientFormData {
   primary_phone_number: string;
 }
 
+
 type Step = 'client-selection' | 'challan-details';
+
 
 interface ClientSelectionStepProps {
   clients: ClientFormData[];
@@ -40,6 +45,7 @@ interface ClientSelectionStepProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
+
 
 const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   clients,
@@ -56,87 +62,92 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
     client.primary_phone_number.includes(searchQuery)
   );
 
+
   return (
-    <div className="space-y-6">
-      {/* Header with Action */}
-      <div className="flex items-center justify-between p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+      {/* Header - Mobile Compact */}
+      <div className="flex flex-col items-start justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row sm:items-center sm:gap-0 sm:p-4 lg:p-6 sm:rounded-xl">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">{t('selectClient')}</h3>
-          <p className="mt-1 text-sm text-gray-500">Choose a client to create jama challan</p>
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('selectClient')}</h3>
+          <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-500">Choose client for jama challan</p>
         </div>
         <button
           onClick={onAddNewClick}
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md"
+          className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
         >
-          <UserPlus size={18} />
+          <UserPlus className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
           {t('addNewClient')}
         </button>
       </div>
 
-      {/* Search Box */}
+
+      {/* Search Bar - Compact */}
       <div className="relative">
-        <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={18} />
+        <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-4 h-4 sm:w-4.5 sm:h-4.5" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder={t('searchClients')}
-          className="w-full py-3 pl-10 pr-4 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent"
+          placeholder={t('searchClients') || 'Search clients...'}
+          className="w-full py-2 sm:py-2.5 lg:py-3 pl-8 sm:pl-10 pr-3 sm:pr-4 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm"
         />
       </div>
 
-      {/* Results Count */}
+
+      {/* Results Count - Compact */}
       {searchQuery && (
-        <div className="px-4 py-2 border border-green-200 rounded-lg bg-green-50">
-          <p className="text-sm text-green-700">
-            Found <span className="font-semibold">{filteredClients.length}</span> matching client{filteredClients.length !== 1 ? 's' : ''}
+        <div className="px-3 py-1.5 sm:px-4 sm:py-2 border border-green-200 rounded-lg bg-green-50">
+          <p className="text-[10px] sm:text-xs lg:text-sm text-green-700">
+            Found <span className="font-semibold">{filteredClients.length}</span> client{filteredClients.length !== 1 ? 's' : ''}
           </p>
         </div>
       )}
 
-      {/* Client Grid */}
+
+      {/* Client Grid - Mobile Optimized */}
       {filteredClients.length === 0 ? (
-        <div className="p-16 text-center bg-white border border-gray-200 shadow-sm rounded-xl">
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gray-100 rounded-full">
-            <User size={32} className="text-gray-400" />
+        <div className="p-8 text-center bg-white border border-gray-200 rounded-lg shadow-sm sm:p-12 lg:p-16 sm:rounded-xl">
+          <div className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-gray-100 rounded-full sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
+            <User className="w-6 h-6 text-gray-400 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
           </div>
-          <h3 className="mb-2 text-lg font-semibold text-gray-900">No clients found</h3>
-          <p className="mb-4 text-gray-500">
-            {searchQuery ? 'Try adjusting your search criteria' : 'Add your first client to get started'}
+          <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">No clients found</h3>
+          <p className="mb-3 text-[10px] sm:text-xs lg:text-sm text-gray-500 sm:mb-4">
+            {searchQuery ? 'Try adjusting your search' : 'Add your first client'}
           </p>
           <button
             onClick={searchQuery ? () => onSearchChange('') : onAddNewClick}
-            className="px-4 py-2 text-sm font-medium text-green-600 transition-colors rounded-lg hover:text-green-700 hover:bg-green-50"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-green-600 transition-colors rounded-lg hover:text-green-700 hover:bg-green-50 touch-manipulation active:scale-95"
           >
             {searchQuery ? 'Clear search' : 'Add New Client'}
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4">
           {filteredClients.map((client) => (
             <button
               key={client.id}
               onClick={() => onClientSelect(client.id!)}
-              className="p-5 text-left transition-all bg-white border border-gray-200 shadow-sm group rounded-xl hover:shadow-md hover:border-green-500"
+              className="p-3 text-left transition-all bg-white border border-gray-200 shadow-sm sm:p-4 lg:p-5 group rounded-lg sm:rounded-xl hover:shadow-md hover:border-green-500 touch-manipulation active:scale-[0.98]"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="p-2 transition-colors bg-green-100 rounded-lg group-hover:bg-green-200">
-                  <User size={20} className="text-green-600" />
+              <div className="flex items-center gap-2 mb-2 sm:gap-3 sm:mb-3">
+                <div className="p-1.5 sm:p-2 transition-colors bg-green-100 rounded-md sm:rounded-lg group-hover:bg-green-200">
+                  <User className="w-4 h-4 text-green-600 sm:w-5 sm:h-5" />
                 </div>
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 transition-colors group-hover:text-green-600">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-semibold text-gray-900 truncate transition-colors sm:text-base lg:text-lg group-hover:text-green-600">
                     {client.client_nic_name}
                   </h4>
-                  <p className="text-sm text-gray-600">{client.client_name}</p>
+                  <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 truncate">{client.client_name}</p>
                 </div>
+                <ChevronRight className="flex-shrink-0 w-4 h-4 text-gray-400 transition-transform sm:w-5 sm:h-5 group-hover:translate-x-1" />
               </div>
-              <div className="pt-3 mt-3 space-y-2 border-t border-gray-100">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <MapPin size={14} className="text-gray-400" />
+              <div className="pt-2 mt-2 space-y-1 border-t border-gray-100 sm:pt-3 sm:mt-3 sm:space-y-1.5 lg:space-y-2">
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                  <MapPin className="flex-shrink-0 w-3 h-3 text-gray-400 sm:w-3.5 sm:h-3.5" />
                   <span className="truncate">{client.site}</span>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Phone size={14} className="text-gray-400" />
+                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                  <Phone className="flex-shrink-0 w-3 h-3 text-gray-400 sm:w-3.5 sm:h-3.5" />
                   <span>{client.primary_phone_number}</span>
                 </div>
               </div>
@@ -144,13 +155,295 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
           ))}
         </div>
       )}
+
+
+      {/* Mobile FAB for Add Client */}
+      <button
+        onClick={onAddNewClick}
+        className="fixed z-50 flex items-center justify-center transition-all shadow-lg sm:hidden bottom-6 right-4 w-14 h-14 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl hover:shadow-2xl active:scale-90 touch-manipulation"
+        aria-label="Add new client"
+      >
+        <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
+      </button>
     </div>
   );
 };
 
+
+interface ChallanDetailsStepProps {
+  selectedClient: ClientFormData;
+  onBack: () => void;
+  onSave: () => void;
+  challanNumber: string;
+  setChallanNumber: (value: string) => void;
+  date: string;
+  setDate: (value: string) => void;
+  driverName: string;
+  setDriverName: (value: string) => void;
+  previousDrivers: string[];
+  previousDriversVisible: boolean;
+  setPreviousDriversVisible: (value: boolean) => void;
+  items: ItemsData;
+  setItems: (items: ItemsData) => void;
+  outstandingBalances: { [key: number]: number };
+  borrowedOutstanding: { [key: number]: number };
+  errors: { [key: string]: string };
+  showSuccess: boolean;
+  hideExtraColumns: boolean;
+  setHideExtraColumns: (value: boolean) => void;
+}
+
+
+const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
+  selectedClient,
+  onBack,
+  onSave,
+  challanNumber,
+  setChallanNumber,
+  date,
+  setDate,
+  driverName,
+  setDriverName,
+  previousDrivers,
+  previousDriversVisible,
+  setPreviousDriversVisible,
+  items,
+  setItems,
+  outstandingBalances,
+  borrowedOutstanding,
+  errors,
+  showSuccess,
+  hideExtraColumns,
+  setHideExtraColumns
+}) => {
+  const { t } = useLanguage();
+  const navigate = useNavigate();
+
+
+  return (
+    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+      {/* Header with Back Button - Mobile Compact */}
+      <div className="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:gap-3 sm:p-4 lg:gap-4 lg:p-6 sm:rounded-xl">
+        <button
+          onClick={onBack}
+          className="p-1.5 sm:p-2 text-gray-600 transition-colors rounded-md sm:rounded-lg hover:text-gray-900 hover:bg-gray-100 touch-manipulation active:scale-95"
+        >
+          <ArrowLeft className="w-5 h-5 sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
+        </button>
+        <div className="flex-1">
+          <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('challanDetails')}</h3>
+          <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-500">Complete challan info</p>
+        </div>
+      </div>
+
+
+      {/* Progress Indicator - Mobile Only */}
+      <div className="flex items-center gap-2 px-3 py-2 border border-green-200 rounded-lg bg-green-50 sm:hidden">
+        <div className="flex items-center justify-center flex-shrink-0 w-6 h-6 text-xs font-semibold text-white bg-green-600 rounded-full">2</div>
+        <p className="text-[10px] font-medium text-green-700">Step 2 of 2: Challan Details</p>
+      </div>
+
+
+      {/* Selected Client Info - Compact Mobile */}
+      <div className="relative p-3 overflow-hidden border border-green-200 rounded-lg shadow-sm sm:p-4 lg:p-6 bg-gradient-to-br from-green-50 to-emerald-50 sm:rounded-xl">
+        <div className="absolute top-0 right-0 w-20 h-20 bg-green-100 rounded-bl-full opacity-30 sm:w-24 sm:h-24 lg:w-32 lg:h-32"></div>
+        <div className="relative flex items-start gap-2 sm:gap-3 lg:gap-4">
+          <div className="p-2 bg-green-600 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+            <User className="w-5 h-5 text-white sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base lg:text-lg">{selectedClient.client_nic_name}</h4>
+            <p className="text-[10px] sm:text-xs lg:text-sm text-gray-700 truncate">{selectedClient.client_name}</p>
+            <div className="grid grid-cols-1 gap-1 mt-2 sm:grid-cols-2 sm:gap-2 lg:mt-3">
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                <MapPin className="flex-shrink-0 w-3 h-3 text-green-600 sm:w-3.5 sm:h-3.5" />
+                <span className="truncate">{selectedClient.site}</span>
+              </div>
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                <Phone className="flex-shrink-0 w-3 h-3 text-green-600 sm:w-3.5 sm:h-3.5" />
+                <span className="truncate">{selectedClient.primary_phone_number}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        {/* Basic Challan Details - Compact */}
+        <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
+              <FileText className="w-4 h-4 text-green-600 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">{t('challanDetails')}</h3>
+          </div>
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <button
+              onClick={() => setHideExtraColumns(!hideExtraColumns)}
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium text-green-600 transition-colors rounded-md sm:rounded-lg bg-green-50 hover:bg-green-100 touch-manipulation active:scale-95"
+            >
+              {hideExtraColumns ? 'Show' : 'Hide'} Borrowed Outstanding + ઉધાર and નોંધો
+            </button>
+          </div>
+          <div className="grid gap-2 sm:gap-3 md:grid-cols-3 lg:gap-4">
+            <div>
+              <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
+                <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                {t('challanNumber')} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={challanNumber}
+                onChange={(e) => setChallanNumber(e.target.value)}
+                placeholder="Challan #"
+                className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm ${
+                  errors.challanNumber ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.challanNumber && (
+                <p className="mt-1 text-[10px] sm:text-xs text-red-600 flex items-center gap-1">
+                  <span>•</span> {errors.challanNumber}
+                </p>
+              )}
+            </div>
+
+
+            <div>
+              <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
+                <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                {t('date')} <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm ${
+                  errors.date ? 'border-red-500' : 'border-gray-300'
+                }`}
+              />
+              {errors.date && (
+                <p className="mt-1 text-[10px] sm:text-xs text-red-600 flex items-center gap-1">
+                  <span>•</span> {errors.date}
+                </p>
+              )}
+            </div>
+
+
+            <div>
+              <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
+                <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                {t('driverName')}
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={driverName}
+                  onChange={(e) => setDriverName(e.target.value)}
+                  onFocus={() => setPreviousDriversVisible(true)}
+                  onBlur={(e) => {
+                    const relatedTarget = e.relatedTarget as HTMLElement;
+                    if (!relatedTarget?.closest('.driver-suggestions')) {
+                      setPreviousDriversVisible(false);
+                    }
+                  }}
+                  placeholder="Optional"
+                  className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm"
+                />
+                {previousDriversVisible && previousDrivers.length > 0 && (
+                  <div 
+                    className="absolute z-10 w-full mt-1 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg driver-suggestions max-h-40"
+                  >
+                    {previousDrivers.map((driver, index) => (
+                      <button
+                        key={index}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setDriverName(driver);
+                          setPreviousDriversVisible(false);
+                        }}
+                        className="w-full px-3 py-2 text-xs text-left sm:text-sm hover:bg-green-50 focus:bg-green-50 focus:outline-none touch-manipulation"
+                      >
+                        {driver}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        {/* Items Table - Compact */}
+        <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
+            <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
+              <Package className="w-4 h-4 text-green-600 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
+            </div>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">{t('items')}</h3>
+          </div>
+          {errors.items && (
+            <div className="p-2 mb-3 border border-red-200 rounded-lg sm:p-3 sm:mb-4 bg-red-50">
+              <p className="flex items-center gap-1.5 text-[10px] sm:text-xs text-red-600">
+                <span>⚠</span> {errors.items}
+              </p>
+            </div>
+          )}
+          <ItemsTable 
+            items={items} 
+            onChange={setItems}
+            outstandingBalances={outstandingBalances}
+            borrowedOutstanding={borrowedOutstanding}
+            hideColumns={hideExtraColumns}
+          />
+        </div>
+
+
+        {/* Save or Success State - Mobile Optimized */}
+        {showSuccess ? (
+          <div className="space-y-4 sm:space-y-6">
+            <div className="relative p-6 overflow-hidden text-center border border-green-200 rounded-lg shadow-sm sm:p-8 bg-gradient-to-br from-green-50 to-emerald-50 sm:rounded-xl">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-green-100 rounded-bl-full opacity-30 sm:w-32 sm:h-32"></div>
+              <div className="relative">
+                <div className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-green-600 rounded-full sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
+                  <CheckCircle className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
+                </div>
+                <h3 className="mb-2 text-lg font-bold text-gray-900 sm:text-xl lg:text-2xl">{t('challanSaved')}</h3>
+                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">Challan created and JPEG generated</p>
+              </div>
+            </div>
+            <div className="flex justify-center">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 text-sm font-semibold text-white transition-colors bg-green-600 rounded-lg shadow-md sm:w-auto sm:px-8 sm:py-4 sm:text-base lg:text-lg hover:bg-green-700 hover:shadow-lg touch-manipulation active:scale-95"
+              >
+                <ArrowLeft className="w-5 h-5 sm:w-5 sm:h-5" />
+                {t('backToDashboard')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="sticky bottom-0 left-0 right-0 z-40 p-3 bg-white border-t border-gray-200 sm:static sm:p-0 sm:border-0 sm:bg-transparent">
+            <button
+              onClick={onSave}
+              className="inline-flex items-center justify-center w-full gap-2 px-6 py-3 text-sm font-semibold text-white transition-colors bg-green-600 rounded-lg shadow-md sm:w-auto sm:mx-auto sm:flex sm:px-8 sm:py-4 sm:text-base lg:text-lg hover:bg-green-700 hover:shadow-lg touch-manipulation active:scale-95"
+            >
+              <CheckCircle className="w-5 h-5 sm:w-5 sm:h-5" />
+              {t('save')}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
 const JamaChallan: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+
 
   // Step management
   const [step, setStep] = useState<Step>('client-selection');
@@ -170,20 +463,19 @@ const JamaChallan: React.FC = () => {
   
   const generateNextChallanNumber = async () => {
     try {
-      // Fetch the most recent challan
       const { data, error } = await supabase
         .from("jama_challans")
         .select("jama_challan_number")
         .order('created_at', { ascending: false })
         .limit(1);
 
+
       if (error) throw error;
       
-      let nextNumber = "1"; // Default for first challan
+      let nextNumber = "1";
       
       if (data && data.length > 0) {
         const lastChallanNumber = data[0].jama_challan_number;
-        // Split into prefix and numeric suffix
         const match = lastChallanNumber.match(/(\d+)$/);
         
         if (match) {
@@ -191,17 +483,15 @@ const JamaChallan: React.FC = () => {
           const prefix = lastChallanNumber.slice(0, -currentNumber.length);
           const lastNumber = parseInt(currentNumber);
           const incrementedNumber = lastNumber + 1;
-          // Preserve leading zeros
           const paddedNumber = incrementedNumber.toString().padStart(currentNumber.length, '0');
           nextNumber = prefix + paddedNumber;
         } else {
-          // No trailing digits found, append "1"
           nextNumber = lastChallanNumber + "1";
         }
       }
       
       console.log('Generated next jama challan number:', nextNumber);
-      setChallanNumber(nextNumber); // Always set the new number
+      setChallanNumber(nextNumber);
       
     } catch (error) {
       console.error("Error generating challan number:", error);
@@ -210,6 +500,7 @@ const JamaChallan: React.FC = () => {
     }
   };
   const [hideExtraColumns, setHideExtraColumns] = useState(true);
+
 
   const [items, setItems] = useState<ItemsData>({
     size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
@@ -223,9 +514,9 @@ const JamaChallan: React.FC = () => {
   const [outstandingBalances, setOutstandingBalances] = useState<{ [key: number]: number }>({});
   const [borrowedOutstanding, setBorrowedOutstanding] = useState<{ [key: number]: number }>({});
 
+
   const fetchPreviousDriverNames = async () => {
     try {
-      // Fetch from both jama and udhar challans
       const [jamaResponse, udharResponse] = await Promise.all([
         supabase
           .from('jama_challans')
@@ -237,24 +528,27 @@ const JamaChallan: React.FC = () => {
           .not('driver_name', 'is', null)
       ]);
 
+
       if (jamaResponse.error) throw jamaResponse.error;
       if (udharResponse.error) throw udharResponse.error;
 
-      // Combine and sort all driver names by created_at
+
       const allDrivers = [...(jamaResponse.data || []), ...(udharResponse.data || [])]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-      // Create unique list of driver names, limit to top 10 most recent
+
       const uniqueDrivers = [...new Set(allDrivers.map(row => row.driver_name))]
-        .filter(name => name && name.trim()) // Remove empty/whitespace-only names
-        .map(name => name.trim()) // Normalize by trimming whitespace
-        .slice(0, 10); // Limit to top 10
+        .filter(name => name && name.trim())
+        .map(name => name.trim())
+        .slice(0, 10);
+
 
       setPreviousDrivers(uniqueDrivers);
     } catch (error) {
       console.error('Error fetching previous driver names:', error);
     }
   };
+
 
   useEffect(() => {
     const init = async () => {
@@ -265,11 +559,13 @@ const JamaChallan: React.FC = () => {
     init();
   }, []);
 
+
   const fetchClients = async () => {
     const { data, error } = await supabase
       .from('clients')
       .select('*')
       .order('client_nic_name');
+
 
     if (error) {
       console.error('Error fetching clients:', error);
@@ -277,12 +573,15 @@ const JamaChallan: React.FC = () => {
       return;
     }
 
+
     setClients(data || []);
   };
+
 
   const handleAddNewClick = () => {
     setShowAddClient(true);
   };
+
 
   const handleClientSelect = async (clientId: string) => {
     const client = clients.find(c => c.id === clientId);
@@ -290,22 +589,26 @@ const JamaChallan: React.FC = () => {
       setSelectedClient(client);
       setStep('challan-details');
 
+
       const transactions = await fetchClientTransactions(clientId);
+
 
       const balances: { [key: number]: number } = {};
       for (let i = 1; i <= 9; i++) {
         balances[i] = 0;
       }
 
+
       const borrowedBal: { [key: number]: number } = {};
       for (let i = 1; i <= 9; i++) borrowedBal[i] = 0;
+
 
       transactions.forEach(transaction => {
         for (let i = 1; i <= 9; i++) {
           const qty = transaction.items[`size_${i}_qty`] || 0;
           const borrowed = transaction.items[`size_${i}_borrowed`] || 0;
-          // Only main qty counts towards outstanding balance (exclude borrowed)
           const totalMain = qty;
+
 
           if (transaction.type === 'udhar') {
             balances[i] += totalMain;
@@ -317,17 +620,21 @@ const JamaChallan: React.FC = () => {
         }
       });
 
+
       setOutstandingBalances(balances);
       setBorrowedOutstanding(borrowedBal);
     }
   };
 
+
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
   };
 
+
   const handleQuickAddClient = async (clientData: ClientFormData) => {
     const loadingToast = toast.loading('Creating client...');
+
 
     try {
       const { data, error } = await supabase
@@ -336,13 +643,17 @@ const JamaChallan: React.FC = () => {
         .select()
         .single();
 
+
       toast.dismiss(loadingToast);
 
+
       if (error) throw error;
+
 
       toast.success('Client created successfully');
       setShowAddClient(false);
       await fetchClients();
+
 
       if (data) {
         handleClientSelect(data.id!);
@@ -354,26 +665,30 @@ const JamaChallan: React.FC = () => {
     }
   };
 
+
   const handleSave = async () => {
     const newErrors: { [key: string]: string } = {};
     let hasErrors = false;
+
 
     if (!selectedClient) {
       newErrors.client = t('requiredField');
       hasErrors = true;
     }
 
+
     if (!challanNumber) {
       newErrors.challanNumber = t('requiredField');
       hasErrors = true;
     }
+
 
     if (!date) {
       newErrors.date = t('requiredField');
       hasErrors = true;
     }
 
-    // Check if any quantities or borrowed items are filled
+
     const hasQuantities = Object.entries(items)
       .filter(([key]) => key.includes('_qty'))
       .some(([_, value]) => value > 0);
@@ -382,10 +697,12 @@ const JamaChallan: React.FC = () => {
       .filter(([key]) => key.includes('_borrowed'))
       .some(([_, value]) => value > 0);
 
+
     if (!hasQuantities && !hasBorrowedItems) {
       newErrors.items = 'At least one item quantity or borrowed quantity must be greater than 0';
       hasErrors = true;
     }
+
 
     if (hasErrors) {
       setErrors(newErrors);
@@ -393,25 +710,28 @@ const JamaChallan: React.FC = () => {
       return;
     }
 
+
     const loadingToast = toast.loading('Creating challan...');
+
 
     try {
       if (!selectedClient?.id) return;
 
-      // Check for duplicate challan number
+
       const { data: existingChallan } = await supabase
         .from('jama_challans')
         .select('jama_challan_number')
         .eq('jama_challan_number', challanNumber)
         .maybeSingle();
 
+
       if (existingChallan) {
         toast.dismiss(loadingToast);
         toast.error(t('duplicateChallan'));
-        // Generate next number if duplicate found
         await generateNextChallanNumber();
         return;
       }
+
 
       const { error } = await supabase.from('jama_challans').insert([
         {
@@ -422,7 +742,9 @@ const JamaChallan: React.FC = () => {
         },
       ]);
 
+
       if (error) throw error;
+
 
       const { error: itemsError } = await supabase.from('jama_items').insert([
         {
@@ -431,11 +753,14 @@ const JamaChallan: React.FC = () => {
         },
       ]);
 
+
       if (itemsError) throw itemsError;
+
 
       toast.dismiss(loadingToast);
       toast.success('Challan created successfully');
       setShowSuccess(true);
+
 
       setTimeout(async () => {
         try {
@@ -453,15 +778,18 @@ const JamaChallan: React.FC = () => {
     }
   };
 
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Toaster 
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            fontSize: '13px',
+            padding: '10px 14px',
           },
           success: {
             iconTheme: {
@@ -478,22 +806,21 @@ const JamaChallan: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 ml-0 overflow-auto lg:ml-64" style={{ marginTop: '56px' }}>
-        <div className="lg:mt-0"></div>
-        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {step === 'client-selection' ? (
             <>
-              <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-900">{t('jamaChallan')}</h2>
-                <p className="mt-2 text-gray-600">Create a new jama challan for returned items</p>
+              <div className="mb-4 sm:mb-6 lg:mb-8">
+                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('jamaChallan')}</h2>
+                <p className="mt-1 text-[10px] sm:text-xs lg:text-sm lg:mt-2 text-gray-600">Create new jama challan for returned items</p>
               </div>
               {showAddClient ? (
-                <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <UserPlus size={20} className="text-green-600" />
+                <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
+                  <div className="flex items-center gap-2 mb-4 sm:gap-3 sm:mb-6">
+                    <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
+                      <UserPlus className="w-4 h-4 text-green-600 sm:w-5 sm:h-5" />
                     </div>
-                    <h3 className="text-xl font-semibold text-gray-900">{t('addNewClient')}</h3>
+                    <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('addNewClient')}</h3>
                   </div>
                   <ClientForm 
                     onSubmit={handleQuickAddClient}
@@ -511,229 +838,52 @@ const JamaChallan: React.FC = () => {
               )}
             </>
           ) : (
-            <div className="space-y-6">
-              {/* Header with Back Button */}
-              <div className="flex items-center gap-4 p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-                <button
-                  onClick={() => setStep('client-selection')}
-                  className="p-2 text-gray-600 transition-colors rounded-lg hover:text-gray-900 hover:bg-gray-100"
-                >
-                  <ArrowLeft size={20} />
-                </button>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-gray-900">{t('challanDetails')}</h3>
-                  <p className="mt-1 text-sm text-gray-500">Complete the challan information below</p>
-                </div>
-              </div>
-
-              {/* Selected Client Info */}
-              {selectedClient && (
-                <div className="relative p-6 overflow-hidden border border-green-200 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-100 rounded-bl-full opacity-30"></div>
-                  <div className="relative flex items-start gap-4">
-                    <div className="p-3 bg-green-600 rounded-lg">
-                      <User size={28} className="text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold text-gray-900">{selectedClient.client_nic_name}</h4>
-                      <p className="text-gray-700">{selectedClient.client_name}</p>
-                      <div className="grid grid-cols-1 gap-2 mt-3 md:grid-cols-2">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <MapPin size={14} className="text-green-600" />
-                          <span>{selectedClient.site}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Phone size={14} className="text-green-600" />
-                          <span>{selectedClient.primary_phone_number}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Challan Details Form */}
-              <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <FileText size={18} className="text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{t('challanDetails')}</h3>
-                </div>
-                <div className="flex items-center justify-between mb-4">
-                  <button
-                    onClick={() => setHideExtraColumns(!hideExtraColumns)}
-                    className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-green-600 transition-colors rounded-lg bg-green-50 hover:bg-green-100"
-                  >
-                    {hideExtraColumns ? 'Show' : 'Hide'} Borrowed Outstanding + ઉધાર and નોંધો
-                  </button>
-                </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div>
-                    <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
-                      <FileText size={14} />
-                      {t('challanNumber')} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={challanNumber}
-                      onChange={(e) => setChallanNumber(e.target.value)}
-                      placeholder="Enter challan number"
-                      className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                        errors.challanNumber ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.challanNumber && (
-                      <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                        <span className="text-red-500">•</span> {errors.challanNumber}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
-                      <Calendar size={14} />
-                      {t('date')} <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
-                        errors.date ? 'border-red-500' : 'border-gray-300'
-                      }`}
-                    />
-                    {errors.date && (
-                      <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                        <span className="text-red-500">•</span> {errors.date}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="flex items-center gap-2 mb-2 text-sm font-medium text-gray-700">
-                      <User size={14} />
-                      {t('driverName')}
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={driverName}
-                        onChange={(e) => setDriverName(e.target.value)}
-                        onFocus={() => setPreviousDriversVisible(true)}
-                        onBlur={(e) => {
-                          // Only hide if not clicking on a suggestion
-                          const relatedTarget = e.relatedTarget as HTMLElement;
-                          if (!relatedTarget?.closest('.driver-suggestions')) {
-                            setPreviousDriversVisible(false);
-                          }
-                        }}
-                        placeholder="Optional driver name"
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                      />
-                      {previousDriversVisible && previousDrivers.length > 0 && (
-                        <div 
-                          className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg driver-suggestions"
-                        >
-                          {previousDrivers.map((driver, index) => (
-                            <button
-                              key={index}
-                              onMouseDown={(e) => {
-                                e.preventDefault(); // Prevent input blur
-                                setDriverName(driver);
-                                setPreviousDriversVisible(false);
-                              }}
-                              className="w-full px-4 py-2 text-left hover:bg-green-50 focus:bg-green-50 focus:outline-none"
-                            >
-                              {driver}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Items Table */}
-              <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Package size={18} className="text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">{t('items')}</h3>
-                </div>
-                {errors.items && (
-                  <div className="p-3 mb-4 border border-red-200 rounded-lg bg-red-50">
-                    <p className="flex items-center gap-2 text-sm text-red-600">
-                      <span className="text-red-500">⚠</span> {errors.items}
-                    </p>
-                  </div>
-                )}
-                <ItemsTable
-                  items={items}
-                  onChange={setItems}
-                  outstandingBalances={outstandingBalances}
-                  borrowedOutstanding={borrowedOutstanding}
-                  hideColumns={hideExtraColumns}
-                />
-              </div>
-
-              {/* Save or Success State */}
-              {showSuccess ? (
-                <div className="space-y-6">
-                  <div className="relative p-8 overflow-hidden text-center border border-green-200 shadow-sm bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-green-100 rounded-bl-full opacity-30"></div>
-                    <div className="relative">
-                      <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-green-600 rounded-full">
-                        <CheckCircle size={32} className="text-white" />
-                      </div>
-                      <h3 className="mb-2 text-2xl font-bold text-gray-900">{t('challanSaved')}</h3>
-                      <p className="text-gray-600">Challan has been created and JPEG is being generated</p>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <button
-                      onClick={() => navigate('/dashboard')}
-                      className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white transition-colors bg-green-600 rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg"
-                    >
-                      <ArrowLeft size={20} />
-                      {t('backToDashboard')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex justify-center">
-                  <button
-                    onClick={handleSave}
-                    className="inline-flex items-center gap-2 px-8 py-4 text-lg font-semibold text-white transition-colors bg-green-600 rounded-lg shadow-md hover:bg-green-700 hover:shadow-lg"
-                  >
-                    <CheckCircle size={20} />
-                    {t('save')}
-                  </button>
-                </div>
-              )}
-
-              <div style={{ position: 'absolute', left: '-9999px' }}>
-                {selectedClient && (
-                  <ReceiptTemplate
-                    challanType="jama"
-                    challanNumber={challanNumber}
-                    date={date}
-                    clientName={selectedClient.client_name}
-                    site={selectedClient.site}
-                    phone={selectedClient.primary_phone_number}
-                    driverName={driverName}
-                    items={items}
-                  />
-                )}
-              </div>
-            </div>
+            selectedClient && (
+              <ChallanDetailsStep
+                selectedClient={selectedClient}
+                onBack={() => setStep('client-selection')}
+                onSave={handleSave}
+                challanNumber={challanNumber}
+                setChallanNumber={setChallanNumber}
+                date={date}
+                setDate={setDate}
+                driverName={driverName}
+                setDriverName={setDriverName}
+                previousDrivers={previousDrivers}
+                previousDriversVisible={previousDriversVisible}
+                setPreviousDriversVisible={setPreviousDriversVisible}
+                items={items}
+                setItems={setItems}
+                outstandingBalances={outstandingBalances}
+                borrowedOutstanding={borrowedOutstanding}
+                errors={errors}
+                showSuccess={showSuccess}
+                hideExtraColumns={hideExtraColumns}
+                setHideExtraColumns={setHideExtraColumns}
+              />
+            )
           )}
+
+
+          <div style={{ position: 'absolute', left: '-9999px' }}>
+            {selectedClient && (
+              <ReceiptTemplate
+                challanType="jama"
+                challanNumber={challanNumber}
+                date={date}
+                clientName={selectedClient.client_name}
+                site={selectedClient.site}
+                phone={selectedClient.primary_phone_number}
+                driverName={driverName}
+                items={items}
+              />
+            )}
+          </div>
         </div>
       </main>
     </div>
   );
 };
+
 
 export default JamaChallan;
