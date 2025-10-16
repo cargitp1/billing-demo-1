@@ -12,10 +12,13 @@ import {
   Download,
   Upload,
   TrendingDown,
-  ArrowUpDown
+  ArrowUpDown,
+  Edit2,
+  X
 } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import toast, { Toaster } from 'react-hot-toast';
+
 
 interface StockData {
   size: number;
@@ -27,8 +30,10 @@ interface StockData {
   updated_at: string;
 }
 
+
 type SortField = 'size' | 'total_stock' | 'available_stock' | 'on_rent_stock' | 'lost_stock';
 type SortOrder = 'asc' | 'desc';
+
 
 const StockManagement: React.FC = () => {
   const { t } = useLanguage();
@@ -47,20 +52,22 @@ const StockManagement: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>('size');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
+
   useEffect(() => {
     fetchStock();
   }, []);
 
+
   const fetchStock = async (showRefreshToast = false) => {
     if (showRefreshToast) setRefreshing(true);
     else setLoading(true);
+
 
     const { data, error } = await supabase
       .from('stock')
       .select('*')
       .order('size');
 
-    console.log('fetchStock response:', { data, error });
 
     if (error) {
       console.error('Error fetching stock:', error);
@@ -71,15 +78,18 @@ const StockManagement: React.FC = () => {
         available_stock: Math.max(0, (s.total_stock || 0) - (s.on_rent_stock || 0) - (s.lost_stock || 0))
       }));
 
+
       setStocks(computed);
       if (showRefreshToast) {
         toast.success('Stock data refreshed');
       }
     }
 
+
     setLoading(false);
     setRefreshing(false);
   };
+
 
   const handleEdit = (stock: StockData) => {
     setEditingSize(stock.size);
@@ -89,11 +99,13 @@ const StockManagement: React.FC = () => {
     });
   };
 
+
   const handleSave = async (size: number) => {
     if (editValues.total_stock < 0 || editValues.lost_stock < 0) {
       toast.error('Stock values cannot be negative');
       return;
     }
+
 
     const stock = stocks.find(s => s.size === size);
     if (stock && editValues.total_stock < (stock.on_rent_stock + stock.borrowed_stock + editValues.lost_stock)) {
@@ -101,7 +113,9 @@ const StockManagement: React.FC = () => {
       return;
     }
 
+
     const loadingToast = toast.loading('Updating stock...');
+
 
     const { error } = await supabase
       .from('stock')
@@ -111,7 +125,9 @@ const StockManagement: React.FC = () => {
       })
       .eq('size', size);
 
+
     toast.dismiss(loadingToast);
+
 
     if (error) {
       console.error('Error updating stock:', error);
@@ -123,9 +139,11 @@ const StockManagement: React.FC = () => {
     }
   };
 
+
   const handleCancel = () => {
     setEditingSize(null);
   };
+
 
   const handleEditAll = () => {
     setEditAllMode(true);
@@ -139,6 +157,7 @@ const StockManagement: React.FC = () => {
     setAllEditValues(values);
   };
 
+
   const handleSaveAll = async () => {
     for (const size in allEditValues) {
       const values = allEditValues[parseInt(size)];
@@ -148,7 +167,9 @@ const StockManagement: React.FC = () => {
       }
     }
 
+
     const loadingToast = toast.loading('Updating all stock...');
+
 
     try {
       for (const size in allEditValues) {
@@ -161,8 +182,10 @@ const StockManagement: React.FC = () => {
           })
           .eq('size', parseInt(size));
 
+
         if (error) throw error;
       }
+
 
       toast.dismiss(loadingToast);
       toast.success('All stock updated successfully');
@@ -175,10 +198,12 @@ const StockManagement: React.FC = () => {
     }
   };
 
+
   const handleCancelAll = () => {
     setEditAllMode(false);
     setAllEditValues({});
   };
+
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -189,36 +214,35 @@ const StockManagement: React.FC = () => {
     }
   };
 
-  const getAvailabilityColor = (available: number) => {
-    if (available === 0) return 'text-red-600 font-bold';
-    if (available < 10) return 'text-yellow-600 font-semibold';
-    return 'text-green-600 font-semibold';
-  };
 
   const getAvailabilityBadge = (available: number) => {
     if (available === 0) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-          <AlertCircle size={14} />
-          Out of Stock
+        <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-red-100 text-red-800">
+          <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden sm:inline">Out of Stock</span>
+          <span className="sm:hidden">Out</span>
         </span>
       );
     }
     if (available < 10) {
       return (
-        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-          <TrendingDown size={14} />
-          Low Stock ({available})
+        <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-yellow-100 text-yellow-800">
+          <TrendingDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+          <span className="hidden sm:inline">Low ({available})</span>
+          <span className="sm:hidden">{available}</span>
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-        <CheckCircle size={14} />
-        In Stock ({available})
+      <span className="inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-green-100 text-green-800">
+        <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+        <span className="hidden sm:inline">In Stock ({available})</span>
+        <span className="sm:hidden">{available}</span>
       </span>
     );
   };
+
 
   const filteredAndSortedStocks = useMemo(() => {
     let filtered = stocks.filter(stock => {
@@ -228,6 +252,7 @@ const StockManagement: React.FC = () => {
       if (filterMode === 'low') return matchesSearch && stock.available_stock > 0 && stock.available_stock < 10;
       return matchesSearch;
     });
+
 
     filtered.sort((a, b) => {
       const aVal = a[sortField];
@@ -240,33 +265,39 @@ const StockManagement: React.FC = () => {
       }
     });
 
+
     return filtered;
   }, [stocks, searchTerm, filterMode, sortField, sortOrder]);
+
 
   const totalAvailable = useMemo(() => stocks.reduce((sum, stock) => sum + stock.available_stock, 0), [stocks]);
   const totalOnRent = useMemo(() => stocks.reduce((sum, stock) => sum + stock.on_rent_stock, 0), [stocks]);
   const totalLost = useMemo(() => stocks.reduce((sum, stock) => sum + stock.lost_stock, 0), [stocks]);
 
+
   const SkeletonRow = () => (
     <tr className="animate-pulse">
-      <td className="px-6 py-4"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-24 h-6 bg-gray-200 rounded-full"></div></td>
-      <td className="px-6 py-4"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-16 h-8 bg-gray-200 rounded"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-20 h-6 bg-gray-200 rounded-full sm:w-24"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-16 h-4 bg-gray-200 rounded sm:w-20"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-12 h-4 bg-gray-200 rounded"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-12 h-8 bg-gray-200 rounded sm:w-16"></div></td>
     </tr>
   );
+
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Toaster 
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            fontSize: '13px',
+            padding: '10px 14px',
           },
           success: {
             iconTheme: {
@@ -283,183 +314,194 @@ const StockManagement: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 ml-0 overflow-auto lg:ml-64" style={{ marginTop: '56px' }}>
-        <div className="lg:mt-0"></div>
-        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">{t('stockManagement')}</h2>
+          <div className="flex flex-col items-start justify-between gap-3 mb-4 sm:flex-row sm:items-center sm:gap-0 sm:mb-6 lg:mb-8">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('stockManagement')}</h2>
+              <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">Manage inventory and stock levels</p>
+            </div>
             <button
               onClick={() => fetchStock(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
           </div>
 
+
           {/* Summary Cards */}
-          <div className="grid gap-6 mb-8 md:grid-cols-3">
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-green-50"></div>
-              <div className="relative p-6">
+          <div className="grid gap-3 mb-4 sm:gap-4 md:grid-cols-3 sm:mb-6 lg:mb-8 lg:gap-6">
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-50"></div>
+              <div className="relative p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{t('totalAvailable')}</p>
-                    <p className="mt-2 text-3xl font-bold text-green-600">{totalAvailable}</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalAvailable')}</p>
+                    <p className="mt-1 text-2xl font-bold text-green-600 sm:mt-2 sm:text-3xl">{totalAvailable}</p>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <Package size={32} className="text-green-600" />
+                  <div className="p-2 bg-green-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <Package className="w-5 h-5 text-green-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-blue-50"></div>
-              <div className="relative p-6">
+
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-blue-50"></div>
+              <div className="relative p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{t('onRent')}</p>
-                    <p className="mt-2 text-3xl font-bold text-blue-600">{totalOnRent}</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('onRent')}</p>
+                    <p className="mt-1 text-2xl font-bold text-blue-600 sm:mt-2 sm:text-3xl">{totalOnRent}</p>
                   </div>
-                  <div className="p-3 bg-blue-100 rounded-lg">
-                    <FileText size={32} className="text-blue-600" />
+                  <div className="p-2 bg-blue-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <FileText className="w-5 h-5 text-blue-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-red-50"></div>
-              <div className="relative p-6">
+
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-red-50"></div>
+              <div className="relative p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{t('lost')}</p>
-                    <p className="mt-2 text-3xl font-bold text-red-600">{totalLost}</p>
+                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('lost')}</p>
+                    <p className="mt-1 text-2xl font-bold text-red-600 sm:mt-2 sm:text-3xl">{totalLost}</p>
                   </div>
-                  <div className="p-3 bg-red-100 rounded-lg">
-                    <Package size={32} className="text-red-600" />
+                  <div className="p-2 bg-red-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <Package className="w-5 h-5 text-red-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Table Container */}
-          <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
-            {/* Table Header with Controls */}
-            <div className="p-6 border-b border-gray-200">
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <h3 className="text-xl font-semibold text-gray-900">{t('stockOverview')}</h3>
-                
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                  {/* Search */}
-                  <div className="relative">
-                    <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={18} />
-                    <input
-                      type="text"
-                      placeholder="Search size..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
 
-                  {/* Filter Buttons */}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setFilterMode('all')}
-                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                        filterMode === 'all' 
-                          ? 'bg-blue-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      All
-                    </button>
-                    <button
-                      onClick={() => setFilterMode('low')}
-                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                        filterMode === 'low' 
-                          ? 'bg-yellow-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      Low Stock
-                    </button>
-                    <button
-                      onClick={() => setFilterMode('out')}
-                      className={`px-3 py-2 text-xs font-medium rounded-lg transition-colors ${
-                        filterMode === 'out' 
-                          ? 'bg-red-600 text-white' 
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      Out of Stock
-                    </button>
+          {/* Table Container */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl">
+            {/* Table Header with Controls */}
+            <div className="p-3 border-b border-gray-200 sm:p-4 lg:p-6">
+              <div className="flex flex-col gap-3 sm:gap-4">
+                <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center sm:gap-0">
+                  <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('stockOverview')}</h3>
+                  
+                  <div className="flex flex-col w-full gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+                    {/* Search */}
+                    <div className="relative flex-1 sm:flex-initial">
+                      <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <input
+                        type="text"
+                        placeholder="Search size..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full py-1.5 sm:py-2 pl-8 sm:pl-10 pr-3 sm:pr-4 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
+                      />
+                    </div>
+
+
+                    {/* Filter Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setFilterMode('all')}
+                        className={`flex-1 sm:flex-initial px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
+                          filterMode === 'all' 
+                            ? 'bg-blue-600 text-white' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        All
+                      </button>
+                      <button
+                        onClick={() => setFilterMode('low')}
+                        className={`flex-1 sm:flex-initial px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
+                          filterMode === 'low' 
+                            ? 'bg-yellow-600 text-white' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Low
+                      </button>
+                      <button
+                        onClick={() => setFilterMode('out')}
+                        className={`flex-1 sm:flex-initial px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
+                          filterMode === 'out' 
+                            ? 'bg-red-600 text-white' 
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        }`}
+                      >
+                        Out
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-2 mt-4">
-                {!editAllMode && !editingSize && (
-                  <button
-                    onClick={handleEditAll}
-                    className="px-4 py-2 text-sm font-medium text-white transition-colors bg-gray-700 rounded-lg hover:bg-gray-800"
-                  >
-                    {t('editAll')}
-                  </button>
-                )}
-                {editAllMode && (
-                  <>
+
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  {!editAllMode && !editingSize && (
                     <button
-                      onClick={handleSaveAll}
-                      className="px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
+                      onClick={handleEditAll}
+                      className="px-3 py-2 text-xs font-medium text-white transition-colors bg-gray-700 rounded-lg sm:px-4 sm:py-2 sm:text-sm hover:bg-gray-800 touch-manipulation active:scale-95"
                     >
-                      {t('saveAll')}
+                      {t('editAll')}
                     </button>
-                    <button
-                      onClick={handleCancelAll}
-                      className="px-4 py-2 text-sm font-medium text-white transition-colors bg-gray-500 rounded-lg hover:bg-gray-600"
-                    >
-                      {t('cancelAll')}
-                    </button>
-                  </>
-                )}
+                  )}
+                  {editAllMode && (
+                    <>
+                      <button
+                        onClick={handleSaveAll}
+                        className="px-3 py-2 text-xs font-medium text-white transition-colors bg-green-600 rounded-lg sm:px-4 sm:py-2 sm:text-sm hover:bg-green-700 touch-manipulation active:scale-95"
+                      >
+                        {t('saveAll')}
+                      </button>
+                      <button
+                        onClick={handleCancelAll}
+                        className="px-3 py-2 text-xs font-medium text-white transition-colors bg-gray-500 rounded-lg sm:px-4 sm:py-2 sm:text-sm hover:bg-gray-600 touch-manipulation active:scale-95"
+                      >
+                        {t('cancelAll')}
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
+
             {/* Desktop Table */}
-            <div className="hidden overflow-x-auto md:block">
+            <div className="hidden overflow-x-auto lg:block">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th 
                       onClick={() => handleSort('size')}
-                      className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
+                      className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         {t('size')}
                         <ArrowUpDown size={14} className="transition-opacity opacity-0 group-hover:opacity-100" />
                       </div>
                     </th>
                     <th 
                       onClick={() => handleSort('total_stock')}
-                      className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
+                      className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         {t('totalStock')}
                         <ArrowUpDown size={14} className="transition-opacity opacity-0 group-hover:opacity-100" />
                       </div>
                     </th>
                     <th 
                       onClick={() => handleSort('available_stock')}
-                      className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
+                      className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         {t('available')}
                         <ArrowUpDown size={14} className="transition-opacity opacity-0 group-hover:opacity-100" />
                       </div>
@@ -475,14 +517,14 @@ const StockManagement: React.FC = () => {
                     </th>
                     <th 
                       onClick={() => handleSort('lost_stock')}
-                      className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
+                      className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase transition-colors cursor-pointer hover:bg-gray-100 group"
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         {t('lost')}
                         <ArrowUpDown size={14} className="transition-opacity opacity-0 group-hover:opacity-100" />
                       </div>
                     </th>
-                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                    <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                       {t('actions')}
                     </th>
                   </tr>
@@ -512,34 +554,36 @@ const StockManagement: React.FC = () => {
                         key={stock.size} 
                         className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-semibold text-gray-900">Size {stock.size}</span>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <span className="text-sm font-bold text-gray-900">Size {stock.size}</span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
                           {editingSize === stock.size ? (
                             <input
                               type="number"
                               min="0"
+                              inputMode="numeric"
                               value={editValues.total_stock}
                               onChange={(e) => setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 })}
-                              className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           ) : editAllMode ? (
                             <input
                               type="number"
                               min="0"
+                              inputMode="numeric"
                               value={allEditValues[stock.size]?.total_stock || 0}
                               onChange={(e) => setAllEditValues({
                                 ...allEditValues,
                                 [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
                               })}
-                              className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           ) : (
                             <span className="font-medium">{stock.total_stock}</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
                           {getAvailabilityBadge(stock.available_stock)}
                         </td>
                         <td className="px-6 py-4 text-center">
@@ -550,52 +594,56 @@ const StockManagement: React.FC = () => {
                             ({stock.on_rent_stock} + {stock.borrowed_stock})
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
                           {editingSize === stock.size ? (
                             <input
                               type="number"
                               min="0"
+                              inputMode="numeric"
                               value={editValues.lost_stock}
                               onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
-                              className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           ) : editAllMode ? (
                             <input
                               type="number"
                               min="0"
+                              inputMode="numeric"
                               value={allEditValues[stock.size]?.lost_stock || 0}
                               onChange={(e) => setAllEditValues({
                                 ...allEditValues,
                                 [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
                               })}
-                              className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           ) : (
                             <span className="font-medium">{stock.lost_stock}</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap">
+                        <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
                           {!editAllMode && editingSize === stock.size ? (
-                            <div className="flex gap-2">
+                            <div className="flex justify-center gap-2">
                               <button
                                 onClick={() => handleSave(stock.size)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors touch-manipulation active:scale-95"
                               >
                                 <CheckCircle size={14} />
                                 {t('save')}
                               </button>
                               <button
                                 onClick={handleCancel}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors touch-manipulation active:scale-95"
                               >
+                                <X size={14} />
                                 {t('cancel')}
                               </button>
                             </div>
                           ) : !editAllMode && !editingSize ? (
                             <button
                               onClick={() => handleEdit(stock)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors touch-manipulation active:scale-95"
                             >
+                              <Edit2 size={14} />
                               {t('edit')}
                             </button>
                           ) : null}
@@ -607,131 +655,180 @@ const StockManagement: React.FC = () => {
               </table>
             </div>
 
-            {/* Mobile Cards */}
-            <div className="p-4 space-y-4 md:hidden">
-              {loading ? (
-                <>
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 bg-white border border-gray-200 rounded-xl animate-pulse">
-                      <div className="w-24 h-6 mb-3 bg-gray-200 rounded"></div>
-                      <div className="space-y-2">
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                        <div className="h-4 bg-gray-200 rounded"></div>
-                      </div>
-                    </div>
-                  ))}
-                </>
-              ) : filteredAndSortedStocks.length === 0 ? (
-                <div className="py-12 text-center">
-                  <Package size={48} className="mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium text-gray-500">No stock data found</p>
-                </div>
-              ) : (
-                filteredAndSortedStocks.map((stock) => (
-                  <div key={stock.size} className="p-4 bg-white border border-gray-200 shadow-sm rounded-xl">
-                    <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-lg font-semibold text-gray-900">
-                        Size {stock.size}
-                      </h4>
-                      {getAvailabilityBadge(stock.available_stock)}
-                    </div>
-                    
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{t('totalStock')}:</span>
-                        {editingSize === stock.size || editAllMode ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={editingSize === stock.size ? editValues.total_stock : allEditValues[stock.size]?.total_stock || 0}
-                            onChange={(e) => {
-                              if (editingSize === stock.size) {
-                                setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 });
-                              } else {
-                                setAllEditValues({
-                                  ...allEditValues,
-                                  [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
-                                });
-                              }
-                            }}
-                            className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg"
-                          />
+
+            {/* Mobile/Tablet Table - Horizontal Scroll */}
+            <div className="lg:hidden">
+              <div className="-mx-3 overflow-x-auto sm:-mx-4">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100 border-b-2 border-gray-300">
+                          <th className="sticky left-0 z-10 px-2 py-2 text-xs font-bold text-center text-gray-700 bg-gray-100 border-r-2 border-gray-300 w-14 sm:px-3 sm:text-sm">
+                            {t('size')}
+                          </th>
+                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[80px] sm:min-w-[90px]">
+                            Total
+                          </th>
+                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[100px] sm:min-w-[120px]">
+                            Available
+                          </th>
+                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[80px] sm:min-w-[90px]">
+                            On Rent
+                          </th>
+                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[80px] sm:min-w-[90px]">
+                            Lost
+                          </th>
+                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 min-w-[80px] sm:min-w-[100px]">
+                            Actions
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {loading ? (
+                          <>
+                            {[1, 2, 3].map((i) => (
+                              <tr key={i} className="animate-pulse">
+                                <td className="sticky left-0 z-10 px-2 py-2 bg-white border-r-2 border-gray-300 sm:px-3">
+                                  <div className="w-8 h-4 bg-gray-200 rounded"></div>
+                                </td>
+                                <td className="px-2 py-2 border-r border-gray-200">
+                                  <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
+                                </td>
+                                <td className="px-2 py-2 border-r border-gray-200">
+                                  <div className="w-16 h-6 mx-auto bg-gray-200 rounded-full"></div>
+                                </td>
+                                <td className="px-2 py-2 border-r border-gray-200">
+                                  <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
+                                </td>
+                                <td className="px-2 py-2 border-r border-gray-200">
+                                  <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
+                                </td>
+                                <td className="px-2 py-2">
+                                  <div className="w-12 h-6 mx-auto bg-gray-200 rounded"></div>
+                                </td>
+                              </tr>
+                            ))}
+                          </>
+                        ) : filteredAndSortedStocks.length === 0 ? (
+                          <tr>
+                            <td colSpan={6} className="px-2 py-8 text-center">
+                              <Package size={32} className="mx-auto mb-2 text-gray-300" />
+                              <p className="text-xs font-medium text-gray-500">No stock found</p>
+                            </td>
+                          </tr>
                         ) : (
-                          <span className="font-semibold">{stock.total_stock}</span>
+                          filteredAndSortedStocks.map((stock, index) => (
+                            <tr 
+                              key={stock.size}
+                              className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                            >
+                              <td className="sticky left-0 z-10 px-2 py-2 text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-3 sm:text-base bg-inherit">
+                                {stock.size}
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                                {editingSize === stock.size || editAllMode ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    inputMode="numeric"
+                                    value={editingSize === stock.size ? editValues.total_stock : allEditValues[stock.size]?.total_stock || 0}
+                                    onChange={(e) => {
+                                      if (editingSize === stock.size) {
+                                        setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 });
+                                      } else {
+                                        setAllEditValues({
+                                          ...allEditValues,
+                                          [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
+                                  />
+                                ) : (
+                                  <span className="text-xs font-semibold sm:text-sm">{stock.total_stock}</span>
+                                )}
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                                {getAvailabilityBadge(stock.available_stock)}
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                                <div className="text-xs font-semibold sm:text-sm">{stock.on_rent_stock + stock.borrowed_stock}</div>
+                                <div className="text-[9px] sm:text-[10px] text-gray-500">({stock.on_rent_stock}+{stock.borrowed_stock})</div>
+                              </td>
+                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                                {editingSize === stock.size || editAllMode ? (
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    inputMode="numeric"
+                                    value={editingSize === stock.size ? editValues.lost_stock : allEditValues[stock.size]?.lost_stock || 0}
+                                    onChange={(e) => {
+                                      if (editingSize === stock.size) {
+                                        setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 });
+                                      } else {
+                                        setAllEditValues({
+                                          ...allEditValues,
+                                          [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
+                                  />
+                                ) : (
+                                  <span className="text-xs font-semibold sm:text-sm">{stock.lost_stock}</span>
+                                )}
+                              </td>
+                              <td className="px-2 py-2 text-center">
+                                {!editAllMode && editingSize === stock.size ? (
+                                  <div className="flex gap-1">
+                                    <button
+                                      onClick={() => handleSave(stock.size)}
+                                      className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700 touch-manipulation active:scale-95"
+                                    >
+                                      <CheckCircle className="w-3 h-3" />
+                                    </button>
+                                    <button
+                                      onClick={handleCancel}
+                                      className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-gray-500 rounded hover:bg-gray-600 touch-manipulation active:scale-95"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ) : !editAllMode && !editingSize ? (
+                                  <button
+                                    onClick={() => handleEdit(stock)}
+                                    className="inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 touch-manipulation active:scale-95"
+                                  >
+                                    <Edit2 className="w-3 h-3" />
+                                  </button>
+                                ) : null}
+                              </td>
+                            </tr>
+                          ))
                         )}
-                      </div>
-                      
-                      <div className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{t('totalOnRent')}:</span>
-                        <div className="flex flex-col items-end">
-                          <div className="font-semibold">{stock.on_rent_stock + stock.borrowed_stock}</div>
-                          <div className="text-xs text-gray-500">
-                            ({stock.on_rent_stock} + {stock.borrowed_stock})
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex justify-between py-2">
-                        <span className="text-gray-600">{t('lost')}:</span>
-                        {editingSize === stock.size || editAllMode ? (
-                          <input
-                            type="number"
-                            min="0"
-                            value={editingSize === stock.size ? editValues.lost_stock : allEditValues[stock.size]?.lost_stock || 0}
-                            onChange={(e) => {
-                              if (editingSize === stock.size) {
-                                setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 });
-                              } else {
-                                setAllEditValues({
-                                  ...allEditValues,
-                                  [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
-                                });
-                              }
-                            }}
-                            className="w-24 px-3 py-1.5 border border-gray-300 rounded-lg"
-                          />
-                        ) : (
-                          <span className="font-semibold">{stock.lost_stock}</span>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {!editAllMode && editingSize === stock.size && (
-                      <div className="flex gap-2 mt-4">
-                        <button
-                          onClick={() => handleSave(stock.size)}
-                          className="flex-1 px-3 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
-                        >
-                          {t('save')}
-                        </button>
-                        <button
-                          onClick={handleCancel}
-                          className="flex-1 px-3 py-2 text-sm font-medium text-white transition-colors bg-gray-500 rounded-lg hover:bg-gray-600"
-                        >
-                          {t('cancel')}
-                        </button>
-                      </div>
-                    )}
-                    {!editAllMode && !editingSize && (
-                      <button
-                        onClick={() => handleEdit(stock)}
-                        className="w-full px-3 py-2 mt-4 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
-                      >
-                        {t('edit')}
-                      </button>
-                    )}
+                      </tbody>
+                    </table>
                   </div>
-                ))
-              )}
+                </div>
+              </div>
+              
+              {/* Scroll Hint */}
+              <div className="flex items-center justify-center gap-1 px-3 py-2 mt-2 border border-blue-200 rounded-lg bg-blue-50 lg:hidden">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                </svg>
+                <p className="text-[10px] font-medium text-blue-700">Swipe left to see all columns</p>
+              </div>
             </div>
+
 
             {/* Footer */}
             {stocks.length > 0 && !loading && (
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between text-sm text-gray-600">
+              <div className="px-3 py-3 border-t border-gray-200 sm:px-4 sm:py-4 lg:px-6 bg-gray-50">
+                <div className="flex flex-col items-start justify-between gap-2 text-xs text-gray-600 sm:flex-row sm:items-center sm:text-sm">
                   <span>Showing {filteredAndSortedStocks.length} of {stocks.length} items</span>
-                  <span>
+                  <span className="text-[10px] sm:text-xs">
                     {t('lastUpdated')}: {format(new Date(stocks[0].updated_at), 'dd/MM/yyyy HH:mm')}
                   </span>
                 </div>
@@ -743,5 +840,6 @@ const StockManagement: React.FC = () => {
     </div>
   );
 };
+
 
 export default StockManagement;

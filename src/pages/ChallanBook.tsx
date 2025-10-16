@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Phone } from 'lucide-react';
+import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Phone, User } from 'lucide-react';
 import ReceiptTemplate from '../components/ReceiptTemplate';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -95,7 +95,6 @@ const ChallanBook: React.FC = () => {
     const safeItems = items || emptyItems;
     let total = 0;
     for (let size = 1; size <= 9; size++) {
-      // Add both regular quantity and borrowed quantity
       const qty = (safeItems[`size_${size}_qty` as keyof ItemsData] as unknown) as number || 0;
       const borrowed = (safeItems[`size_${size}_borrowed` as keyof ItemsData] as unknown) as number || 0;
       total += qty + borrowed;
@@ -250,7 +249,6 @@ const ChallanBook: React.FC = () => {
     toast.success('Challan updated successfully');
   };
 
-  // Transform items to match ReceiptTemplate requirements
   const transformItems = (items: ItemsData) => {
     return {
       ...items,
@@ -270,13 +268,11 @@ const ChallanBook: React.FC = () => {
   const handleDownloadJPEG = async (challan: ChallanData) => {
     const loadingToast = toast.loading('Generating JPEG...');
     try {
-      // Create a temporary container for the receipt
       const container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.left = '-9999px';
       document.body.appendChild(container);
 
-      // Create React root and render the receipt
       const root = await import('react-dom/client');
       const reactRoot = root.createRoot(container);
       
@@ -293,18 +289,15 @@ const ChallanBook: React.FC = () => {
             items={transformItems(challan.items)}
           />
         );
-        // Give React time to render
         setTimeout(resolve, 100);
       });
 
-      // Generate and download JPEG
       await generateJPEG(
         activeTab,
         challan.challanNumber,
         new Date(challan.date).toLocaleDateString('en-GB')
       );
 
-      // Clean up
       reactRoot.unmount();
       document.body.removeChild(container);
       
@@ -387,14 +380,12 @@ const ChallanBook: React.FC = () => {
     });
   }, [currentChallans, searchTerm]);
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredChallans.length / itemsPerPage);
   const paginatedChallans = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return filteredChallans.slice(startIndex, startIndex + itemsPerPage);
   }, [filteredChallans, currentPage, itemsPerPage]);
 
-  // Reset to first page when search changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, activeTab]);
@@ -404,28 +395,30 @@ const ChallanBook: React.FC = () => {
 
   const SkeletonRow = () => (
     <tr className="animate-pulse">
-      <td className="px-6 py-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-20 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4">
-        <div className="w-32 h-4 mb-1 bg-gray-200 rounded"></div>
-        <div className="w-24 h-3 bg-gray-200 rounded"></div>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-20 h-4 bg-gray-200 rounded sm:w-24"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-16 h-4 bg-gray-200 rounded sm:w-20"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4">
+        <div className="w-24 h-4 mb-1 bg-gray-200 rounded sm:w-32"></div>
+        <div className="w-20 h-3 bg-gray-200 rounded sm:w-24"></div>
       </td>
-      <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-28"></div></td>
-      <td className="px-6 py-4"><div className="w-24 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-16 h-4 bg-gray-200 rounded"></div></td>
-      <td className="px-6 py-4"><div className="w-32 h-8 bg-gray-200 rounded"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-20 h-4 bg-gray-200 rounded sm:w-28"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-20 h-4 bg-gray-200 rounded sm:w-24"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-12 h-4 bg-gray-200 rounded sm:w-16"></div></td>
+      <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-24 h-8 bg-gray-200 rounded sm:w-32"></div></td>
     </tr>
   );
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Toaster 
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            fontSize: '13px',
+            padding: '10px 14px',
           },
           success: {
             iconTheme: {
@@ -442,69 +435,57 @@ const ChallanBook: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 ml-0 overflow-auto lg:ml-64" style={{ marginTop: '56px' }}>
-        <div className="lg:mt-0"></div>
-        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">{t('challanBook')}</h2>
+          <div className="flex flex-col items-start justify-between gap-3 mb-4 sm:flex-row sm:items-center sm:gap-0 sm:mb-6 lg:mb-8">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('challanBook')}</h2>
+              <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">View and manage all challans</p>
+            </div>
             <button
               onClick={() => loadChallans(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
           </div>
 
           {/* Summary Cards */}
-          <div className="grid gap-6 mb-8 md:grid-cols-2">
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-red-50"></div>
-              <div className="relative p-6">
+          <div className="grid gap-3 mb-4 sm:gap-4 md:grid-cols-2 sm:mb-6 lg:mb-8 lg:gap-6">
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-red-50"></div>
+              <div className="relative p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{t('totalUdharChallans')}</p>
-                    <p className="mt-2 text-3xl font-bold text-red-600">{udharChallans.length}</p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {totalUdharItems} items ({udharChallans.reduce((sum, c) => 
-                        sum + Object.keys(c.items)
-                          .filter(key => key.includes('_qty'))
-                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} reg, {' '}
-                      {udharChallans.reduce((sum, c) => 
-                        sum + Object.keys(c.items)
-                          .filter(key => key.includes('_borrowed'))
-                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} borrowed)
+                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalUdharChallans')}</p>
+                    <p className="mt-1 text-2xl font-bold text-red-600 sm:mt-2 sm:text-3xl">{udharChallans.length}</p>
+                    <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-xs text-gray-500">
+                      {totalUdharItems} items
                     </p>
                   </div>
-                  <div className="p-3 bg-red-100 rounded-lg">
-                    <FileText size={32} className="text-red-600" />
+                  <div className="p-2 bg-red-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <FileText className="w-5 h-5 text-red-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-50 bg-green-50"></div>
-              <div className="relative p-6">
+            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-50"></div>
+              <div className="relative p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-600">{t('totalJamaChallans')}</p>
-                    <p className="mt-2 text-3xl font-bold text-green-600">{jamaChallans.length}</p>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {totalJamaItems} items ({jamaChallans.reduce((sum, c) => 
-                        sum + Object.keys(c.items)
-                          .filter(key => key.includes('_qty'))
-                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} reg, {' '}
-                      {jamaChallans.reduce((sum, c) => 
-                        sum + Object.keys(c.items)
-                          .filter(key => key.includes('_borrowed'))
-                          .reduce((itemSum, key) => itemSum + (c.items[key as keyof ItemsData] as number || 0), 0), 0)} borrowed)
+                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalJamaChallans')}</p>
+                    <p className="mt-1 text-2xl font-bold text-green-600 sm:mt-2 sm:text-3xl">{jamaChallans.length}</p>
+                    <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-xs text-gray-500">
+                      {totalJamaItems} items
                     </p>
                   </div>
-                  <div className="p-3 bg-green-100 rounded-lg">
-                    <Package size={32} className="text-green-600" />
+                  <div className="p-2 bg-green-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+                    <Package className="w-5 h-5 text-green-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                   </div>
                 </div>
               </div>
@@ -512,22 +493,23 @@ const ChallanBook: React.FC = () => {
           </div>
 
           {/* Main Table Container */}
-          <div className="bg-white border border-gray-200 shadow-sm rounded-xl">
-            {/* Tabs */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl">
+            {/* Tabs - Mobile Optimized */}
             <div className="border-b border-gray-200">
               <nav className="flex -mb-px">
                 <button
                   onClick={() => setActiveTab('udhar')}
-                  className={`flex-1 py-4 px-6 text-center font-semibold text-sm transition-colors ${
+                  className={`flex-1 py-3 sm:py-4 px-3 sm:px-6 text-center font-semibold text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${
                     activeTab === 'udhar'
                       ? 'border-b-2 border-red-600 text-red-600 bg-red-50'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <FileText size={18} />
-                    {t('udharChallans')}
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                    <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                    <span className="hidden sm:inline">{t('udharChallans')}</span>
+                    <span className="sm:hidden">Udhar</span>
+                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
                       activeTab === 'udhar' 
                         ? 'bg-red-100 text-red-700' 
                         : 'bg-gray-100 text-gray-600'
@@ -538,16 +520,17 @@ const ChallanBook: React.FC = () => {
                 </button>
                 <button
                   onClick={() => setActiveTab('jama')}
-                  className={`flex-1 py-4 px-6 text-center font-semibold text-sm transition-colors ${
+                  className={`flex-1 py-3 sm:py-4 px-3 sm:px-6 text-center font-semibold text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${
                     activeTab === 'jama'
                       ? 'border-b-2 border-green-600 text-green-600 bg-green-50'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                   }`}
                 >
-                  <div className="flex items-center justify-center gap-2">
-                    <Package size={18} />
-                    {t('jamaChallans')}
-                    <span className={`px-2 py-0.5 text-xs rounded-full ${
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2">
+                    <Package className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                    <span className="hidden sm:inline">{t('jamaChallans')}</span>
+                    <span className="sm:hidden">Jama</span>
+                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
                       activeTab === 'jama' 
                         ? 'bg-green-100 text-green-700' 
                         : 'bg-gray-100 text-gray-600'
@@ -559,47 +542,33 @@ const ChallanBook: React.FC = () => {
               </nav>
             </div>
 
-            {/* Search Bar */}
-            <div className="p-6 border-b border-gray-200 bg-gray-50">
+            {/* Search Bar - Mobile Optimized */}
+            <div className="p-3 border-b border-gray-200 sm:p-4 lg:p-6 bg-gray-50">
               <div className="relative">
-                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={18} />
+                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <input
                   type="text"
-                  placeholder={t('searchChallan')}
+                  placeholder={t('searchChallan') || 'Search challans...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm min-h-[36px]"
                 />
               </div>
             </div>
 
             {/* Desktop Table */}
-            <div className="hidden overflow-x-auto md:block">
+            <div className="hidden overflow-x-auto lg:block">
               {loading ? (
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('challanNumber')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('date')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('clientName')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('site')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('phone')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('totalItems')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('actions')}
-                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('challanNumber')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('date')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('clientName')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('site')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('phone')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('totalItems')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
@@ -620,30 +589,18 @@ const ChallanBook: React.FC = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('challanNumber')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        <div className="flex items-center gap-2">
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('challanNumber')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+                        <div className="flex items-center justify-center gap-2">
                           <Calendar size={14} />
                           {t('date')}
                         </div>
                       </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('clientName')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('site')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('phone')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('totalItems')}
-                      </th>
-                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
-                        {t('actions')}
-                      </th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('clientName')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('site')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('phone')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('totalItems')}</th>
+                      <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">{t('actions')}</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
@@ -652,20 +609,20 @@ const ChallanBook: React.FC = () => {
                         key={challan.challanNumber} 
                         className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
                       >
-                        <td className="px-6 py-4 text-sm font-semibold text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-4 text-sm font-bold text-center text-gray-900 whitespace-nowrap">
                           {challan.challanNumber}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
                           {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900">
                           <div>
                             <div className="font-semibold">{challan.clientNicName}</div>
                             <div className="text-xs text-gray-500">{challan.clientFullName}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900">
-                          <div className="flex items-center gap-2">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900">
+                          <div className="flex items-center justify-center gap-2">
                             {challan.site}
                             {challan.isAlternativeSite && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
@@ -675,8 +632,8 @@ const ChallanBook: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-2">
                             {challan.phone}
                             {challan.isSecondaryPhone && (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
@@ -686,53 +643,38 @@ const ChallanBook: React.FC = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm whitespace-nowrap">
-                          <div className="flex flex-col gap-1">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              <Package size={12} />
-                              {challan.totalItems} {t('pieces')} total
-                            </span>
-                            <div className="flex gap-1 text-xs text-gray-500">
-                              <span>
-                                Regular: {Object.keys(challan.items)
-                                  .filter(key => key.includes('_qty'))
-                                  .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
-                              </span>
-                              <span>•</span>
-                              <span>
-                                Borrowed: {Object.keys(challan.items)
-                                  .filter(key => key.includes('_borrowed'))
-                                  .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
-                              </span>
-                            </div>
-                          </div>
+                        <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <Package size={12} />
+                            {challan.totalItems}
+                          </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                          <div className="flex gap-1">
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
+                          <div className="flex justify-center gap-1">
                             <button
                               onClick={() => handleViewDetails(challan)}
-                              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-800"
+                              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-800 touch-manipulation active:scale-95"
                               title={t('viewDetails')}
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               onClick={() => handleEdit(challan)}
-                              className="p-2 text-yellow-600 transition-colors rounded-lg hover:bg-yellow-50 hover:text-yellow-800"
+                              className="p-2 text-yellow-600 transition-colors rounded-lg hover:bg-yellow-50 hover:text-yellow-800 touch-manipulation active:scale-95"
                               title={t('edit')}
                             >
                               <EditIcon size={16} />
                             </button>
                             <button
                               onClick={() => handleDownloadJPEG(challan)}
-                              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-800"
+                              className="p-2 text-blue-600 transition-colors rounded-lg hover:bg-blue-50 hover:text-blue-800 touch-manipulation active:scale-95"
                               title={t('downloadJPEG')}
                             >
-                              <Download size={16} className={refreshing ? 'animate-bounce' : ''} />
+                              <Download size={16} />
                             </button>
                             <button
                               onClick={() => handleDelete(challan)}
-                              className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50 hover:text-red-800"
+                              className="p-2 text-red-600 transition-colors rounded-lg hover:bg-red-50 hover:text-red-800 touch-manipulation active:scale-95"
                               title={t('delete')}
                             >
                               <Trash2 size={16} />
@@ -747,12 +689,12 @@ const ChallanBook: React.FC = () => {
             </div>
 
             {/* Mobile Cards */}
-            <div className="p-4 space-y-4 md:hidden">
+            <div className="p-3 space-y-3 sm:p-4 sm:space-y-4 lg:hidden">
               {loading ? (
                 <>
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="p-4 bg-white border border-gray-200 rounded-xl animate-pulse">
-                      <div className="w-32 h-6 mb-3 bg-gray-200 rounded"></div>
+                    <div key={i} className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 sm:rounded-xl animate-pulse">
+                      <div className="w-24 h-5 mb-3 bg-gray-200 rounded sm:w-32 sm:h-6"></div>
                       <div className="space-y-2">
                         <div className="h-4 bg-gray-200 rounded"></div>
                         <div className="h-4 bg-gray-200 rounded"></div>
@@ -763,14 +705,14 @@ const ChallanBook: React.FC = () => {
                 </>
               ) : filteredChallans.length === 0 ? (
                 <div className="py-12 text-center">
-                  <FileText size={48} className="mx-auto mb-3 text-gray-300" />
-                  <p className="font-medium text-gray-500">{t('noChallansFound')}</p>
+                  <FileText size={40} className="mx-auto mb-3 text-gray-300 sm:w-12 sm:h-12" />
+                  <p className="text-sm font-medium text-gray-500 sm:text-base">{t('noChallansFound')}</p>
                 </div>
               ) : (
                 paginatedChallans.map((challan) => (
                   <div
                     key={challan.challanNumber}
-                    className={`p-4 border shadow-sm rounded-xl ${
+                    className={`p-3 sm:p-4 border shadow-sm rounded-lg sm:rounded-xl ${
                       activeTab === 'udhar'
                         ? 'bg-red-50 border-red-200'
                         : 'bg-green-50 border-green-200'
@@ -779,104 +721,80 @@ const ChallanBook: React.FC = () => {
                     {/* Header */}
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">
+                        <div className="text-xs font-bold text-gray-900 sm:text-sm">
                           {challan.challanNumber}
                         </div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-[10px] sm:text-xs text-gray-600">
                           {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
                         </div>
                       </div>
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
                         activeTab === 'udhar'
                           ? 'bg-red-100 text-red-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        <Package size={12} />
-                        {challan.totalItems} {t('pieces')}
+                        <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        {challan.totalItems}
                       </span>
                     </div>
 
                     {/* Client Info */}
-                    <div className="pb-3 mb-3 space-y-2 text-sm border-b border-gray-300">
+                    <div className="pb-3 mb-3 space-y-2 text-xs border-b border-gray-300 sm:text-sm">
                       <div>
                         <span className="font-semibold text-gray-900">{challan.clientNicName}</span>
-                        <div className="text-xs text-gray-600">{challan.clientFullName}</div>
+                        <div className="text-[10px] sm:text-xs text-gray-600">{challan.clientFullName}</div>
                       </div>
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <MapPin size={14} />
-                        {challan.site}
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
+                        <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span className="truncate">{challan.site}</span>
                         {challan.isAlternativeSite && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                            <AlertCircle size={10} />
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium bg-blue-100 text-blue-800 rounded-full">
+                            <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             Alt
                           </span>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-gray-700">
-                        <Phone size={14} />
-                        {challan.phone}
+                      <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
+                        <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        <span>{challan.phone}</span>
                         {challan.isSecondaryPhone && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                            <AlertCircle size={10} />
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium bg-blue-100 text-blue-800 rounded-full">
+                            <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                             Alt
                           </span>
                         )}
-                      </div>
-                    </div>
-
-                    {/* Item Breakdown */}
-                    <div className="pb-3 mb-3 text-xs border-b border-gray-300">
-                      <div className="flex justify-between text-gray-600">
-                        <span>Regular:</span>
-                        <span className="font-semibold">
-                          {Object.keys(challan.items)
-                            .filter(key => key.includes('_qty'))
-                            .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-gray-600">
-                        <span>Borrowed:</span>
-                        <span className="font-semibold">
-                          {Object.keys(challan.items)
-                            .filter(key => key.includes('_borrowed'))
-                            .reduce((sum, key) => sum + (challan.items[key as keyof ItemsData] as number || 0), 0)}
-                        </span>
                       </div>
                     </div>
 
                     {/* Actions */}
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
                       <button
                         onClick={() => handleViewDetails(challan)}
-                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-blue-600 transition-colors bg-white rounded-lg hover:bg-blue-50"
-                        title={t('viewDetails')}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-blue-600 transition-colors bg-white rounded-lg hover:bg-blue-50 touch-manipulation active:scale-95"
                       >
-                        <Eye size={18} />
-                        <span className="text-xs">View</span>
+                        <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="text-[9px] sm:text-[10px] font-medium">View</span>
                       </button>
                       <button
                         onClick={() => handleEdit(challan)}
-                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-yellow-600 transition-colors bg-white rounded-lg hover:bg-yellow-50"
-                        title={t('edit')}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-yellow-600 transition-colors bg-white rounded-lg hover:bg-yellow-50 touch-manipulation active:scale-95"
                       >
-                        <EditIcon size={18} />
-                        <span className="text-xs">Edit</span>
+                        <EditIcon className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="text-[9px] sm:text-[10px] font-medium">Edit</span>
                       </button>
                       <button
                         onClick={() => handleDownloadJPEG(challan)}
-                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-blue-600 transition-colors bg-white rounded-lg hover:bg-blue-50"
-                        title={t('downloadJPEG')}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-blue-600 transition-colors bg-white rounded-lg hover:bg-blue-50 touch-manipulation active:scale-95"
                       >
-                        <Download size={18} />
-                        <span className="text-xs">Download</span>
+                        <Download className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="text-[9px] sm:text-[10px] font-medium">Download</span>
                       </button>
                       <button
                         onClick={() => handleDelete(challan)}
-                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-red-600 transition-colors bg-white rounded-lg hover:bg-red-50"
-                        title={t('delete')}
+                        className="flex flex-col items-center justify-center gap-1 px-2 py-2 text-red-600 transition-colors bg-white rounded-lg hover:bg-red-50 touch-manipulation active:scale-95"
                       >
-                        <Trash2 size={18} />
-                        <span className="text-xs">Delete</span>
+                        <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        <span className="text-[9px] sm:text-[10px] font-medium">Delete</span>
                       </button>
                     </div>
                   </div>
@@ -884,11 +802,11 @@ const ChallanBook: React.FC = () => {
               )}
             </div>
 
-            {/* Pagination */}
+            {/* Pagination - Mobile Optimized */}
             {!loading && filteredChallans.length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">
+              <div className="px-3 py-3 border-t border-gray-200 sm:px-4 sm:py-4 lg:px-6 bg-gray-50">
+                <div className="flex flex-col items-center justify-between gap-3 sm:flex-row sm:gap-0">
+                  <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600">
                     Showing <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
                     <span className="font-medium">
                       {Math.min(currentPage * itemsPerPage, filteredChallans.length)}
@@ -896,13 +814,13 @@ const ChallanBook: React.FC = () => {
                     of <span className="font-medium">{filteredChallans.length}</span> challans
                   </div>
                   
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
-                      className="p-2 text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 sm:p-2 text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation active:scale-95"
                     >
-                      <ChevronLeft size={18} />
+                      <ChevronLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </button>
                     
                     <div className="flex gap-1">
@@ -922,7 +840,7 @@ const ChallanBook: React.FC = () => {
                           <button
                             key={pageNum}
                             onClick={() => setCurrentPage(pageNum)}
-                            className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs lg:text-sm font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
                               currentPage === pageNum
                                 ? activeTab === 'udhar'
                                   ? 'bg-red-600 text-white'
@@ -939,9 +857,9 @@ const ChallanBook: React.FC = () => {
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
-                      className="p-2 text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="p-1.5 sm:p-2 text-gray-600 transition-colors border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation active:scale-95"
                     >
-                      <ChevronRight size={18} />
+                      <ChevronRight className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </button>
                   </div>
                 </div>

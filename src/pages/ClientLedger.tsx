@@ -18,7 +18,9 @@ import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
 import toast, { Toaster } from 'react-hot-toast';
 
+
 type SortOption = 'nameAZ' | 'nameZA' | 'balanceHighLow' | 'balanceLowHigh';
+
 
 interface ItemsData {
   size_1_qty: number;
@@ -31,6 +33,7 @@ interface ItemsData {
   size_8_qty: number;
   size_9_qty: number;
 }
+
 
 interface SizeBalance {
   size_1: number;
@@ -45,10 +48,12 @@ interface SizeBalance {
   grandTotal: number;
 }
 
+
 export interface ClientBalance {
   grandTotal: number;
   sizes: { [key: string]: { main: number; borrowed: number; total: number } };
 }
+
 
 export interface Transaction {
   type: 'udhar' | 'jama';
@@ -61,6 +66,7 @@ export interface Transaction {
   driverName: string;
   items: any;
 }
+
 
 export interface ClientLedgerData {
   clientId: string;
@@ -76,10 +82,12 @@ export interface ClientLedgerData {
   transactions: Transaction[];
 }
 
+
 export default function ClientLedger() {
   const navigate = useNavigate();
   const { language } = useLanguage();
   const t = translations[language];
+
 
   const [ledgers, setLedgers] = useState<ClientLedgerData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,9 +96,11 @@ export default function ClientLedger() {
   const [sortOption, setSortOption] = useState<SortOption>('nameAZ');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
+
   useEffect(() => {
     loadLedgers();
   }, []);
+
 
   const fetchClientsWithChallans = async () => {
     const { data, error } = await supabase
@@ -98,14 +108,17 @@ export default function ClientLedger() {
       .select('*')
       .order('client_nic_name', { ascending: true });
 
+
     if (error) {
       console.error('Error fetching clients:', error);
       throw error;
     }
 
+
     console.debug('Fetched clients:', data?.length || 0);
     return data || [];
   };
+
 
   const calculateTotalsFromChallans = (challans: any[]): SizeBalance => {
     const totals: SizeBalance = {
@@ -121,7 +134,9 @@ export default function ClientLedger() {
       grandTotal: 0
     };
 
+
     if (!challans || challans.length === 0) return totals;
+
 
     challans.forEach((challan: any) => {
       const items = challan.items;
@@ -137,19 +152,24 @@ export default function ClientLedger() {
       }
     });
 
+
     return totals;
   };
+
 
   const transformToLedgerData = async (clients: any[]): Promise<ClientLedgerData[]> => {
     const results = await Promise.all(
       clients.map(async (client) => {
         const rawTransactions = await fetchClientTransactions(client.id);
 
+
         console.log(`Client ${client.client_nic_name} transactions:`, rawTransactions.length);
+
 
         const transactions: Transaction[] = rawTransactions.map((t: any) => {
           const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
           let grandTotal = 0;
+
 
           for (let i = 1; i <= 9; i++) {
             const qty = t.items[`size_${i}_qty`] || 0;
@@ -157,6 +177,7 @@ export default function ClientLedger() {
             sizes[i] = { qty, borrowed };
             grandTotal += qty + borrowed;
           }
+
 
           return {
             type: t.type,
@@ -171,20 +192,25 @@ export default function ClientLedger() {
           };
         });
 
+
         const udharChallans = transactions.filter(t => t.type === 'udhar');
         const jamaChallans = transactions.filter(t => t.type === 'jama');
 
+
         const udharTotals = calculateTotalsFromChallans(udharChallans);
         const jamaTotals = calculateTotalsFromChallans(jamaChallans);
+
 
         const currentBalance: ClientBalance = {
           grandTotal: 0,
           sizes: {}
         };
 
+
         for (let i = 1; i <= 9; i++) {
           currentBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
         }
+
 
         transactions.forEach(transaction => {
           for (let i = 1; i <= 9; i++) {
@@ -200,7 +226,9 @@ export default function ClientLedger() {
           }
         });
 
+
         currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce((sum, size) => sum + size.total, 0);
+
 
         return {
           clientId: client.id,
@@ -218,12 +246,15 @@ export default function ClientLedger() {
       })
     );
 
+
     return results;
   };
+
 
   const loadLedgers = async (showRefreshToast = false) => {
     if (showRefreshToast) setRefreshing(true);
     else setLoading(true);
+
 
     try {
       const rawData = await fetchClientsWithChallans();
@@ -243,11 +274,11 @@ export default function ClientLedger() {
     }
   };
 
-  // Memoized filtering and sorting
+
   const filteredAndSortedLedgers = useMemo(() => {
     let filtered = ledgers;
 
-    // Apply search filter
+
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = ledgers.filter(ledger =>
@@ -257,7 +288,7 @@ export default function ClientLedger() {
       );
     }
 
-    // Apply sorting
+
     const sorted = [...filtered].sort((a, b) => {
       switch (sortOption) {
         case 'nameAZ':
@@ -273,8 +304,10 @@ export default function ClientLedger() {
       }
     });
 
+
     return sorted;
   }, [ledgers, searchQuery, sortOption]);
+
 
   const getSortLabel = (option: SortOption) => {
     switch (option) {
@@ -286,13 +319,14 @@ export default function ClientLedger() {
     }
   };
 
-  // Calculate summary statistics
+
   const summaryStats = useMemo(() => {
     const totalClients = ledgers.length;
     const clientsWithBalance = ledgers.filter(l => l.currentBalance.grandTotal > 0).length;
     const totalOutstanding = ledgers.reduce((sum, l) => sum + l.currentBalance.grandTotal, 0);
     const totalUdharChallans = ledgers.reduce((sum, l) => sum + l.udharCount, 0);
     const totalJamaChallans = ledgers.reduce((sum, l) => sum + l.jamaCount, 0);
+
 
     return {
       totalClients,
@@ -303,34 +337,38 @@ export default function ClientLedger() {
     };
   }, [ledgers]);
 
+
   const SkeletonCard = () => (
-    <div className="p-6 bg-white border border-gray-200 shadow-sm rounded-xl animate-pulse">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center flex-1 gap-4">
-          <div className="bg-gray-200 rounded-full w-14 h-14"></div>
+    <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl animate-pulse">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center flex-1 gap-3 sm:gap-4">
+          <div className="w-10 h-10 bg-gray-200 rounded-full sm:w-12 sm:h-12 lg:w-14 lg:h-14"></div>
           <div className="flex-1">
-            <div className="w-48 h-6 mb-2 bg-gray-200 rounded"></div>
-            <div className="w-64 h-4 mb-1 bg-gray-200 rounded"></div>
-            <div className="w-40 h-4 bg-gray-200 rounded"></div>
+            <div className="w-32 h-4 mb-2 bg-gray-200 rounded sm:w-48 sm:h-5 lg:h-6"></div>
+            <div className="w-40 h-3 mb-1 bg-gray-200 rounded sm:w-56 sm:h-4 lg:w-64"></div>
+            <div className="w-24 h-3 bg-gray-200 rounded sm:w-32 sm:h-4 lg:w-40"></div>
           </div>
         </div>
         <div className="text-right">
-          <div className="w-24 h-8 mb-2 bg-gray-200 rounded"></div>
-          <div className="w-32 h-4 bg-gray-200 rounded"></div>
+          <div className="w-16 h-6 mb-2 ml-auto bg-gray-200 rounded sm:w-20 sm:h-7 lg:w-24 lg:h-8"></div>
+          <div className="w-20 h-3 ml-auto bg-gray-200 rounded sm:w-24 sm:h-4 lg:w-32"></div>
         </div>
       </div>
     </div>
   );
 
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Toaster 
-        position="top-right"
+        position="top-center"
         toastOptions={{
           duration: 3000,
           style: {
             background: '#363636',
             color: '#fff',
+            fontSize: '13px',
+            padding: '10px 14px',
           },
           success: {
             iconTheme: {
@@ -348,83 +386,87 @@ export default function ClientLedger() {
       />
       <Navbar />
 
-      <main className="flex-1 ml-0 overflow-auto lg:ml-64" style={{ marginTop: '56px' }}>
-        <div className="lg:mt-0"></div>
-        <div className="px-4 py-12 mx-auto max-w-7xl sm:px-6 lg:px-8">
+
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header */}
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col items-start justify-between gap-3 mb-4 sm:flex-row sm:items-center sm:gap-0 sm:mb-6 lg:mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{t.clientLedger}</h1>
-              <p className="mt-1 text-gray-600">{t.rentalHistory}</p>
+              <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t.clientLedger}</h1>
+              <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">{t.rentalHistory}</p>
             </div>
             <button
               onClick={() => loadLedgers(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw size={16} className={refreshing ? 'animate-spin' : ''} />
+              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
               Refresh
             </button>
           </div>
 
+
           {/* Summary Statistics Cards */}
           {!loading && (
-            <div className="grid gap-6 mb-8 md:grid-cols-4">
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-50 bg-blue-50"></div>
-                <div className="relative p-5">
+            <div className="grid gap-3 mb-4 sm:gap-4 md:grid-cols-2 lg:grid-cols-4 sm:mb-6 lg:mb-8 lg:gap-6">
+              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-blue-50"></div>
+                <div className="relative p-3 sm:p-4 lg:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-gray-600 uppercase">{t.totalClients || 'Total Clients'}</p>
-                      <p className="mt-2 text-2xl font-bold text-blue-600">{summaryStats.totalClients}</p>
+                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.totalClients || 'Total Clients'}</p>
+                      <p className="mt-1 text-xl font-bold text-blue-600 sm:mt-2 sm:text-2xl">{summaryStats.totalClients}</p>
                     </div>
-                    <div className="p-2.5 bg-blue-100 rounded-lg">
-                      <Users size={24} className="text-blue-600" />
+                    <div className="p-2 bg-blue-100 rounded-md sm:p-2.5 sm:rounded-lg">
+                      <Users className="w-5 h-5 text-blue-600 sm:w-6 sm:h-6" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-50 bg-orange-50"></div>
-                <div className="relative p-5">
+
+              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-orange-50"></div>
+                <div className="relative p-3 sm:p-4 lg:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-gray-600 uppercase">{t.withBalance || 'With Balance'}</p>
-                      <p className="mt-2 text-2xl font-bold text-orange-600">{summaryStats.clientsWithBalance}</p>
+                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.withBalance || 'With Balance'}</p>
+                      <p className="mt-1 text-xl font-bold text-orange-600 sm:mt-2 sm:text-2xl">{summaryStats.clientsWithBalance}</p>
                     </div>
-                    <div className="p-2.5 bg-orange-100 rounded-lg">
-                      <TrendingUp size={24} className="text-orange-600" />
+                    <div className="p-2 bg-orange-100 rounded-md sm:p-2.5 sm:rounded-lg">
+                      <TrendingUp className="w-5 h-5 text-orange-600 sm:w-6 sm:h-6" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-50 bg-red-50"></div>
-                <div className="relative p-5">
+
+              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-red-50"></div>
+                <div className="relative p-3 sm:p-4 lg:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-gray-600 uppercase">{t.udharChallans || 'Udhar'}</p>
-                      <p className="mt-2 text-2xl font-bold text-red-600">{summaryStats.totalUdharChallans}</p>
+                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.udharChallans || 'Udhar'}</p>
+                      <p className="mt-1 text-xl font-bold text-red-600 sm:mt-2 sm:text-2xl">{summaryStats.totalUdharChallans}</p>
                     </div>
-                    <div className="p-2.5 bg-red-100 rounded-lg">
-                      <FileText size={24} className="text-red-600" />
+                    <div className="p-2 bg-red-100 rounded-md sm:p-2.5 sm:rounded-lg">
+                      <FileText className="w-5 h-5 text-red-600 sm:w-6 sm:h-6" />
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-20 h-20 rounded-bl-full opacity-50 bg-green-50"></div>
-                <div className="relative p-5">
+
+              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
+                <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 bg-green-50"></div>
+                <div className="relative p-3 sm:p-4 lg:p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-gray-600 uppercase">{t.jamaChallans || 'Jama'}</p>
-                      <p className="mt-2 text-2xl font-bold text-green-600">{summaryStats.totalJamaChallans}</p>
+                      <p className="text-[10px] sm:text-xs font-medium text-gray-600 uppercase">{t.jamaChallans || 'Jama'}</p>
+                      <p className="mt-1 text-xl font-bold text-green-600 sm:mt-2 sm:text-2xl">{summaryStats.totalJamaChallans}</p>
                     </div>
-                    <div className="p-2.5 bg-green-100 rounded-lg">
-                      <FileText size={24} className="text-green-600" />
+                    <div className="p-2 bg-green-100 rounded-md sm:p-2.5 sm:rounded-lg">
+                      <FileText className="w-5 h-5 text-green-600 sm:w-6 sm:h-6" />
                     </div>
                   </div>
                 </div>
@@ -432,31 +474,34 @@ export default function ClientLedger() {
             </div>
           )}
 
+
           {/* Search and Filter Section */}
-          <div className="p-6 mb-6 bg-white border border-gray-200 shadow-sm rounded-xl">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="p-3 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:mb-6 sm:rounded-xl">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
               {/* Search Input */}
               <div className="relative flex-1">
-                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={18} />
+                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <input
                   type="text"
                   placeholder={t.searchClients}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm min-h-[36px]"
                 />
               </div>
+
 
               {/* Sort Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setShowSortMenu(!showSortMenu)}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center justify-center w-full gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg sm:w-auto sm:px-4 sm:py-2.5 sm:text-sm hover:bg-gray-50 touch-manipulation active:scale-95 min-h-[36px]"
                 >
-                  <Filter size={18} />
-                  <span>{getSortLabel(sortOption)}</span>
-                  <ChevronDown size={16} className={`transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+                  <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="truncate">{getSortLabel(sortOption)}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
                 </button>
+
 
                 {showSortMenu && (
                   <>
@@ -464,7 +509,7 @@ export default function ClientLedger() {
                       className="fixed inset-0 z-10" 
                       onClick={() => setShowSortMenu(false)}
                     ></div>
-                    <div className="absolute right-0 z-20 w-64 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    <div className="absolute right-0 z-20 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg sm:w-64">
                       <div className="py-2">
                         {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map(option => (
                           <button
@@ -473,7 +518,7 @@ export default function ClientLedger() {
                               setSortOption(option);
                               setShowSortMenu(false);
                             }}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                            className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${
                               sortOption === option 
                                 ? 'bg-blue-50 text-blue-700 font-medium' 
                                 : 'text-gray-700 hover:bg-gray-50'
@@ -489,14 +534,15 @@ export default function ClientLedger() {
               </div>
             </div>
 
+
             {/* Results Count */}
             {!loading && (
-              <div className="pt-4 mt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-600">
+              <div className="pt-3 mt-3 border-t border-gray-200 sm:pt-4 sm:mt-4">
+                <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600">
                   Showing <span className="font-semibold text-gray-900">{filteredAndSortedLedgers.length}</span> of{' '}
                   <span className="font-semibold text-gray-900">{ledgers.length}</span> clients
                   {searchQuery && (
-                    <span className="ml-2 text-gray-500">
+                    <span className="block mt-1 text-gray-500 sm:inline sm:ml-2 sm:mt-0">
                       • Filtered by: <span className="font-medium text-gray-700">"{searchQuery}"</span>
                     </span>
                   )}
@@ -505,23 +551,24 @@ export default function ClientLedger() {
             )}
           </div>
 
+
           {/* Ledger Cards / Loading / Empty State */}
           {loading ? (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
               <SkeletonCard />
             </div>
           ) : filteredAndSortedLedgers.length === 0 ? (
-            <div className="p-16 text-center bg-white border border-gray-200 shadow-sm rounded-xl">
-              <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gray-100 rounded-full">
-                <Users size={32} className="text-gray-400" />
+            <div className="p-8 text-center bg-white border border-gray-200 rounded-lg shadow-sm sm:p-12 lg:p-16 sm:rounded-xl">
+              <div className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-gray-100 rounded-full sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
+                <Users className="w-6 h-6 text-gray-400 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
               </div>
-              <h3 className="mb-2 text-lg font-semibold text-gray-900">
+              <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">
                 {searchQuery ? t.noMatchingClients : t.noClients}
               </h3>
-              <p className="text-gray-500">
+              <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500">
                 {searchQuery 
                   ? 'Try adjusting your search criteria' 
                   : 'Add clients to start tracking their rental history'}
@@ -529,14 +576,14 @@ export default function ClientLedger() {
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="px-4 py-2 mt-4 text-sm font-medium text-blue-600 transition-colors rounded-lg hover:text-blue-700 hover:bg-blue-50"
+                  className="px-3 py-2 mt-3 text-xs font-medium text-blue-600 transition-colors rounded-lg sm:px-4 sm:py-2 sm:mt-4 sm:text-sm hover:text-blue-700 hover:bg-blue-50 touch-manipulation active:scale-95"
                 >
                   Clear search
                 </button>
               )}
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredAndSortedLedgers.map(ledger => (
                 <ClientLedgerCard key={ledger.clientId} ledger={ledger} />
               ))}
