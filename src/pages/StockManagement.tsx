@@ -44,8 +44,6 @@ const StockManagement: React.FC = () => {
     total_stock: 0,
     lost_stock: 0,
   });
-  const [editAllMode, setEditAllMode] = useState(false);
-  const [allEditValues, setAllEditValues] = useState<{ [key: number]: { total_stock: number; lost_stock: number } }>({});
   const [sortField, setSortField] = useState<SortField>('size');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -142,64 +140,7 @@ const StockManagement: React.FC = () => {
   };
 
 
-  const handleEditAll = () => {
-    setEditAllMode(true);
-    const values: { [key: number]: { total_stock: number; lost_stock: number } } = {};
-    stocks.forEach(stock => {
-      values[stock.size] = {
-        total_stock: stock.total_stock,
-        lost_stock: stock.lost_stock,
-      };
-    });
-    setAllEditValues(values);
-  };
 
-
-  const handleSaveAll = async () => {
-    for (const size in allEditValues) {
-      const values = allEditValues[parseInt(size)];
-      if (values.total_stock < 0 || values.lost_stock < 0) {
-        toast.error('Stock values cannot be negative');
-        return;
-      }
-    }
-
-
-    const loadingToast = toast.loading('Updating all stock...');
-
-
-    try {
-      for (const size in allEditValues) {
-        const values = allEditValues[parseInt(size)];
-        const { error } = await supabase
-          .from('stock')
-          .update({
-            total_stock: values.total_stock,
-            lost_stock: values.lost_stock,
-          })
-          .eq('size', parseInt(size));
-
-
-        if (error) throw error;
-      }
-
-
-      toast.dismiss(loadingToast);
-      toast.success('All stock updated successfully');
-      setEditAllMode(false);
-      fetchStock();
-    } catch (error) {
-      toast.dismiss(loadingToast);
-      console.error('Error updating stock:', error);
-      toast.error('Failed to update stock');
-    }
-  };
-
-
-  const handleCancelAll = () => {
-    setEditAllMode(false);
-    setAllEditValues({});
-  };
 
 
   const handleSort = (field: SortField) => {
@@ -373,33 +314,6 @@ const StockManagement: React.FC = () => {
             {/* Table Header with Controls */}
             <div className="p-3 border-b border-gray-200 sm:p-4 lg:p-6">
               <div className="flex items-center justify-end">
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  {!editAllMode && !editingSize && (
-                    <button
-                      onClick={handleEditAll}
-                      className="px-3 py-2 text-xs font-medium text-white transition-colors bg-gray-700 rounded-lg sm:px-4 sm:py-2 sm:text-sm hover:bg-gray-800 touch-manipulation active:scale-95"
-                    >
-                      {t('editAll')}
-                    </button>
-                  )}
-                  {editAllMode && (
-                    <>
-                      <button
-                        onClick={handleSaveAll}
-                        className="px-3 py-2 text-xs font-medium text-white transition-colors bg-green-600 rounded-lg sm:px-4 sm:py-2 sm:text-sm hover:bg-green-700 touch-manipulation active:scale-95"
-                      >
-                        {t('saveAll')}
-                      </button>
-                      <button
-                        onClick={handleCancelAll}
-                        className="px-3 py-2 text-xs font-medium text-white transition-colors bg-gray-500 rounded-lg sm:px-4 sm:py-2 sm:text-sm hover:bg-gray-600 touch-manipulation active:scale-95"
-                      >
-                        {t('cancelAll')}
-                      </button>
-                    </>
-                  )}
-                </div>
               </div>
             </div>
             {/* Desktop Table */}
@@ -495,18 +409,6 @@ const StockManagement: React.FC = () => {
                               onChange={(e) => setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 })}
                               className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
-                          ) : editAllMode ? (
-                            <input
-                              type="number"
-                              min="0"
-                              inputMode="numeric"
-                              value={allEditValues[stock.size]?.total_stock || 0}
-                              onChange={(e) => setAllEditValues({
-                                ...allEditValues,
-                                [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
-                              })}
-                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
                           ) : (
                             <span className="font-medium">{stock.total_stock}</span>
                           )}
@@ -532,24 +434,12 @@ const StockManagement: React.FC = () => {
                               onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
                               className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
-                          ) : editAllMode ? (
-                            <input
-                              type="number"
-                              min="0"
-                              inputMode="numeric"
-                              value={allEditValues[stock.size]?.lost_stock || 0}
-                              onChange={(e) => setAllEditValues({
-                                ...allEditValues,
-                                [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
-                              })}
-                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
                           ) : (
                             <span className="font-medium">{stock.lost_stock}</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
-                          {!editAllMode && editingSize === stock.size ? (
+                          {editingSize === stock.size ? (
                             <div className="flex justify-center gap-2">
                               <button
                                 onClick={() => handleSave(stock.size)}
@@ -566,7 +456,7 @@ const StockManagement: React.FC = () => {
                                 {t('cancel')}
                               </button>
                             </div>
-                          ) : !editAllMode && !editingSize ? (
+                          ) : (
                             <button
                               onClick={() => handleEdit(stock)}
                               className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors touch-manipulation active:scale-95"
@@ -574,7 +464,7 @@ const StockManagement: React.FC = () => {
                               <Edit2 size={14} />
                               {t('edit')}
                             </button>
-                          ) : null}
+                          )}
                         </td>
                       </tr>
                     ))
@@ -655,22 +545,13 @@ const StockManagement: React.FC = () => {
                                 {stock.size}
                               </td>
                               <td className="px-2 py-2 text-center border-r border-gray-200">
-                                {editingSize === stock.size || editAllMode ? (
+                                {editingSize === stock.size ? (
                                   <input
                                     type="number"
                                     min="0"
                                     inputMode="numeric"
-                                    value={editingSize === stock.size ? editValues.total_stock : allEditValues[stock.size]?.total_stock || 0}
-                                    onChange={(e) => {
-                                      if (editingSize === stock.size) {
-                                        setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 });
-                                      } else {
-                                        setAllEditValues({
-                                          ...allEditValues,
-                                          [stock.size]: { ...allEditValues[stock.size], total_stock: parseInt(e.target.value) || 0 }
-                                        });
-                                      }
-                                    }}
+                                    value={editValues.total_stock}
+                                    onChange={(e) => setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 })}
                                     className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
                                   />
                                 ) : (
@@ -685,22 +566,13 @@ const StockManagement: React.FC = () => {
                                 <div className="text-[9px] sm:text-[10px] text-gray-500">({stock.on_rent_stock}+{stock.borrowed_stock})</div>
                               </td>
                               <td className="px-2 py-2 text-center border-r border-gray-200">
-                                {editingSize === stock.size || editAllMode ? (
+                                {editingSize === stock.size ? (
                                   <input
                                     type="number"
                                     min="0"
                                     inputMode="numeric"
-                                    value={editingSize === stock.size ? editValues.lost_stock : allEditValues[stock.size]?.lost_stock || 0}
-                                    onChange={(e) => {
-                                      if (editingSize === stock.size) {
-                                        setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 });
-                                      } else {
-                                        setAllEditValues({
-                                          ...allEditValues,
-                                          [stock.size]: { ...allEditValues[stock.size], lost_stock: parseInt(e.target.value) || 0 }
-                                        });
-                                      }
-                                    }}
+                                    value={editValues.lost_stock}
+                                    onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
                                     className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
                                   />
                                 ) : (
@@ -708,7 +580,7 @@ const StockManagement: React.FC = () => {
                                 )}
                               </td>
                               <td className="px-2 py-2 text-center">
-                                {!editAllMode && editingSize === stock.size ? (
+                                {editingSize === stock.size ? (
                                   <div className="flex gap-1">
                                     <button
                                       onClick={() => handleSave(stock.size)}
@@ -723,14 +595,14 @@ const StockManagement: React.FC = () => {
                                       <X className="w-3 h-3" />
                                     </button>
                                   </div>
-                                ) : !editAllMode && !editingSize ? (
+                                ) : (
                                   <button
                                     onClick={() => handleEdit(stock)}
                                     className="inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 touch-manipulation active:scale-95"
                                   >
                                     <Edit2 className="w-3 h-3" />
                                   </button>
-                                ) : null}
+                                )}
                               </td>
                             </tr>
                           ))
