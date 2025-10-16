@@ -390,18 +390,18 @@ export default function ClientLedger() {
       <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header */}
-          <div className="flex flex-col items-start justify-between gap-3 mb-4 sm:flex-row sm:items-center sm:gap-0 sm:mb-6 lg:mb-8">
-            <div>
+          <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+            <div className="flex-1">
               <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t.clientLedger}</h1>
               <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">{t.rentalHistory}</p>
             </div>
             <button
               onClick={() => loadLedgers(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
+              title="Refresh"
+              className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
