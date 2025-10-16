@@ -12,8 +12,7 @@ import {
   User,
   CheckCircle,
   Package,
-  ChevronRight,
-  Plus
+  ChevronRight
 } from 'lucide-react';
 import ClientForm from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
@@ -41,7 +40,6 @@ type Step = 'client-selection' | 'challan-details';
 interface ClientSelectionStepProps {
   clients: ClientFormData[];
   onClientSelect: (clientId: string) => void;
-  onAddNewClick: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
 }
@@ -50,7 +48,6 @@ interface ClientSelectionStepProps {
 const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   clients,
   onClientSelect,
-  onAddNewClick,
   searchQuery,
   onSearchChange,
 }) => {
@@ -66,18 +63,11 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
       {/* Header - Mobile Compact */}
-      <div className="flex flex-col items-start justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row sm:items-center sm:gap-0 sm:p-4 lg:p-6 sm:rounded-xl">
+      <div className="flex flex-col items-start gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
         <div>
           <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('selectClient')}</h3>
           <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-500">Choose client for jama challan</p>
         </div>
-        <button
-          onClick={onAddNewClick}
-          className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
-        >
-          <UserPlus className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
-          {t('addNewClient')}
-        </button>
       </div>
 
 
@@ -112,14 +102,16 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
           </div>
           <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">No clients found</h3>
           <p className="mb-3 text-[10px] sm:text-xs lg:text-sm text-gray-500 sm:mb-4">
-            {searchQuery ? 'Try adjusting your search' : 'Add your first client'}
+            {searchQuery ? 'Try adjusting your search' : 'No clients available'}
           </p>
-          <button
-            onClick={searchQuery ? () => onSearchChange('') : onAddNewClick}
-            className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-green-600 transition-colors rounded-lg hover:text-green-700 hover:bg-green-50 touch-manipulation active:scale-95"
-          >
-            {searchQuery ? 'Clear search' : 'Add New Client'}
-          </button>
+          {searchQuery && (
+            <button
+              onClick={() => onSearchChange('')}
+              className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-green-600 transition-colors rounded-lg hover:text-green-700 hover:bg-green-50 touch-manipulation active:scale-95"
+            >
+              Clear search
+            </button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4">
@@ -157,14 +149,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
       )}
 
 
-      {/* Mobile FAB for Add Client */}
-      <button
-        onClick={onAddNewClick}
-        className="fixed z-50 flex items-center justify-center transition-all shadow-lg sm:hidden bottom-6 right-4 w-14 h-14 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl hover:shadow-2xl active:scale-90 touch-manipulation"
-        aria-label="Add new client"
-      >
-        <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
-      </button>
+
     </div>
   );
 };
@@ -806,7 +791,7 @@ const JamaChallan: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+      <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {step === 'client-selection' ? (
             <>
