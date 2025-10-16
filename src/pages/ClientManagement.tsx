@@ -190,22 +190,34 @@ const ClientManagement: React.FC = () => {
       />
       <Navbar />
 
-      <main className="relative flex-1 w-full ml-0 overflow-auto lg:ml-64">
-        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
-          {/* Header - Compact Mobile */}
-          <div className="flex flex-col items-start justify-between gap-2 mb-3 sm:flex-row sm:items-center sm:gap-0 sm:mb-5 lg:mb-8">
+      <main className="relative flex-1 w-full overflow-auto lg:ml-64" style={{ marginTop: '56px', backgroundColor: '#f9fafb' }}>
+        <div className="lg:mt-0"></div>
+        <div className="w-full px-4 py-6 mx-auto lg:px-8 lg:py-8 max-w-7xl">
+          {/* Header Section */}
+          <div className="flex flex-col items-start justify-between gap-3 mb-6 sm:flex-row sm:items-center lg:mb-8" style={{ padding: '24px 0' }}>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 sm:text-xl lg:text-3xl">{t('clientManagement')}</h2>
-              <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-600 lg:mt-2">Manage all your clients</p>
+              <h2 className="font-bold text-gray-900" style={{ fontSize: '24px' }}>{t('clientManagement')}</h2>
+              <p className="mt-1 text-sm text-gray-600">Manage all your clients and their information</p>
             </div>
-            <button
-              onClick={() => fetchClients(true)}
-              disabled={refreshing}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[10px] sm:text-xs font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-md sm:rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
-            >
-              <RefreshCw className={`w-3 h-3 sm:w-3.5 sm:h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Refresh</span>
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => fetchClients(true)}
+                disabled={refreshing}
+                className="btn-secondary inline-flex items-center gap-2"
+                style={{ minHeight: '44px' }}
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                <span>Refresh</span>
+              </button>
+              <button
+                onClick={() => setShowForm(true)}
+                className="btn-primary hidden lg:inline-flex items-center gap-2"
+                style={{ minHeight: '44px' }}
+              >
+                <UserPlus size={20} />
+                {t('addNewClient')}
+              </button>
+            </div>
           </div>
 
           {/* Statistics Cards - Ultra Compact Mobile */}
@@ -227,16 +239,16 @@ const ClientManagement: React.FC = () => {
               </div>
 
               <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-md shadow-sm sm:rounded-lg lg:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-full opacity-50 sm:w-12 sm:h-12 lg:w-20 lg:h-20 bg-purple-50"></div>
+                <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-full opacity-50 sm:w-12 sm:h-12 lg:w-20 lg:h-20 bg-orange-50"></div>
                 <div className="relative p-2 sm:p-3 lg:p-6">
                   <div className="flex flex-col gap-1 sm:gap-1.5">
                     <div className="flex items-center justify-between">
                       <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">Sites</p>
-                      <div className="p-1 sm:p-1.5 lg:p-3 bg-purple-100 rounded sm:rounded-md lg:rounded-lg">
-                        <MapPin className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-purple-600" />
+                      <div className="p-1 sm:p-1.5 lg:p-3 bg-orange-100 rounded sm:rounded-md lg:rounded-lg">
+                        <MapPin className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-orange-600" />
                       </div>
                     </div>
-                    <p className="text-lg font-bold text-purple-600 sm:text-xl lg:text-3xl">{statistics.uniqueSites}</p>
+                    <p className="text-lg font-bold text-orange-600 sm:text-xl lg:text-3xl">{statistics.uniqueSites}</p>
                   </div>
                 </div>
               </div>
