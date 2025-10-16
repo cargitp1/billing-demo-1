@@ -390,8 +390,6 @@ const ChallanBook: React.FC = () => {
     setCurrentPage(1);
   }, [searchTerm, activeTab]);
 
-  const totalUdharItems = useMemo(() => udharChallans.reduce((sum, c) => sum + c.totalItems, 0), [udharChallans]);
-  const totalJamaItems = useMemo(() => jamaChallans.reduce((sum, c) => sum + c.totalItems, 0), [jamaChallans]);
 
   const SkeletonRow = () => (
     <tr className="animate-pulse">
@@ -435,62 +433,25 @@ const ChallanBook: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+      <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header */}
-          <div className="flex flex-col items-start justify-between gap-3 mb-4 sm:flex-row sm:items-center sm:gap-0 sm:mb-6 lg:mb-8">
-            <div>
+          <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+            <div className="flex-1">
               <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('challanBook')}</h2>
               <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">View and manage all challans</p>
             </div>
             <button
               onClick={() => loadChallans(true)}
               disabled={refreshing}
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
+              title="Refresh"
+              className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
-          {/* Summary Cards */}
-          <div className="grid gap-3 mb-4 sm:gap-4 md:grid-cols-2 sm:mb-6 lg:mb-8 lg:gap-6">
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-red-50"></div>
-              <div className="relative p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalUdharChallans')}</p>
-                    <p className="mt-1 text-2xl font-bold text-red-600 sm:mt-2 sm:text-3xl">{udharChallans.length}</p>
-                    <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-xs text-gray-500">
-                      {totalUdharItems} items
-                    </p>
-                  </div>
-                  <div className="p-2 bg-red-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                    <FileText className="w-5 h-5 text-red-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-              <div className="absolute top-0 right-0 w-16 h-16 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-50"></div>
-              <div className="relative p-3 sm:p-4 lg:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[10px] sm:text-xs lg:text-sm font-medium text-gray-600">{t('totalJamaChallans')}</p>
-                    <p className="mt-1 text-2xl font-bold text-green-600 sm:mt-2 sm:text-3xl">{jamaChallans.length}</p>
-                    <p className="mt-0.5 sm:mt-1 text-[9px] sm:text-xs text-gray-500">
-                      {totalJamaItems} items
-                    </p>
-                  </div>
-                  <div className="p-2 bg-green-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                    <Package className="w-5 h-5 text-green-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Main Table Container */}
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl">
