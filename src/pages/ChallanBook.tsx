@@ -148,7 +148,7 @@ const ChallanBook: React.FC = () => {
           size_9_note, main_note
         )
       `)
-      .order('udhar_date', { ascending: false });
+      .order('udhar_challan_number', { ascending: true });
 
     if (error) {
       console.error('Error fetching udhar challans:', error);
@@ -205,7 +205,7 @@ const ChallanBook: React.FC = () => {
           size_9_note, main_note
         )
       `)
-      .order('jama_date', { ascending: false });
+      .order('jama_challan_number', { ascending: false });
 
     if (error) {
       console.error('Error fetching jama challans:', error);
