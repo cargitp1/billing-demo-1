@@ -23,10 +23,6 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
     return name.charAt(0).toUpperCase();
   };
 
-  const balanceColor = ledger.currentBalance.grandTotal > 0
-    ? 'bg-red-100 text-red-700'
-    : 'bg-green-100 text-green-700';
-
   const handleDownloadLedger = async () => {
     const loadingToast = toast.loading('Generating ledger image...');
     try {
@@ -74,15 +70,6 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
           </div>
 
           <div className="flex items-center gap-4">
-            <div className={`px-6 py-3 rounded-lg ${balanceColor}`}>
-              <div className="text-2xl font-bold">
-                {ledger.currentBalance.grandTotal}
-              </div>
-              <div className="text-xs font-medium">
-                {t.totalOutstanding}
-              </div>
-            </div>
-
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -139,14 +126,6 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
           </div>
 
           <div className="flex items-center gap-2 mt-3">
-            <div className={`flex-1 px-4 py-2.5 rounded-lg ${balanceColor}`}>
-              <div className="text-xl font-bold">
-                {ledger.currentBalance.grandTotal}
-              </div>
-              <div className="text-xs font-medium">
-                {t.totalOutstanding}
-              </div>
-            </div>
             <button
               onClick={(e) => {
                 e.stopPropagation();
