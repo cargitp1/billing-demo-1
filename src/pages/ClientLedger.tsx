@@ -387,7 +387,7 @@ export default function ClientLedger() {
       <Navbar />
 
 
-      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64">
+      <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header */}
           <div className="flex flex-col items-start justify-between gap-3 mb-4 sm:flex-row sm:items-center sm:gap-0 sm:mb-6 lg:mb-8">
