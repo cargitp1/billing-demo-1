@@ -151,7 +151,7 @@ const Navbar: React.FC = () => {
 
         <button
           onClick={handleLogout}
-          className="btn-error flex items-center justify-center w-full gap-2"
+          className="flex items-center justify-center w-full gap-2 btn-error"
           style={{ minHeight: '44px', color: '#f87171' }}
         >
           <LogOut size={20} />
@@ -167,18 +167,15 @@ const Navbar: React.FC = () => {
         <SidebarContent />
       </nav>
 
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 bg-white border-b lg:hidden" style={{ height: '56px', borderColor: '#e5e7eb' }}>
+      <div className="fixed top-0 left-0 right-0 z-50 flex items-center px-4 bg-white border-b lg:hidden" style={{ height: '56px', borderColor: '#e5e7eb' }}>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2"
+          className="absolute p-2 left-4"
           style={{ color: '#2563eb' }}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <h1 className="font-bold" style={{ fontSize: '18px', color: '#1f2937' }}>{t('appName')}</h1>
-        <div style={{ width: '40px' }}>
-          <LanguageToggle />
-        </div>
+        <h1 className="mx-auto font-bold" style={{ fontSize: '18px', color: '#1f2937' }}>નીલકંઠ પ્લેટ ડેપો</h1>
       </div>
 
       {mobileMenuOpen && (
