@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Edit, Trash2, Search, Phone, MapPin } from 'lucide-react';
+import React from 'react';
+import { Edit, Trash2, Phone, MapPin } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ClientFormData } from './ClientForm';
 
@@ -11,17 +11,6 @@ interface ClientListProps {
 
 const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) => {
   const { t } = useLanguage();
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const filteredClients = useMemo(() => {
-    if (!searchTerm) return clients;
-    const searchLower = searchTerm.toLowerCase();
-    return clients.filter(client =>
-      client.client_nic_name.toLowerCase().includes(searchLower) ||
-      client.client_name.toLowerCase().includes(searchLower) ||
-      client.site.toLowerCase().includes(searchLower)
-    );
-  }, [clients, searchTerm]);
 
   const handleDelete = React.useCallback((id: string, name: string) => {
     if (window.confirm(`Delete "${name}"?`)) {
@@ -31,19 +20,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
 
   return (
     <div className="space-y-3 sm:space-y-4">
-      {/* Search Bar - Compact */}
-      <div className="relative">
-        <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={t('search') || 'Search clients...'}
-          className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-      </div>
-
-      {filteredClients.length === 0 ? (
+      {clients.length === 0 ? (
         <p className="py-6 text-xs text-center text-gray-500 sm:py-8 sm:text-sm">{t('noClients') || 'No clients found'}</p>
       ) : (
         <>
@@ -60,7 +37,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
                 </tr>
               </thead>
               <tbody>
-                {filteredClients.map((client) => (
+                {clients.map((client: ClientFormData) => (
                   <tr key={client.id} className="border-t border-gray-200 hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm">{client.client_nic_name}</td>
                     <td className="px-4 py-3 text-sm">{client.client_name}</td>
@@ -92,7 +69,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
 
           {/* Mobile Card View - Ultra Compact */}
           <div className="space-y-2 lg:hidden">
-            {filteredClients.map((client) => (
+            {clients.map((client: ClientFormData) => (
               <div 
                 key={client.id} 
                 className="bg-white p-2.5 sm:p-3 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"

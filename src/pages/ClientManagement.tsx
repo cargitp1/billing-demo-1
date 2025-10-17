@@ -25,6 +25,7 @@ const ClientManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchClients();
@@ -139,11 +140,21 @@ const ClientManagement: React.FC = () => {
     setShowForm(false);
   };
 
+  const filteredClients = useMemo(() => {
+    if (!searchQuery) return clients;
+    const searchLower = searchQuery.toLowerCase();
+    return clients.filter(client =>
+      client.client_nic_name.toLowerCase().includes(searchLower) ||
+      client.client_name.toLowerCase().includes(searchLower) ||
+      client.site.toLowerCase().includes(searchLower)
+    );
+  }, [clients, searchQuery]);
+
   const statistics = useMemo(() => {
     const totalClients = clients.length;
     const uniqueSites = new Set(clients.map(c => c.site)).size;
     const recentClients = clients.filter(c => {
-      const createdAt = new Date(c.created_at || '');
+      const createdAt = new Date((c as any).created_at || '');
       const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
       return daysSinceCreation <= 30;
     }).length;
@@ -194,39 +205,36 @@ const ClientManagement: React.FC = () => {
         <div className="lg:mt-0"></div>
         <div className="w-full px-4 py-6 mx-auto lg:px-8 lg:py-8 max-w-7xl">
           {/* Header Section */}
-          <div className="mb-4 space-y-3 sm:space-y-0 sm:flex sm:items-center sm:justify-between sm:mb-6 lg:mb-8">
-            <div className="flex items-center justify-between w-full sm:w-auto sm:block">
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('clientManagement')}</h1>
-                <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">Manage and track client information</p>
+          <div className="mb-4 sm:mb-6 lg:mb-8">
+            <div className="flex items-center justify-between gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2 sm:w-5 sm:h-5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={t('search') || 'Search clients...'}
+                  className="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
               </div>
-              <button
-                onClick={() => fetchClients(true)}
-                disabled={refreshing}
-                className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg sm:hidden touch-manipulation active:scale-95"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-                <span className="hidden xs:inline">Refresh</span>
-              </button>
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => fetchClients(true)}
-                disabled={refreshing}
-                className="items-center hidden gap-2 sm:inline-flex btn-secondary"
-                style={{ minHeight: '44px' }}
-              >
-                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
-              </button>
-              <button
-                onClick={() => setShowForm(true)}
-                className="items-center hidden gap-2 btn-primary lg:inline-flex"
-                style={{ minHeight: '44px' }}
-              >
-                <UserPlus size={20} />
-                {t('addNewClient')}
-              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => fetchClients(true)}
+                  disabled={refreshing}
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation active:scale-95"
+                >
+                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                </button>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="items-center hidden gap-2 btn-primary lg:inline-flex"
+                  style={{ minHeight: '40px' }}
+                >
+                  <UserPlus size={20} />
+                  {t('addNewClient')}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -362,7 +370,7 @@ const ClientManagement: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <ClientList clients={clients} onEdit={handleEdit} onDelete={handleDelete} />
+              <ClientList clients={filteredClients} onEdit={handleEdit} onDelete={handleDelete} />
             )}
           </div>
         </div>
