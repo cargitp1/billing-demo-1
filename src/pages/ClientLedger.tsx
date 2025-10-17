@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { PLATE_SIZES } from '../components/ItemsTable';
 
 import { 
   Search, 

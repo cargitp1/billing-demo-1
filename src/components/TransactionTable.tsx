@@ -6,6 +6,7 @@ import { translations } from '../utils/translations';
 import { generateJPEG } from '../utils/generateJPEG';
 import ReceiptTemplate from './ReceiptTemplate';
 import toast from 'react-hot-toast';
+import { PLATE_SIZES } from '../components/ItemsTable';
 
 interface TransactionTableProps {
   transactions?: Transaction[];
@@ -191,9 +192,9 @@ export default function TransactionTable({
             <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               {t.grandTotal}
             </th>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
-              <th key={size} className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
-                {t.size} {size}
+            {PLATE_SIZES.map((size, index) => (
+              <th key={index + 1} className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-center text-gray-500 whitespace-nowrap">
+                {size}
               </th>
             ))}
             <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
