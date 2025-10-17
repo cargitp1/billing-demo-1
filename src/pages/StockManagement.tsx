@@ -613,13 +613,6 @@ const StockManagement: React.FC = () => {
                 </div>
               </div>
               
-              {/* Scroll Hint */}
-              <div className="flex items-center justify-center gap-1 px-3 py-2 mt-2 border border-blue-200 rounded-lg bg-blue-50 lg:hidden">
-                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
-                <p className="text-[10px] font-medium text-blue-700">Swipe left to see all columns</p>
-              </div>
             </div>
 
 
