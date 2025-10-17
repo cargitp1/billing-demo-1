@@ -796,9 +796,9 @@ const JamaChallan: React.FC = () => {
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {step === 'client-selection' ? (
             <>
-              <div className="mb-4 sm:mb-6 lg:mb-8">
-                <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('jamaChallan')}</h2>
-                <p className="mt-1 text-[10px] sm:text-xs lg:text-sm lg:mt-2 text-gray-600">Create new jama challan for returned items</p>
+              <div className="hidden mb-6 sm:block lg:mb-8">
+                <h2 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t('jamaChallan')}</h2>
+                <p className="mt-1 text-xs text-gray-600 lg:text-sm lg:mt-2">Create new jama challan for returned items</p>
               </div>
               {showAddClient ? (
                 <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
