@@ -4,115 +4,27 @@ import {
   UserPlus, 
   FileText, 
   FileCheck, 
-  LogOut, 
   Package, 
   BookOpen, 
   BookMarked,
-  TrendingUp,
-  Users,
   Activity,
   Calendar,
   ArrowUpRight,
-  Sparkles,
-  BarChart3
+  Sparkles
 } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
-import { supabase } from '../utils/supabase';
-import toast, { Toaster } from 'react-hot-toast';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
-
-interface DashboardStats {
-  totalClients: number;
-  totalUdharChallans: number;
-  totalJamaChallans: number;
-  availableStock: number;
-  monthlyUdhar: number;
-  monthlyJama: number;
-  clientsWithBalance: number;
-  lowStockItems: number;
-}
+import { Toaster } from 'react-hot-toast';
+import { format } from 'date-fns';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { logout } = useAuth();
   const { t } = useLanguage();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalClients: 0,
-    totalUdharChallans: 0,
-    totalJamaChallans: 0,
-    availableStock: 0,
-    monthlyUdhar: 0,
-    monthlyJama: 0,
-    clientsWithBalance: 0,
-    lowStockItems: 0,
-  });
-  const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
 
   useEffect(() => {
-    fetchDashboardStats();
-    setGreeting(getGreeting());
-  }, []);
-
-  const getGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning';
-    if (hour < 17) return 'Good Afternoon';
-    return 'Good Evening';
-  };
-
-  const fetchDashboardStats = async () => {
-    setLoading(true);
-    try {
-      const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-      const monthEnd = format(endOfMonth(new Date()), 'yyyy-MM-dd');
-
-      const [
-        clientsData,
-        udharData,
-        jamaData,
-        stockData,
-        monthlyUdharData,
-        monthlyJamaData,
-      ] = await Promise.all([
-        supabase.from('clients').select('id', { count: 'exact', head: true }),
-        supabase.from('udhar_challans').select('udhar_challan_number', { count: 'exact', head: true }),
-        supabase.from('jama_challans').select('jama_challan_number', { count: 'exact', head: true }),
-        supabase.from('stock').select('available_stock'),
-        supabase.from('udhar_challans').select('udhar_challan_number', { count: 'exact', head: true })
-          .gte('udhar_date', monthStart).lte('udhar_date', monthEnd),
-        supabase.from('jama_challans').select('jama_challan_number', { count: 'exact', head: true })
-          .gte('jama_date', monthStart).lte('jama_date', monthEnd),
-      ]);
-
-      const totalAvailableStock = stockData.data?.reduce((sum, item) => sum + (item.available_stock || 0), 0) || 0;
-      const lowStock = stockData.data?.filter(item => item.available_stock > 0 && item.available_stock < 10).length || 0;
-
-      setStats({
-        totalClients: clientsData.count || 0,
-        totalUdharChallans: udharData.count || 0,
-        totalJamaChallans: jamaData.count || 0,
-        availableStock: totalAvailableStock,
-        monthlyUdhar: monthlyUdharData.count || 0,
-        monthlyJama: monthlyJamaData.count || 0,
-        clientsWithBalance: 0,
-        lowStockItems: lowStock,
-      });
-    } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      toast.error('Failed to load dashboard statistics');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    toast.success('Logged out successfully');
-  };
+    setGreeting(t('greeting'));
+  }, [t]);
 
   const quickActions = [
     {
@@ -165,49 +77,6 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  const StatCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
-    trend, 
-    trendValue,
-    gradient,
-    loading 
-  }: { 
-    title: string; 
-    value: number | string; 
-    icon: any; 
-    trend?: 'up' | 'down';
-    trendValue?: string;
-    gradient: string;
-    loading?: boolean;
-  }) => (
-    <div className={`relative overflow-hidden bg-gradient-to-br ${gradient} rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-5 text-white group hover:shadow-xl transition-all touch-manipulation active:scale-[0.98]`}>
-      <div className="absolute top-0 right-0 w-16 h-16 transition-transform bg-white rounded-bl-full sm:w-24 sm:h-24 lg:w-28 lg:h-28 opacity-10 group-hover:scale-110"></div>
-      <div className="relative">
-        <div className="flex items-center justify-between mb-2 sm:mb-3">
-          <div className="p-1.5 sm:p-2 bg-white rounded-md sm:rounded-lg bg-opacity-20 backdrop-blur-sm">
-            <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-          </div>
-          {trend && trendValue && (
-            <div className={`hidden sm:flex items-center gap-0.5 sm:gap-1 text-xs font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full ${
-              trend === 'up' ? 'bg-green-500 bg-opacity-30' : 'bg-red-500 bg-opacity-30'
-            }`}>
-              <TrendingUp className={`w-2.5 h-2.5 sm:w-3 sm:h-3 ${trend === 'down' ? 'rotate-180' : ''}`} />
-              <span className="hidden lg:inline text-[10px] sm:text-xs">{trendValue}</span>
-            </div>
-          )}
-        </div>
-        <p className="mb-0.5 sm:mb-1 text-[10px] sm:text-xs font-medium text-white text-opacity-90 leading-tight">{title}</p>
-        {loading ? (
-          <div className="w-12 h-5 bg-white rounded sm:w-16 sm:h-6 lg:w-20 lg:h-7 bg-opacity-20 animate-pulse"></div>
-        ) : (
-          <p className="text-xl font-bold leading-none sm:text-2xl lg:text-3xl">{value}</p>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <div className="relative flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       <Toaster 
@@ -242,7 +111,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-xs font-medium text-blue-100 sm:text-sm lg:text-base">{greeting}!</p>
               </div>
               <h1 className="mb-1 sm:mb-1.5 text-xl sm:text-2xl lg:text-4xl font-bold leading-tight">
-                {t('appName')}{t('Welcome')}
+                {t('appName')}
               </h1>
               <p className="mb-2 text-xs text-blue-100 sm:text-sm lg:text-base sm:mb-0">{t('Manage_your')}</p>
               
@@ -260,50 +129,6 @@ const Dashboard: React.FC = () => {
                 </div>
                 <Calendar className="w-8 h-8 text-blue-200 sm:w-9 sm:h-9 lg:w-12 lg:h-12" />
               </div>
-            </div>
-          </div>
-
-          {/* Statistics Grid - Compact Mobile */}
-          <div className="mb-3 sm:mb-5 lg:mb-8">
-            <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 sm:mb-4 lg:mb-6">
-              <BarChart3 className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('Business_Overview')}</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4 lg:gap-5">
-              <StatCard 
-                title="Total Clients"
-                value={stats.totalClients}
-                icon={Users}
-                gradient="from-blue-500 to-blue-700"
-                loading={loading}
-              />
-              <StatCard 
-                title="Available Stock"
-                value={stats.availableStock}
-                icon={Package}
-                trend={stats.lowStockItems > 0 ? 'down' : 'up'}
-                trendValue={stats.lowStockItems > 0 ? `${stats.lowStockItems} low` : 'Good'}
-                gradient="from-green-500 to-green-700"
-                loading={loading}
-              />
-              <StatCard 
-                title="Udhar Challans"
-                value={stats.totalUdharChallans}
-                icon={FileText}
-                trend="up"
-                trendValue={`${stats.monthlyUdhar} month`}
-                gradient="from-red-500 to-red-700"
-                loading={loading}
-              />
-              <StatCard 
-                title="Jama Challans"
-                value={stats.totalJamaChallans}
-                icon={FileCheck}
-                trend="up"
-                trendValue={`${stats.monthlyJama} month`}
-                gradient="from-purple-500 to-purple-700"
-                loading={loading}
-              />
             </div>
           </div>
 

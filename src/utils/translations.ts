@@ -1,6 +1,7 @@
 export const translations = {
   gu: {
     appName: 'નીલકંઠ પ્લેટ ડેપો',
+    greeting: 'નમસ્તે',
     dashboard: 'ડેશબોર્ડ',
     addClient: 'ગ્રાહકો',
     udharChallan: 'ઉધાર ચલણ',
@@ -80,14 +81,14 @@ export const translations = {
     contactUs: 'સંપર્ક કરો',
     contactText: 'કોઈપણ પૂછપરછ માટે અમારો સંપર્ક કરો. અમે હંમેશા મદદ કરવા તૈયાર છીએ.',
     getStarted: 'શરૂ કરો',
-    Manage_your: 'શક્તિશાળી સાધનો સાથે તમારા ભાડા કાર્યક્ષમ રીતે મેનેજ કરો',
+    Manage_your: 'ગ્રાહકનો વિશ્વાસ જ અમારી સૌથી મોટી સિદ્ધિ છે.',
 
     clientManagement: 'ગ્રાહક મેનેજમેન્ટ',
     clientList: 'ગ્રાહક યાદી',
     addNewClient: 'ગ્રાહકો',
     noClients: 'કોઈ ગ્રાહક મળ્યા નહીં',
     Todays_Date: "આજની તારીખ",
-    Welcome: ', આપનું સ્વાગત કર છે. ',
+    Welcome: ',આપનું સ્વાગત કરે છે.',
     Business_Overview: 'વ્યવસાયનું સારાંશ',
     Quick_Actions: 'ઝડપી ક્રિયાઓ',
 
@@ -139,7 +140,6 @@ export const translations = {
     pieces: 'પીસ',
     alternative: 'વૈકલ્પિક',
     clientInfo: 'ગ્રાહક માહિતી',
-    downloadJPEG: 'JPEG ડાઉનલોડ કરો',
     close: 'બંધ કરો',
     challanInfo: 'ચલણ માહિતી',
     clientLedger: 'ખાતાવહી',
@@ -171,6 +171,7 @@ export const translations = {
   },
   en: {
     appName: 'Nilkanth Plat Depo',
+    greeting: 'Welcome',
     dashboard: 'Dashboard',
     addClient: 'Add Client',
     udharChallan: 'Udhar Challan',
