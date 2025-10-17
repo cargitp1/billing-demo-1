@@ -483,22 +483,22 @@ const StockManagement: React.FC = () => {
                     <table className="min-w-full border-collapse">
                       <thead>
                         <tr className="bg-gray-100 border-b-2 border-gray-300">
-                          <th className="sticky left-0 z-10 px-2 py-2 text-xs font-bold text-center text-gray-700 bg-gray-100 border-r-2 border-gray-300 w-14 sm:px-3 sm:text-sm">
+                          <th className="sticky left-0 z-10 px-1 py-1.5 text-[10px] font-bold text-center text-gray-700 bg-gray-100 border-r-2 border-gray-300 w-12 sm:px-2 sm:text-xs">
                             {t('size')}
                           </th>
-                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[80px] sm:min-w-[90px]">
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
                             Total
                           </th>
-                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[100px] sm:min-w-[120px]">
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[90px]">
                             Available
                           </th>
-                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[80px] sm:min-w-[90px]">
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
                             On Rent
                           </th>
-                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[80px] sm:min-w-[90px]">
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
                             Lost
                           </th>
-                          <th className="px-2 py-2 text-[10px] sm:text-xs font-semibold text-center text-gray-700 min-w-[80px] sm:min-w-[100px]">
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 min-w-[60px] sm:min-w-[80px]">
                             Actions
                           </th>
                         </tr>
@@ -542,10 +542,10 @@ const StockManagement: React.FC = () => {
                               key={stock.size}
                               className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                             >
-                              <td className="sticky left-0 z-10 px-2 py-2 text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-3 sm:text-base bg-inherit">
+                              <td className="sticky left-0 z-10 px-1 py-1.5 text-[10px] font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-2 sm:text-sm bg-inherit">
                                 {PLATE_SIZES[stock.size - 1]}
                               </td>
-                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                              <td className="px-1 py-1.5 text-center border-r border-gray-200">
                                 {editingSize === stock.size ? (
                                   <input
                                     type="number"
@@ -553,20 +553,20 @@ const StockManagement: React.FC = () => {
                                     inputMode="numeric"
                                     value={editValues.total_stock}
                                     onChange={(e) => setEditValues({ ...editValues, total_stock: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
+                                    className="w-full px-1 py-1 text-[10px] sm:text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
                                   />
                                 ) : (
-                                  <span className="text-xs font-semibold sm:text-sm">{stock.total_stock}</span>
+                                  <span className="text-[10px] font-semibold sm:text-xs">{stock.total_stock}</span>
                                 )}
                               </td>
-                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                              <td className="px-1 py-1.5 text-center border-r border-gray-200">
                                 {getAvailabilityBadge(stock.available_stock)}
                               </td>
-                              <td className="px-2 py-2 text-center border-r border-gray-200">
-                                <div className="text-xs font-semibold sm:text-sm">{stock.on_rent_stock + stock.borrowed_stock}</div>
-                                <div className="text-[9px] sm:text-[10px] text-gray-500">({stock.on_rent_stock}+{stock.borrowed_stock})</div>
+                              <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                                <div className="text-[10px] font-semibold sm:text-xs">{stock.on_rent_stock + stock.borrowed_stock}</div>
+                                <div className="text-[8px] sm:text-[9px] text-gray-500">({stock.on_rent_stock}+{stock.borrowed_stock})</div>
                               </td>
-                              <td className="px-2 py-2 text-center border-r border-gray-200">
+                              <td className="px-1 py-1.5 text-center border-r border-gray-200">
                                 {editingSize === stock.size ? (
                                   <input
                                     type="number"
@@ -574,34 +574,34 @@ const StockManagement: React.FC = () => {
                                     inputMode="numeric"
                                     value={editValues.lost_stock}
                                     onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px]"
+                                    className="w-full px-1 py-1 text-[10px] sm:text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
                                   />
                                 ) : (
-                                  <span className="text-xs font-semibold sm:text-sm">{stock.lost_stock}</span>
+                                  <span className="text-[10px] font-semibold sm:text-xs">{stock.lost_stock}</span>
                                 )}
                               </td>
-                              <td className="px-2 py-2 text-center">
+                              <td className="px-1 py-1.5 text-center">
                                 {editingSize === stock.size ? (
-                                  <div className="flex gap-1">
+                                  <div className="flex gap-0.5">
                                     <button
                                       onClick={() => handleSave(stock.size)}
-                                      className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700 touch-manipulation active:scale-95"
+                                      className="flex-1 inline-flex items-center justify-center gap-0.5 px-1.5 py-1 text-[8px] sm:text-[10px] font-medium text-white bg-green-600 rounded hover:bg-green-700 touch-manipulation active:scale-95"
                                     >
-                                      <CheckCircle className="w-3 h-3" />
+                                      <CheckCircle className="w-2.5 h-2.5" />
                                     </button>
                                     <button
                                       onClick={handleCancel}
-                                      className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-gray-500 rounded hover:bg-gray-600 touch-manipulation active:scale-95"
+                                      className="flex-1 inline-flex items-center justify-center gap-0.5 px-1.5 py-1 text-[8px] sm:text-[10px] font-medium text-white bg-gray-500 rounded hover:bg-gray-600 touch-manipulation active:scale-95"
                                     >
-                                      <X className="w-3 h-3" />
+                                      <X className="w-2.5 h-2.5" />
                                     </button>
                                   </div>
                                 ) : (
                                   <button
                                     onClick={() => handleEdit(stock)}
-                                    className="inline-flex items-center justify-center gap-1 px-2 py-1.5 text-[10px] sm:text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 touch-manipulation active:scale-95"
+                                    className="inline-flex items-center justify-center gap-0.5 px-1.5 py-1 text-[8px] sm:text-[10px] font-medium text-white bg-blue-600 rounded hover:bg-blue-700 touch-manipulation active:scale-95"
                                   >
-                                    <Edit2 className="w-3 h-3" />
+                                    <Edit2 className="w-2.5 h-2.5" />
                                   </button>
                                 )}
                               </td>
