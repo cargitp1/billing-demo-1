@@ -62,7 +62,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
   const { t } = useLanguage();
 
   const handleChange = (field: keyof ItemsData, value: number | string) => {
-    onChange({ ...items, [field]: value });
+    if (typeof value === 'string' && value === '') {
+      onChange({ ...items, [field]: 0 });
+    } else {
+      onChange({ ...items, [field]: value });
+    }
   };
 
   const sizeIndices = Array.from({ length: 9 }, (_, i) => i + 1);
@@ -121,8 +125,8 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                   <input
                     type="number"
                     min="0"
-                    value={items[`size_${sizeIndex}_qty` as keyof ItemsData] as number}
-                    onChange={(e) => handleChange(`size_${sizeIndex}_qty` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                    value={items[`size_${sizeIndex}_qty` as keyof ItemsData] || ''}
+                    onChange={(e) => handleChange(`size_${sizeIndex}_qty` as keyof ItemsData, e.target.value === '' ? 0 : parseInt(e.target.value))}
                     className="w-24 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </td>
@@ -141,8 +145,8 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number}
-                        onChange={(e) => handleChange(`size_${sizeIndex}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                        value={items[`size_${sizeIndex}_borrowed` as keyof ItemsData] || ''}
+                        onChange={(e) => handleChange(`size_${sizeIndex}_borrowed` as keyof ItemsData, e.target.value === '' ? 0 : parseInt(e.target.value))}
                         className="w-24 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
@@ -221,9 +225,9 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                           type="number"
                           min="0"
                           inputMode="numeric"
-                          value={items[`size_${sizeIndex}_qty` as keyof ItemsData] as number}
-                          onChange={(e) => handleChange(`size_${sizeIndex}_qty` as keyof ItemsData, parseInt(e.target.value) || 0)}
-                          className="w-full px-1 py-1 text-[10px] sm:text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
+                          value={items[`size_${sizeIndex}_qty` as keyof ItemsData] || ''}
+                          onChange={(e) => handleChange(`size_${sizeIndex}_qty` as keyof ItemsData, e.target.value === '' ? 0 : parseInt(e.target.value))}
+                          className="w-full px-2 py-2 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
                       </td>
                       {outstandingBalances && !hideColumns && (
@@ -242,17 +246,17 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                               type="number"
                               min="0"
                               inputMode="numeric"
-                              value={items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number}
-                              onChange={(e) => handleChange(`size_${sizeIndex}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
-                              className="w-full px-1 py-1 text-[10px] sm:text-xs text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
+                              value={items[`size_${sizeIndex}_borrowed` as keyof ItemsData] || ''}
+                              onChange={(e) => handleChange(`size_${sizeIndex}_borrowed` as keyof ItemsData, e.target.value === '' ? 0 : parseInt(e.target.value))}
+                              className="w-full px-2 py-2 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
                             />
                           </td>
                           <td className="px-1 py-1.5">
                             <input
-                              type="text"
-                              value={items[`size_${sizeIndex}_note` as keyof ItemsData] as string}
-                              onChange={(e) => handleChange(`size_${sizeIndex}_note` as keyof ItemsData, e.target.value)}
-                              className="w-full px-1 py-1 text-[10px] sm:text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
+                          type="text"
+                          value={items[`size_${sizeIndex}_note` as keyof ItemsData] as string}
+                          onChange={(e) => handleChange(`size_${sizeIndex}_note` as keyof ItemsData, e.target.value)}
+                          className="w-full px-2 py-2 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
                               placeholder="Optional note"
                             />
                           </td>

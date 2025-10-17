@@ -283,18 +283,20 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                         <input
                           type="number"
                           min="0"
+                          inputMode="numeric"
                           value={items[`size_${size}_qty` as keyof ItemsData] || 0}
                           onChange={(e) => handleItemChange(size, 'qty', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-24 px-3 py-2.5 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <input
                           type="number"
                           min="0"
+                          inputMode="numeric"
                           value={items[`size_${size}_borrowed` as keyof ItemsData] || 0}
                           onChange={(e) => handleItemChange(size, 'borrowed', e.target.value)}
-                          className="w-20 px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-24 px-3 py-2.5 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
                       </td>
                       <td className="px-4 py-2">
@@ -302,7 +304,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                           type="text"
                           value={items[`size_${size}_note` as keyof ItemsData] || ''}
                           onChange={(e) => handleItemChange(size, 'note', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          className="w-full px-3 py-2.5 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
                       </td>
                     </tr>
