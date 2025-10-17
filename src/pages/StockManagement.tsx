@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../utils/supabase';
 import { format } from 'date-fns';
+import { PLATE_SIZES } from '../components/ItemsTable';
 import { 
   Package, 
   FileText, 
@@ -397,7 +398,7 @@ const StockManagement: React.FC = () => {
                         className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
                       >
                         <td className="px-6 py-4 text-center whitespace-nowrap">
-                          <span className="text-sm font-bold text-gray-900">Size {stock.size}</span>
+                          <span className="text-sm font-bold text-gray-900">{PLATE_SIZES[stock.size - 1]}</span>
                         </td>
                         <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
                           {editingSize === stock.size ? (
@@ -542,7 +543,7 @@ const StockManagement: React.FC = () => {
                               className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                             >
                               <td className="sticky left-0 z-10 px-2 py-2 text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-3 sm:text-base bg-inherit">
-                                {stock.size}
+                                {PLATE_SIZES[stock.size - 1]}
                               </td>
                               <td className="px-2 py-2 text-center border-r border-gray-200">
                                 {editingSize === stock.size ? (
