@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Download } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { format } from 'date-fns';
+import { PLATE_SIZES } from './ItemsTable';
 import { supabase } from '../utils/supabase';
 
 interface ItemsData {
@@ -275,7 +277,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => (
                     <tr key={size} className="hover:bg-gray-50">
                       <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {size}
+                        {PLATE_SIZES[size - 1]}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
                         <input

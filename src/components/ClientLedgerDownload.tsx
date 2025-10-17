@@ -1,6 +1,7 @@
 import { Transaction, ClientBalance } from '../utils/ledgerCalculations';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
+import { PLATE_SIZES } from './ItemsTable';
 
 interface ClientLedgerDownloadProps {
   clientNicName: string;
@@ -120,7 +121,7 @@ export default function ClientLedgerDownload({
               </th>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
                 <th key={size} className="px-3 py-3 text-xs font-bold tracking-wider text-center text-gray-700 uppercase border border-gray-300">
-                  Size {size}
+                  {PLATE_SIZES[size - 1]}
                 </th>
               ))}
               <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">

@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Download } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { format } from 'date-fns';
+import { PLATE_SIZES } from './ItemsTable';
 
 interface ItemsData {
   size_1_qty: number;
@@ -172,7 +173,7 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
                     return (
                       <tr key={size} className="hover:bg-gray-50">
                         <td className="px-4 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">
-                          {size}
+                          {PLATE_SIZES[size - 1]}
                         </td>
                         <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
                           {qty}

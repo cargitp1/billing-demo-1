@@ -1,5 +1,5 @@
 import React from 'react';
-import { ItemsData } from './ItemsTable';
+import { ItemsData, PLATE_SIZES } from './ItemsTable';
 
 interface ReceiptTemplateProps {
   challanType: 'udhar' | 'jama';
@@ -25,18 +25,17 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
   // Ensure items exists and has the required properties
   const getQtyOrZero = (qty: number | undefined) => (qty || 0).toString();
 
-  // Convert items data to sizes format
-  const sizes = {
-    '2x3': { pattern: getQtyOrZero(items?.size_1_qty), detail: '' },
-    '21x3': { pattern: getQtyOrZero(items?.size_2_qty), detail: '' },
-    '18x3': { pattern: getQtyOrZero(items?.size_3_qty), detail: '' },
-    '15x3': { pattern: getQtyOrZero(items?.size_4_qty), detail: '' },
-    '12x3': { pattern: getQtyOrZero(items?.size_5_qty), detail: '' },
-    '9x3': { pattern: getQtyOrZero(items?.size_6_qty), detail: '' },
-    'patra': { pattern: getQtyOrZero(items?.size_7_qty), detail: '' },
-    '2x2': { pattern: getQtyOrZero(items?.size_8_qty), detail: '' },
-    '2foot': { pattern: getQtyOrZero(items?.size_9_qty), detail: '' }
-  };
+  // Convert items data to sizes format using PLATE_SIZES
+  const sizes = PLATE_SIZES.reduce((acc, size, index) => {
+    const sizeNum = index + 1;
+    return {
+      ...acc,
+      [size]: {
+        pattern: getQtyOrZero(items?.[`size_${sizeNum}_qty` as keyof typeof items] as number | undefined),
+        detail: ''
+      }
+    };
+  }, {} as Record<string, { pattern: string, detail: string }>);
 
   return (
     <div id="receipt-template" className="flex justify-center p-8 bg-gray-100">
@@ -153,7 +152,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
           </thead>
           <tbody>
             {Object.entries(sizes).map(([size, value], index) => {
-              const displaySize = size === 'patra' ? 'પતરા' : size === '2foot' ? '૨ ફુટ' : size.toUpperCase();
+              const displaySize = size;
               const isLastRow = index === Object.entries(sizes).length - 1;
               
               return (
