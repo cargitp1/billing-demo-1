@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
   const quickActions = [
     {
       title: t('addClient'),
-      description: 'Add new clients',
+      description: t('add_new_clients'),
       icon: UserPlus,
       path: '/clients',
       gradient: 'from-blue-500 to-blue-700',
@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('udharChallan'),
-      description: 'Create rental',
+      description: t('create_rental'),
       icon: FileText,
       path: '/udhar-challan',
       gradient: 'from-red-500 to-red-700',
@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('jamaChallan'),
-      description: 'Record returns',
+      description: t('record_returns'),
       icon: FileCheck,
       path: '/jama-challan',
       gradient: 'from-green-500 to-green-700',
@@ -53,7 +53,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('stockManagement'),
-      description: 'Manage inventory',
+      description: t('manage_inventory'),
       icon: Package,
       path: '/stock',
       gradient: 'from-purple-500 to-purple-700',
@@ -61,7 +61,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('challanBook'),
-      description: 'View all challans',
+      description: t('view_all_challans'),
       icon: BookOpen,
       path: '/challan-book',
       gradient: 'from-teal-500 to-teal-700',
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('clientLedger'),
-      description: 'Track balances',
+      description: t('track_balances'),
       icon: BookMarked,
       path: '/client-ledger',
       gradient: 'from-indigo-500 to-indigo-700',
