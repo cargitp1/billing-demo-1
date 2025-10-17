@@ -248,18 +248,41 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       )}
                     </tr>
                   ))}
+                  {/* Totals Summary Row */}
+                  <tr className="border-t-2 border-gray-300 bg-gray-50">
+                    <td className="sticky left-0 z-10 px-2 py-3 text-[10px] sm:text-xs font-bold text-center text-gray-900 border-r-2 border-gray-300 bg-inherit">
+                      કુલ
+                    </td>
+                    {outstandingBalances && (
+                      <td className="px-2 py-3 text-center border-r border-gray-200">
+                        -
+                      </td>
+                    )}
+                    <td className="px-2 py-3 text-[10px] sm:text-xs font-semibold text-center border-r border-gray-200">
+                      {sizes.reduce((total, size) => total + (items[`size_${size}_qty` as keyof ItemsData] as number || 0), 0)} સંખ્યા
+                    </td>
+                    {outstandingBalances && !hideColumns && (
+                      <td className="px-2 py-3 text-center border-r border-gray-200">
+                        -
+                      </td>
+                    )}
+                    {!hideColumns && (
+                      <>
+                        <td className="px-2 py-3 text-[10px] sm:text-xs font-semibold text-center border-r border-gray-200">
+                          {sizes.reduce((total, size) => total + (items[`size_${size}_borrowed` as keyof ItemsData] as number || 0), 0)} ઉધાર
+                        </td>
+                        <td className="px-2 py-3 text-[10px] sm:text-xs font-semibold text-center">
+                          {sizes.reduce((total, size) => 
+                            total + (items[`size_${size}_qty` as keyof ItemsData] as number || 0) + 
+                            (items[`size_${size}_borrowed` as keyof ItemsData] as number || 0), 0)} કુલ
+                        </td>
+                      </>
+                    )}
+                  </tr>
                 </tbody>
               </table>
             </div>
           </div>
-        </div>
-        
-        {/* Scroll Hint for Mobile */}
-        <div className="flex items-center justify-center gap-1 px-3 py-2 mt-2 border border-blue-200 rounded-lg bg-blue-50 sm:hidden">
-          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-          </svg>
-          <p className="text-[10px] font-medium text-blue-700">Swipe left to see more columns</p>
         </div>
       </div>
 
