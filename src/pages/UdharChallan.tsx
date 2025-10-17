@@ -53,17 +53,17 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      {/* Header Actions - Mobile Optimized */}
-      <div className="flex items-center justify-end p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl sm:justify-between">
-        <div className="hidden sm:block">
+      {/* Header Actions - Desktop Only */}
+      <div className="items-center justify-between hidden p-4 mb-4 bg-white border border-gray-200 sm:flex rounded-xl">
+        <div>
           <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t('selectClient')}</h3>
           <p className="mt-0.5 text-xs text-gray-500 lg:text-sm">Choose client for udhar challan</p>
         </div>
         <button
           onClick={onAddNewClick}
-          className="hidden sm:inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
+          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
         >
-          <UserPlus className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+          <UserPlus className="w-4.5 h-4.5" />
           {t('addNewClient')}
         </button>
       </div>
@@ -753,7 +753,7 @@ const UdharChallan: React.FC = () => {
       />
       <Navbar />
       <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0">
-        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
+        <div className="w-full px-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {currentStep === 'client-selection' ? (
             <>
               <div className="hidden mb-4 sm:block sm:mb-6 lg:mb-8">
