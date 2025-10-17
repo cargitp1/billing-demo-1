@@ -42,11 +42,11 @@ const ClientManagement: React.FC = () => {
 
     if (error) {
       console.error('Error fetching clients:', error);
-      toast.error('Failed to load clients');
+      toast.error(t('failedToLoad'));
     } else {
       setClients(data || []);
       if (showRefreshToast) {
-        toast.success('Clients refreshed successfully');
+        toast.success(t('clientsRefreshed'));
       }
     }
 
@@ -73,9 +73,9 @@ const ClientManagement: React.FC = () => {
 
       if (error) {
         console.error('Error updating client:', error);
-        toast.error('Failed to update client');
+        toast.error(t('failedToUpdate'));
       } else {
-        toast.success('Client updated successfully');
+        toast.success(t('clientUpdated'));
         setEditingClient(undefined);
         setShowForm(false);
         fetchClients();
@@ -112,7 +112,7 @@ const ClientManagement: React.FC = () => {
   const handleDelete = async (id: string) => {
     const client = clients.find(c => c.id === id);
     const confirmed = window.confirm(
-      `Are you sure you want to delete client "${client?.client_nic_name}"?\n\nThis action cannot be undone.`
+      `${t('deleteConfirm')} "${client?.client_nic_name}"?\n\n${t('cannotUndo')}`
     );
 
     if (!confirmed) return;
@@ -128,9 +128,9 @@ const ClientManagement: React.FC = () => {
 
     if (error) {
       console.error('Error deleting client:', error);
-      toast.error('Failed to delete client');
+        toast.error(t('failedToDelete'));
     } else {
-      toast.success('Client deleted successfully');
+        toast.success(t('clientDeleted'));
       fetchClients();
     }
   };
@@ -213,7 +213,7 @@ const ClientManagement: React.FC = () => {
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('search') || 'Search clients...'}
+                  placeholder={t('searchClients')}
                   className="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -246,7 +246,7 @@ const ClientManagement: React.FC = () => {
                 <div className="relative p-2 sm:p-3 lg:p-6">
                   <div className="flex flex-col gap-1 sm:gap-1.5">
                     <div className="flex items-center justify-between">
-                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">Clients</p>
+                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">{t('totalClients')}</p>
                       <div className="p-1 sm:p-1.5 lg:p-3 bg-blue-100 rounded sm:rounded-md lg:rounded-lg">
                         <Users className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-blue-600" />
                       </div>
@@ -261,7 +261,7 @@ const ClientManagement: React.FC = () => {
                 <div className="relative p-2 sm:p-3 lg:p-6">
                   <div className="flex flex-col gap-1 sm:gap-1.5">
                     <div className="flex items-center justify-between">
-                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">Sites</p>
+                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">{t('uniqueSites')}</p>
                       <div className="p-1 sm:p-1.5 lg:p-3 bg-orange-100 rounded sm:rounded-md lg:rounded-lg">
                         <MapPin className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-orange-600" />
                       </div>
@@ -276,7 +276,7 @@ const ClientManagement: React.FC = () => {
                 <div className="relative p-2 sm:p-3 lg:p-6">
                   <div className="flex flex-col gap-1 sm:gap-1.5">
                     <div className="flex items-center justify-between">
-                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">New</p>
+                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">{t('newClients')}</p>
                       <div className="p-1 sm:p-1.5 lg:p-3 bg-green-100 rounded sm:rounded-md lg:rounded-lg">
                         <TrendingUp className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-green-600" />
                       </div>
@@ -328,7 +328,7 @@ const ClientManagement: React.FC = () => {
                 <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gray-100 rounded-full">
                   <UserPlus size={32} className="text-gray-400" />
                 </div>
-                <p className="text-sm text-gray-500">Click "Add New Client" to get started</p>
+                <p className="text-sm text-gray-500">{t('clickToAdd')}</p>
               </div>
             )}
           </div>
@@ -359,14 +359,14 @@ const ClientManagement: React.FC = () => {
                 <div className="inline-flex items-center justify-center w-10 h-10 mb-2 bg-gray-100 rounded-full sm:w-12 sm:h-12 sm:mb-3 lg:w-16 lg:h-16 lg:mb-4">
                   <Users className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
                 </div>
-                <h3 className="mb-1.5 text-sm font-semibold text-gray-900 sm:text-base sm:mb-2 lg:text-lg">No clients yet</h3>
-                <p className="mb-3 text-[10px] sm:text-xs text-gray-500 sm:mb-4 lg:text-sm lg:mb-6">Get started by adding your first client</p>
+                <h3 className="mb-1.5 text-sm font-semibold text-gray-900 sm:text-base sm:mb-2 lg:text-lg">{t('noClientsYet')}</h3>
+                <p className="mb-3 text-[10px] sm:text-xs text-gray-500 sm:mb-4 lg:text-sm lg:mb-6">{t('getStartedByAdding')}</p>
                 <button
                   onClick={() => setShowForm(true)}
                   className="hidden lg:inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 shadow-sm hover:shadow-md"
                 >
                   <UserPlus size={18} />
-                  Add Your First Client
+                  {t('addYourFirstClient')}
                 </button>
               </div>
             ) : (
