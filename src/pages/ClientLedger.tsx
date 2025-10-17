@@ -360,11 +360,11 @@ export default function ClientLedger() {
 
       <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+          {/* Header - Desktop Only */}
+          <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
             <div className="flex-1">
-              <h1 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t.clientLedger}</h1>
-              <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">{t.rentalHistory}</p>
+              <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t.clientLedger}</h1>
+              <p className="mt-1 text-xs text-gray-600">{t.rentalHistory}</p>
             </div>
             <button
               onClick={() => loadLedgers(true)}
@@ -372,7 +372,7 @@ export default function ClientLedger() {
               title="Refresh"
               className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
@@ -381,79 +381,59 @@ export default function ClientLedger() {
 
 
           {/* Search and Filter Section */}
-          <div className="p-3 mb-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:mb-6 sm:rounded-xl">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <input
-                  type="text"
-                  placeholder={t.searchClients}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm min-h-[36px]"
-                />
-              </div>
-
-
-              {/* Sort Dropdown */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowSortMenu(!showSortMenu)}
-                  className="inline-flex items-center justify-center w-full gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg sm:w-auto sm:px-4 sm:py-2.5 sm:text-sm hover:bg-gray-50 touch-manipulation active:scale-95 min-h-[36px]"
-                >
-                  <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="truncate">{getSortLabel(sortOption)}</span>
-                  <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
-                </button>
-
-
-                {showSortMenu && (
-                  <>
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setShowSortMenu(false)}
-                    ></div>
-                    <div className="absolute right-0 z-20 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg sm:w-64">
-                      <div className="py-2">
-                        {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map(option => (
-                          <button
-                            key={option}
-                            onClick={() => {
-                              setSortOption(option);
-                              setShowSortMenu(false);
-                            }}
-                            className={`w-full text-left px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${
-                              sortOption === option 
-                                ? 'bg-blue-50 text-blue-700 font-medium' 
-                                : 'text-gray-700 hover:bg-gray-50'
-                            }`}
-                          >
-                            {getSortLabel(option)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
+          <div className="flex items-center gap-2 mb-4">
+            {/* Search Input */}
+            <div className="relative flex-1">
+              <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 top-1/2 w-3.5 h-3.5" />
+              <input
+                type="text"
+                placeholder={t.searchClients}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs min-h-[36px]"
+              />
             </div>
 
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSortMenu(!showSortMenu)}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation active:scale-95 min-h-[36px]"
+              >
+                <Filter className="w-3.5 h-3.5" />
+                <span className="truncate">{getSortLabel(sortOption)}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
+              </button>
 
-            {/* Results Count */}
-            {!loading && (
-              <div className="pt-3 mt-3 border-t border-gray-200 sm:pt-4 sm:mt-4">
-                <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600">
-                  Showing <span className="font-semibold text-gray-900">{filteredAndSortedLedgers.length}</span> of{' '}
-                  <span className="font-semibold text-gray-900">{ledgers.length}</span> clients
-                  {searchQuery && (
-                    <span className="block mt-1 text-gray-500 sm:inline sm:ml-2 sm:mt-0">
-                      • Filtered by: <span className="font-medium text-gray-700">"{searchQuery}"</span>
-                    </span>
-                  )}
-                </p>
-              </div>
-            )}
+              {showSortMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-10" 
+                    onClick={() => setShowSortMenu(false)}
+                  ></div>
+                  <div className="absolute right-0 z-20 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                    <div className="py-2">
+                      {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map(option => (
+                        <button
+                          key={option}
+                          onClick={() => {
+                            setSortOption(option);
+                            setShowSortMenu(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-xs transition-colors touch-manipulation active:scale-[0.98] ${
+                            sortOption === option 
+                              ? 'bg-blue-50 text-blue-700 font-medium' 
+                              : 'text-gray-700 hover:bg-gray-50'
+                          }`}
+                        >
+                          {getSortLabel(option)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
 
