@@ -1,6 +1,18 @@
 import React from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 
+export const PLATE_SIZES = [
+  '2 X 3',
+  '21 X 3',
+  '18 X 3',
+  '15 X 3',
+  '12 X 3',
+  '9 X 3',
+  'પતરા',
+  '2 X 2',
+  '2 ફુટ'
+] as const;
+
 export interface ItemsData {
   size_1_qty: number;
   size_2_qty: number;
@@ -53,7 +65,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
     onChange({ ...items, [field]: value });
   };
 
-  const sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const sizeIndices = Array.from({ length: 9 }, (_, i) => i + 1);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -91,17 +103,17 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {sizes.map((size) => (
-              <tr key={size}>
+            {sizeIndices.map((sizeIndex) => (
+              <tr key={sizeIndex}>
                 <td className="px-4 py-4 text-sm font-bold text-center text-gray-900 whitespace-nowrap">
-                  {size}
+                  {PLATE_SIZES[sizeIndex - 1]}
                 </td>
                 {outstandingBalances && (
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
-                      outstandingBalances[size] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                      outstandingBalances[sizeIndex] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                     }`}>
-                      {outstandingBalances[size] || 0}
+                      {outstandingBalances[sizeIndex] || 0}
                     </div>
                   </td>
                 )}
@@ -109,17 +121,17 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                   <input
                     type="number"
                     min="0"
-                    value={items[`size_${size}_qty` as keyof ItemsData] as number}
-                    onChange={(e) => handleChange(`size_${size}_qty` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                    value={items[`size_${sizeIndex}_qty` as keyof ItemsData] as number}
+                    onChange={(e) => handleChange(`size_${sizeIndex}_qty` as keyof ItemsData, parseInt(e.target.value) || 0)}
                     className="w-24 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </td>
                 {outstandingBalances && !hideColumns && (
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
-                      (borrowedOutstanding && borrowedOutstanding[size] > 0) ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
+                      (borrowedOutstanding && borrowedOutstanding[sizeIndex] > 0) ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-700'
                     }`}>
-                      {borrowedOutstanding ? (borrowedOutstanding[size] || 0) : 0}
+                      {borrowedOutstanding ? (borrowedOutstanding[sizeIndex] || 0) : 0}
                     </div>
                   </td>
                 )}
@@ -129,16 +141,16 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       <input
                         type="number"
                         min="0"
-                        value={items[`size_${size}_borrowed` as keyof ItemsData] as number}
-                        onChange={(e) => handleChange(`size_${size}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                        value={items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number}
+                        onChange={(e) => handleChange(`size_${sizeIndex}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
                         className="w-24 px-3 py-2 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
                     <td className="px-4 py-4">
                       <input
                         type="text"
-                        value={items[`size_${size}_note` as keyof ItemsData] as string}
-                        onChange={(e) => handleChange(`size_${size}_note` as keyof ItemsData, e.target.value)}
+                        value={items[`size_${sizeIndex}_note` as keyof ItemsData] as string}
+                        onChange={(e) => handleChange(`size_${sizeIndex}_note` as keyof ItemsData, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </td>
@@ -187,20 +199,20 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {sizes.map((size, index) => (
+                  {sizeIndices.map((sizeIndex, index) => (
                     <tr 
-                      key={size}
+                      key={sizeIndex}
                       className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
                     >
                       <td className="sticky left-0 z-10 px-2 py-2 text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-3 sm:text-base bg-inherit">
-                        {size}
+                        {PLATE_SIZES[sizeIndex - 1]}
                       </td>
                       {outstandingBalances && (
                         <td className="px-2 py-2 text-center border-r border-gray-200">
                           <div className={`px-2 py-1 text-[10px] sm:text-xs font-semibold rounded whitespace-nowrap ${
-                            outstandingBalances[size] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
+                            outstandingBalances[sizeIndex] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
                           }`}>
-                            {outstandingBalances[size] || 0}
+                            {outstandingBalances[sizeIndex] || 0}
                           </div>
                         </td>
                       )}
@@ -209,17 +221,17 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                           type="number"
                           min="0"
                           inputMode="numeric"
-                          value={items[`size_${size}_qty` as keyof ItemsData] as number}
-                          onChange={(e) => handleChange(`size_${size}_qty` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                          value={items[`size_${sizeIndex}_qty` as keyof ItemsData] as number}
+                          onChange={(e) => handleChange(`size_${sizeIndex}_qty` as keyof ItemsData, parseInt(e.target.value) || 0)}
                           className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px] sm:min-h-[40px]"
                         />
                       </td>
                       {outstandingBalances && !hideColumns && (
                         <td className="px-2 py-2 text-center border-r border-gray-200">
                           <div className={`px-2 py-1 text-[10px] sm:text-xs font-semibold rounded whitespace-nowrap ${
-                            (borrowedOutstanding && borrowedOutstanding[size] > 0) ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
+                            (borrowedOutstanding && borrowedOutstanding[sizeIndex] > 0) ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
                           }`}>
-                            {borrowedOutstanding ? (borrowedOutstanding[size] || 0) : 0}
+                            {borrowedOutstanding ? (borrowedOutstanding[sizeIndex] || 0) : 0}
                           </div>
                         </td>
                       )}
@@ -230,16 +242,16 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                               type="number"
                               min="0"
                               inputMode="numeric"
-                              value={items[`size_${size}_borrowed` as keyof ItemsData] as number}
-                              onChange={(e) => handleChange(`size_${size}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
+                              value={items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number}
+                              onChange={(e) => handleChange(`size_${sizeIndex}_borrowed` as keyof ItemsData, parseInt(e.target.value) || 0)}
                               className="w-full px-2 py-1.5 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px] sm:min-h-[40px]"
                             />
                           </td>
                           <td className="px-2 py-2">
                             <input
                               type="text"
-                              value={items[`size_${size}_note` as keyof ItemsData] as string}
-                              onChange={(e) => handleChange(`size_${size}_note` as keyof ItemsData, e.target.value)}
+                              value={items[`size_${sizeIndex}_note` as keyof ItemsData] as string}
+                              onChange={(e) => handleChange(`size_${sizeIndex}_note` as keyof ItemsData, e.target.value)}
                               className="w-full px-2 py-1.5 text-xs sm:text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[36px] sm:min-h-[40px]"
                               placeholder="Optional note"
                             />
@@ -259,7 +271,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       </td>
                     )}
                     <td className="px-2 py-3 text-[10px] sm:text-xs font-semibold text-center border-r border-gray-200">
-                      {sizes.reduce((total, size) => total + (items[`size_${size}_qty` as keyof ItemsData] as number || 0), 0)} સંખ્યા
+                      {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0), 0)} સંખ્યા
                     </td>
                     {outstandingBalances && !hideColumns && (
                       <td className="px-2 py-3 text-center border-r border-gray-200">
@@ -269,12 +281,12 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                     {!hideColumns && (
                       <>
                         <td className="px-2 py-3 text-[10px] sm:text-xs font-semibold text-center border-r border-gray-200">
-                          {sizes.reduce((total, size) => total + (items[`size_${size}_borrowed` as keyof ItemsData] as number || 0), 0)} ઉધાર
+                          {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} ઉધાર
                         </td>
                         <td className="px-2 py-3 text-[10px] sm:text-xs font-semibold text-center">
-                          {sizes.reduce((total, size) => 
-                            total + (items[`size_${size}_qty` as keyof ItemsData] as number || 0) + 
-                            (items[`size_${size}_borrowed` as keyof ItemsData] as number || 0), 0)} કુલ
+                          {sizeIndices.reduce((total, sizeIndex) => 
+                            total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0) + 
+                            (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} કુલ
                         </td>
                       </>
                     )}
