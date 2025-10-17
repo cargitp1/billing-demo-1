@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Phone, User } from 'lucide-react';
+import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Phone, User, Filter } from 'lucide-react';
 import ReceiptTemplate from '../components/ReceiptTemplate';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -86,6 +86,8 @@ const ChallanBook: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [sortOption, setSortOption] = useState<'numberAZ' | 'numberZA' | 'dateNew' | 'dateOld'>('dateNew');
+  const [showSortMenu, setShowSortMenu] = useState(false);
 
   useEffect(() => {
     loadChallans();
@@ -369,7 +371,7 @@ const ChallanBook: React.FC = () => {
   const currentChallans = activeTab === 'udhar' ? udharChallans : jamaChallans;
   
   const filteredChallans = useMemo(() => {
-    return currentChallans.filter((challan) => {
+    const filtered = currentChallans.filter((challan) => {
       const searchLower = searchTerm.toLowerCase();
       return (
         challan.challanNumber.toLowerCase().includes(searchLower) ||
@@ -378,7 +380,22 @@ const ChallanBook: React.FC = () => {
         challan.site.toLowerCase().includes(searchLower)
       );
     });
-  }, [currentChallans, searchTerm]);
+
+    return filtered.sort((a, b) => {
+      switch (sortOption) {
+        case 'numberAZ':
+          return a.challanNumber.localeCompare(b.challanNumber);
+        case 'numberZA':
+          return b.challanNumber.localeCompare(a.challanNumber);
+        case 'dateNew':
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case 'dateOld':
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        default:
+          return 0;
+      }
+    });
+  }, [currentChallans, searchTerm, sortOption]);
 
   const totalPages = Math.ceil(filteredChallans.length / itemsPerPage);
   const paginatedChallans = useMemo(() => {
@@ -388,7 +405,7 @@ const ChallanBook: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, activeTab]);
+  }, [searchTerm, activeTab, sortOption]);
 
 
   const SkeletonRow = () => (
@@ -503,17 +520,74 @@ const ChallanBook: React.FC = () => {
               </nav>
             </div>
 
-            {/* Search Bar - Mobile Optimized */}
+            {/* Search and Filter Section */}
             <div className="p-3 border-b border-gray-200 sm:p-4 lg:p-6 bg-gray-50">
-              <div className="relative">
-                <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <input
-                  type="text"
-                  placeholder={t('searchChallan') || 'Search challans...'}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm min-h-[36px]"
-                />
+              <div className="flex items-center gap-2">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <input
+                    type="text"
+                    placeholder={t('searchChallan') || 'Search challans...'}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm min-h-[36px]"
+                  />
+                </div>
+
+                {/* Sort Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setShowSortMenu(!showSortMenu)}
+                    className="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation active:scale-95 min-h-[36px]"
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">
+                      {sortOption === 'numberAZ' && 'Number (A to Z)'}
+                      {sortOption === 'numberZA' && 'Number (Z to A)'}
+                      {sortOption === 'dateNew' && 'Newest First'}
+                      {sortOption === 'dateOld' && 'Oldest First'}
+                    </span>
+                    <span className="sm:hidden">
+                      {sortOption === 'numberAZ' && '↑ Number'}
+                      {sortOption === 'numberZA' && '↓ Number'}
+                      {sortOption === 'dateNew' && '↓ Date'}
+                      {sortOption === 'dateOld' && '↑ Date'}
+                    </span>
+                  </button>
+
+                  {showSortMenu && (
+                    <>
+                      <div 
+                        className="fixed inset-0 z-10" 
+                        onClick={() => setShowSortMenu(false)}
+                      ></div>
+                      <div className="absolute right-0 z-20 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                        <div className="py-2">
+                          {(['numberAZ', 'numberZA', 'dateNew', 'dateOld'] as const).map(option => (
+                            <button
+                              key={option}
+                              onClick={() => {
+                                setSortOption(option);
+                                setShowSortMenu(false);
+                              }}
+                              className={`w-full text-left px-3 py-2 text-xs transition-colors touch-manipulation active:scale-[0.98] ${
+                                sortOption === option 
+                                  ? 'bg-blue-50 text-blue-700 font-medium' 
+                                  : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                            >
+                              {option === 'numberAZ' && 'Number (A to Z)'}
+                              {option === 'numberZA' && 'Number (Z to A)'}
+                              {option === 'dateNew' && 'Newest First'}
+                              {option === 'dateOld' && 'Oldest First'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
