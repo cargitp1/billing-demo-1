@@ -53,11 +53,11 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      {/* Header - Mobile Compact */}
-      <div className="flex flex-col items-start justify-between gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:flex-row sm:items-center sm:gap-0 sm:p-4 lg:p-6 sm:rounded-xl">
-        <div>
-          <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('selectClient')}</h3>
-          <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-500">Choose client for udhar challan</p>
+      {/* Header Actions - Mobile Optimized */}
+      <div className="flex items-center justify-end p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl sm:justify-between">
+        <div className="hidden sm:block">
+          <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t('selectClient')}</h3>
+          <p className="mt-0.5 text-xs text-gray-500 lg:text-sm">Choose client for udhar challan</p>
         </div>
         <button
           onClick={onAddNewClick}
@@ -756,7 +756,7 @@ const UdharChallan: React.FC = () => {
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {currentStep === 'client-selection' ? (
             <>
-              <div className="mb-4 sm:mb-6 lg:mb-8">
+              <div className="hidden mb-4 sm:block sm:mb-6 lg:mb-8">
                 <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('udharChallanTitle')}</h2>
                 <p className="mt-1 text-[10px] sm:text-xs lg:text-sm lg:mt-2 text-gray-600">Create new udhar challan</p>
               </div>
