@@ -103,7 +103,7 @@ const Navbar: React.FC = () => {
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">{t('appName')}</h1>
-            <p className="text-xs" style={{ color: '#9ca3af' }}>Rental Management</p>
+            <p className="text-xs" style={{ color: '#9ca3af' }}>{t('Rental_Management')}</p>
           </div>
         </div>
       </div>

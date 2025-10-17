@@ -2,13 +2,14 @@ export const translations = {
   gu: {
     appName: 'નીલકંઠ પ્લેટ ડેપો',
     dashboard: 'ડેશબોર્ડ',
-    addClient: 'નવો ગ્રાહક ઉમેરો',
+    addClient: 'ગ્રાહકો',
     udharChallan: 'ઉધાર ચલણ',
     jamaChallan: 'જમા ચલણ',
     logout: 'લોગઆઉટ',
     login: 'લોગિન',
     username: 'વપરાશકર્તા નામ',
     password: 'પાસવર્ડ',
+    Rental_Management: 'ભાડા વહીવટ',
 
     clientNicName: 'ગ્રાહક ટૂંકું નામ',
     clientName: 'ગ્રાહક પૂરું નામ',
@@ -41,7 +42,7 @@ export const translations = {
     totalUdharChallans: 'કુલ ઉધાર ચલણ',
     totalJamaChallans: 'કુલ જમા ચલણ',
 
-    stockManagement: 'સ્ટોક મેનેજમેન્ટ',
+    stockManagement: 'સ્ટોક',
     totalStock: 'કુલ સ્ટોક',
     onRent: 'ભાડે',
     borrowed: 'ઉધાર',
@@ -83,7 +84,7 @@ export const translations = {
 
     clientManagement: 'ગ્રાહક મેનેજમેન્ટ',
     clientList: 'ગ્રાહક યાદી',
-    addNewClient: 'નવો ગ્રાહક ઉમેરો',
+    addNewClient: 'ગ્રાહકો',
     noClients: 'કોઈ ગ્રાહક મળ્યા નહીં',
     Todays_Date: "આજની તારીખ",
     Welcome: ', આપનું સ્વાગત કર છે. ',
