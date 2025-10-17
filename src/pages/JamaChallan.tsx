@@ -64,11 +64,13 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      {/* Header - Mobile Compact */}
-      <div className="flex flex-col items-start gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
-        <div>
-          <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('selectClient')}</h3>
-          <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-500">Choose client for jama challan</p>
+      {/* Header - Desktop Only */}
+      <div className="hidden sm:block">
+        <div className="flex flex-col items-start gap-2 p-4 bg-white border border-gray-200 shadow-sm rounded-xl lg:p-6">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t('selectClient')}</h3>
+            <p className="mt-0.5 text-xs lg:text-sm text-gray-500">Choose client for jama challan</p>
+          </div>
         </div>
       </div>
 
