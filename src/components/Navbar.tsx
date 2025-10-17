@@ -88,6 +88,12 @@ const Navbar: React.FC = () => {
     return colors[colorClass] || colors.blue;
   };
 
+  const getCurrentPageName = () => {
+    const currentPath = location.pathname;
+    const currentNavItem = navItems.find(item => item.path === currentPath);
+    return currentNavItem?.label || t('appName');
+  };
+
   const SidebarContent = () => (
     <>
       <div className="p-5" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
@@ -175,7 +181,9 @@ const Navbar: React.FC = () => {
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        <h1 className="mx-auto font-bold" style={{ fontSize: '18px', color: '#1f2937' }}>નીલકંઠ પ્લેટ ડેપો</h1>
+        <h1 className="mx-auto font-bold" style={{ fontSize: '16px', color: '#1f2937' }}>
+          {getCurrentPageName()}
+        </h1>
       </div>
 
       {mobileMenuOpen && (
