@@ -166,13 +166,13 @@ const Dashboard: React.FC = () => {
             <div className="flex flex-col items-start justify-between gap-2 mb-3 sm:flex-row sm:items-center sm:gap-0 sm:mb-5">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">Recent Activity</h2>
+                <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('recentActivity')}</h2>
               </div>
               <button 
                 onClick={() => navigate('/challan-book')}
                 className="flex items-center gap-0.5 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95"
               >
-                View All
+                {t('viewAll')}
                 <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </button>
             </div>
@@ -180,19 +180,19 @@ const Dashboard: React.FC = () => {
               <div className="inline-flex items-center justify-center w-10 h-10 mb-2 bg-gray-100 rounded-full sm:w-12 sm:h-12 sm:mb-3 lg:w-16 lg:h-16 lg:mb-4">
                 <Activity className="w-5 h-5 text-gray-400 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
               </div>
-              <p className="mb-3 text-xs text-gray-500 sm:text-sm sm:mb-4">Your recent challans will appear here</p>
+              <p className="mb-3 text-xs text-gray-500 sm:text-sm sm:mb-4">{t('recentChallansAppear')}</p>
               <div className="flex flex-col justify-center gap-2 sm:flex-row sm:gap-2.5">
                 <button
                   onClick={() => navigate('/udhar-challan')}
                   className="w-full px-3 py-2 text-xs font-medium text-white transition-all bg-red-600 rounded-lg sm:w-auto sm:text-sm sm:px-4 hover:bg-red-700 touch-manipulation active:scale-95"
                 >
-                  Create Udhar
+                  {t('createUdhar')}
                 </button>
                 <button
                   onClick={() => navigate('/jama-challan')}
                   className="w-full px-3 py-2 text-xs font-medium text-white transition-all bg-green-600 rounded-lg sm:w-auto sm:text-sm sm:px-4 hover:bg-green-700 touch-manipulation active:scale-95"
                 >
-                  Create Jama
+                  {t('createJama')}
                 </button>
               </div>
             </div>
