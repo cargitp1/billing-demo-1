@@ -67,7 +67,7 @@ const StockManagement: React.FC = () => {
 
     if (error) {
       console.error('Error fetching stock:', error);
-      toast.error('Failed to fetch stock data');
+      toast.error(t('failedToRefresh'));
     } else {
       const computed = (data || []).map((s: any) => ({
         ...s,
@@ -77,7 +77,7 @@ const StockManagement: React.FC = () => {
 
       setStocks(computed);
       if (showRefreshToast) {
-        toast.success('Stock data refreshed');
+        toast.success(t('stockRefreshed'));
       }
     }
 
@@ -98,19 +98,19 @@ const StockManagement: React.FC = () => {
 
   const handleSave = async (size: number) => {
     if (editValues.total_stock < 0 || editValues.lost_stock < 0) {
-      toast.error('Stock values cannot be negative');
+      toast.error(t('enterValidNumber'));
       return;
     }
 
 
     const stock = stocks.find(s => s.size === size);
     if (stock && editValues.total_stock < (stock.on_rent_stock + stock.borrowed_stock + editValues.lost_stock)) {
-      toast.error('Total stock cannot be less than items on rent + borrowed + lost');
+      toast.error(t('invalidStock'));
       return;
     }
 
 
-    const loadingToast = toast.loading('Updating stock...');
+    const loadingToast = toast.loading(t('updatingStock'));
 
 
     const { error } = await supabase
@@ -127,9 +127,9 @@ const StockManagement: React.FC = () => {
 
     if (error) {
       console.error('Error updating stock:', error);
-      toast.error('Failed to update stock');
+      toast.error(t('failedToUpdate'));
     } else {
-      toast.success(`Stock updated for size ${size}`);
+      toast.success(t('stockUpdated'));
       setEditingSize(null);
       fetchStock();
     }
@@ -159,8 +159,8 @@ const StockManagement: React.FC = () => {
       return (
         <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-xs font-medium bg-red-100 text-red-800">
           <AlertCircle className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-          <span className="hidden sm:inline">Out of Stock</span>
-          <span className="sm:hidden">Out</span>
+          <span className="hidden sm:inline">{t('outOfStock')}</span>
+          <span className="sm:hidden">0</span>
         </span>
       );
     }
@@ -168,7 +168,7 @@ const StockManagement: React.FC = () => {
       return (
         <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-xs font-medium bg-yellow-100 text-yellow-800">
           <TrendingDown className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-          <span className="hidden sm:inline">Low ({available})</span>
+          <span className="hidden sm:inline">{t('lowStock')} ({available})</span>
           <span className="sm:hidden">{available}</span>
         </span>
       );
@@ -176,7 +176,7 @@ const StockManagement: React.FC = () => {
     return (
       <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-xs font-medium bg-green-100 text-green-800">
         <CheckCircle className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
-        <span className="hidden sm:inline">In Stock ({available})</span>
+        <span className="hidden sm:inline">{t('inStock')} ({available})</span>
         <span className="sm:hidden">{available}</span>
       </span>
     );
@@ -247,12 +247,12 @@ const StockManagement: React.FC = () => {
           <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t('stockManagement')}</h2>
-              <p className="mt-1 text-xs text-gray-600">Manage inventory and stock levels</p>
+              <p className="mt-1 text-xs text-gray-600">{t('stockOverview')}</p>
             </div>
             <button
               onClick={() => fetchStock(true)}
               disabled={refreshing}
-              title="Refresh"
+              title={t('refreshStock')}
               className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
               <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
@@ -386,8 +386,8 @@ const StockManagement: React.FC = () => {
                       <td colSpan={6} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center gap-3">
                           <Package size={48} className="text-gray-300" />
-                          <p className="font-medium text-gray-500">No stock data found</p>
-                          <p className="text-sm text-gray-400">Try adjusting your search or filters</p>
+                              <p className="font-medium text-gray-500">{t('outOfStock')}</p>
+                          <p className="text-sm text-gray-400">{t('stockOverview')}</p>
                         </div>
                       </td>
                     </tr>
@@ -487,19 +487,19 @@ const StockManagement: React.FC = () => {
                             {t('size')}
                           </th>
                           <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
-                            Total
+                            {t('total_stock')}
                           </th>
                           <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[90px]">
-                            Available
+                            {t('available_stock')}
                           </th>
                           <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
-                            On Rent
+                            {t('on_rent_stock')}
                           </th>
                           <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
-                            Lost
+                            {t('lost_stock')}
                           </th>
                           <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 min-w-[60px] sm:min-w-[80px]">
-                            Actions
+                            {t('actions')}
                           </th>
                         </tr>
                       </thead>
@@ -621,7 +621,7 @@ const StockManagement: React.FC = () => {
             {stocks.length > 0 && !loading && (
               <div className="px-3 py-3 border-t border-gray-200 sm:px-4 sm:py-4 lg:px-6 bg-gray-50">
                 <div className="flex flex-col items-start justify-between gap-2 text-xs text-gray-600 sm:flex-row sm:items-center sm:text-sm">
-                  <span>Showing {filteredAndSortedStocks.length} of {stocks.length} items</span>
+                  <span>{t('showing')} {filteredAndSortedStocks.length} {t('of')} {stocks.length} {t('allStockItems')}</span>
                   <span className="text-[10px] sm:text-xs">
                     {t('lastUpdated')}: {format(new Date(stocks[0].updated_at), 'dd/MM/yyyy HH:mm')}
                   </span>
