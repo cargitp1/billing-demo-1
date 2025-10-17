@@ -242,11 +242,11 @@ const StockManagement: React.FC = () => {
       <Navbar />
       <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-4 sm:mb-6 lg:mb-8">
+          {/* Header - Desktop Only */}
+          <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
             <div>
-              <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('stockManagement')}</h2>
-              <p className="mt-0.5 text-[10px] sm:text-xs text-gray-600">Manage inventory and stock levels</p>
+              <h2 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t('stockManagement')}</h2>
+              <p className="mt-1 text-xs text-gray-600">Manage inventory and stock levels</p>
             </div>
             <button
               onClick={() => fetchStock(true)}
@@ -254,7 +254,7 @@ const StockManagement: React.FC = () => {
               title="Refresh"
               className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
             >
-              <RefreshCw className={`w-4 h-4 sm:w-5 sm:h-5 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
 
