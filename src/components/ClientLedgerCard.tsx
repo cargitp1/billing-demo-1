@@ -93,49 +93,47 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
 
         {/* Mobile Layout */}
         <div className="md:hidden">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="flex items-center justify-center flex-shrink-0 w-12 h-12 text-lg font-bold text-white bg-blue-500 rounded-full">
-              {getInitial(ledger.clientNicName)}
-            </div>
+          <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className="text-base font-bold text-gray-900 truncate">
+              <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base">
                 {ledger.clientNicName}
-              </h3>
-              <p className="text-xs text-gray-500 truncate">
+              </h4>
+              <p className="text-[10px] sm:text-xs text-gray-600 truncate">
                 {ledger.clientFullName}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-shrink-0 gap-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDownloadLedger();
                 }}
-                className="p-2 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
-                title="Download Ledger"
+                className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors touch-manipulation active:scale-95"
+                aria-label="Download Ledger"
               >
-                <Download className="w-5 h-5" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </button>
-
-              <button className="p-2 text-gray-400 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-600">
+              <button 
+                className="p-1.5 sm:p-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors touch-manipulation active:scale-95"
+                aria-label={isExpanded ? "Collapse" : "Expand"}
+              >
                 {isExpanded ? (
-                  <ChevronUp className="w-5 h-5" />
+                  <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 ) : (
-                  <ChevronDown className="w-5 h-5" />
+                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 )}
               </button>
             </div>
           </div>
-
-          <div className="flex items-center gap-4 text-xs text-gray-600">
-            <div className="flex items-center gap-1.5">
-              <MapPin className="flex-shrink-0 w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 mt-2 text-[10px] sm:text-xs text-gray-600">
+            <span className="flex items-center gap-1">
+              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span className="truncate">{ledger.clientSite}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Phone className="flex-shrink-0 w-3.5 h-3.5" />
+            </span>
+            <span className="flex items-center gap-1">
+              <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               <span>{ledger.clientPhone}</span>
-            </div>
+            </span>
           </div>
         </div>
       </div>
