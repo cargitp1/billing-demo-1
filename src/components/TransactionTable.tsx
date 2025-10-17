@@ -176,57 +176,57 @@ export default function TransactionTable({
           <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+            <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               {t.challanNumber}
             </th>
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+            <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               <button
                 onClick={toggleSort}
                 className="flex items-center gap-1 hover:text-gray-700"
               >
                 {t.date}
-                <ArrowUpDown className="w-4 h-4" />
+                <ArrowUpDown className="w-2 h-2 sm:w-3 sm:h-3" />
               </button>
             </th>
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+            <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               {t.grandTotal}
             </th>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
-              <th key={size} className="px-3 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+              <th key={size} className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                 {t.size} {size}
               </th>
             ))}
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+            <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               {t.site}
             </th>
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+            <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
               {t.driver}
             </th>
-            <th className="px-3 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+            <th className="px-1.5 py-1.5 text-[10px] sm:text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
               {t.actions}
             </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
           <tr className="font-semibold bg-blue-50">
-            <td className="px-3 py-4 whitespace-nowrap">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+            <td className="px-1.5 py-1.5 whitespace-nowrap text-[10px] sm:text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full"></div>
                 <span>{t.currentBalance}</span>
               </div>
             </td>
-            <td className="px-3 py-4 text-gray-500 whitespace-nowrap">-</td>
-            <td className="px-3 py-4 text-lg whitespace-nowrap">
+            <td className="px-1.5 py-1.5 text-gray-500 whitespace-nowrap text-[10px] sm:text-xs">-</td>
+            <td className="px-1.5 py-1.5 text-sm whitespace-nowrap text-[10px] sm:text-xs">
               {currentBalance.grandTotal}
             </td>
             {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
-              <td key={size} className="px-3 py-4 text-center whitespace-nowrap">
+              <td key={size} className="px-1.5 py-1.5 text-center whitespace-nowrap text-[10px] sm:text-xs">
                 {formatBalanceValue(currentBalance.sizes[size])}
               </td>
             ))}
-            <td className="px-3 py-4 text-gray-500 whitespace-nowrap">-</td>
-            <td className="px-3 py-4 text-gray-500 whitespace-nowrap">-</td>
-            <td className="px-3 py-4 text-gray-500 whitespace-nowrap">-</td>
+            <td className="px-1.5 py-1.5 text-gray-500 whitespace-nowrap text-[10px] sm:text-xs">-</td>
+            <td className="px-1.5 py-1.5 text-gray-500 whitespace-nowrap text-[10px] sm:text-xs">-</td>
+            <td className="px-1.5 py-1.5 text-gray-500 whitespace-nowrap text-[10px] sm:text-xs">-</td>
           </tr>
 
           {sortedTransactions.map((transaction, index) => (
@@ -234,9 +234,9 @@ export default function TransactionTable({
               key={`${transaction.type}-${transaction.challanId}-${index}`}
               className={transaction.type === 'udhar' ? 'bg-red-50' : 'bg-green-50'}
             >
-              <td className="px-3 py-4 whitespace-nowrap">
-                <div className="flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${
+              <td className="px-1.5 py-1.5 whitespace-nowrap text-[10px] sm:text-xs">
+                <div className="flex items-center gap-1">
+                  <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${
                     transaction.type === 'udhar' ? 'bg-red-500' : 'bg-green-500'
                   }`}></div>
                   <span>
@@ -244,33 +244,33 @@ export default function TransactionTable({
                   </span>
                 </div>
               </td>
-              <td className="px-3 py-4 whitespace-nowrap">
+              <td className="px-1.5 py-1.5 whitespace-nowrap text-[10px] sm:text-xs">
                 {new Date(transaction.date).toLocaleDateString('en-GB')}
               </td>
-              <td className="px-3 py-4 font-medium whitespace-nowrap">
+              <td className="px-1.5 py-1.5 font-medium whitespace-nowrap text-[10px] sm:text-xs">
                 {transaction.grandTotal}
               </td>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => {
                 const sizeNote = transaction.items?.[`size_${size}_note`];
                 return (
-                  <td key={size} className="px-3 py-4 text-center">
+                  <td key={size} className="px-1.5 py-1.5 text-center text-[10px] sm:text-xs">
                     {formatSizeValue(transaction.sizes[size], sizeNote)}
                   </td>
                 );
               })}
-              <td className="px-3 py-4 whitespace-nowrap">
+              <td className="px-1.5 py-1.5 whitespace-nowrap text-[10px] sm:text-xs">
                 {transaction.site}
               </td>
-              <td className="px-3 py-4 whitespace-nowrap">
+              <td className="px-1.5 py-1.5 whitespace-nowrap text-[10px] sm:text-xs">
                 {transaction.driverName || '-'}
               </td>
-              <td className="px-3 py-4 text-center whitespace-nowrap">
+              <td className="px-1.5 py-1.5 text-center whitespace-nowrap">
                 <button
                   onClick={() => handleDownloadChallan(transaction)}
-                  className="inline-flex items-center justify-center p-1 text-blue-600 rounded hover:text-blue-800 hover:bg-blue-100"
+                  className="inline-flex items-center justify-center p-0.5 text-blue-600 rounded hover:text-blue-800 hover:bg-blue-100"
                   title={t.downloadJPEG}
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 </button>
               </td>
             </tr>

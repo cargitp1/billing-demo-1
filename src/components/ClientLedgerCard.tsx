@@ -95,7 +95,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
         <div className="md:hidden">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base">
+              <h4 className="text-base font-bold text-gray-900 truncate">
                 {ledger.clientNicName}
               </h4>
               <p className="text-[10px] sm:text-xs text-gray-600 truncate">
