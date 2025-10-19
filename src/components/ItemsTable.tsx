@@ -44,12 +44,24 @@ export interface ItemsData {
   main_note: string;
 }
 
+interface StockData {
+  size: number;
+  total_stock: number;
+  on_rent_stock: number;
+  borrowed_stock: number;
+  lost_stock: number;
+  available_stock: number;
+  updated_at: string;
+}
+
 interface ItemsTableProps {
   items: ItemsData;
   onChange: (items: ItemsData) => void;
   outstandingBalances?: { [key: number]: number };
   borrowedOutstanding?: { [key: number]: number };
   hideColumns?: boolean;
+  stockData?: StockData[];
+  showAvailable?: boolean;
 }
 
 const ItemsTable: React.FC<ItemsTableProps> = ({ 
@@ -57,7 +69,9 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
   onChange, 
   outstandingBalances, 
   borrowedOutstanding, 
-  hideColumns = false 
+  hideColumns = false,
+  stockData = [],
+  showAvailable = false
 }) => {
   const { t } = useLanguage();
 
@@ -84,6 +98,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
               {outstandingBalances && (
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
                   Outstanding
+                </th>
+              )}
+              {showAvailable && (
+                <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
+                  Available
                 </th>
               )}
               <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
@@ -118,6 +137,17 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       outstandingBalances[sizeIndex] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                     }`}>
                       {outstandingBalances[sizeIndex] || 0}
+                    </div>
+                  </td>
+                )}
+                {showAvailable && (
+                  <td className="px-4 py-4 text-center whitespace-nowrap">
+                    <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
+                      stockData.find(s => s.size === sizeIndex)?.available_stock === 0 
+                        ? 'bg-red-100 text-red-700' 
+                        : 'bg-emerald-100 text-emerald-700'
+                    }`}>
+                      {stockData.find(s => s.size === sizeIndex)?.available_stock || 0}
                     </div>
                   </td>
                 )}
@@ -182,6 +212,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                         Outstanding
                       </th>
                     )}
+                    {showAvailable && (
+                      <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                        Available
+                      </th>
+                    )}
                     <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
                       {t('quantity')}
                     </th>
@@ -217,6 +252,17 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                             outstandingBalances[sizeIndex] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
                           }`}>
                             {outstandingBalances[sizeIndex] || 0}
+                          </div>
+                        </td>
+                      )}
+                      {showAvailable && (
+                        <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                          <div className={`px-1 py-0.5 text-[8px] sm:text-[10px] font-semibold rounded whitespace-nowrap ${
+                            stockData.find(s => s.size === sizeIndex)?.available_stock === 0 
+                              ? 'bg-red-100 text-red-700' 
+                              : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            {stockData.find(s => s.size === sizeIndex)?.available_stock || 0}
                           </div>
                         </td>
                       )}
@@ -270,6 +316,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       કુલ
                     </td>
                     {outstandingBalances && (
+                      <td className="px-1 py-2 text-center border-r border-gray-200">
+                        -
+                      </td>
+                    )}
+                    {showAvailable && (
                       <td className="px-1 py-2 text-center border-r border-gray-200">
                         -
                       </td>

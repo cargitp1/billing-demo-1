@@ -20,6 +20,16 @@ import {
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
 import ReceiptTemplate from '../components/ReceiptTemplate';
+
+interface StockData {
+  size: number;
+  total_stock: number;
+  on_rent_stock: number;
+  borrowed_stock: number;
+  lost_stock: number;
+  available_stock: number;
+  updated_at: string;
+}
 import { useLanguage } from '../contexts/LanguageContext';
 import { supabase } from '../utils/supabase';
 import { generateJPEG } from '../utils/generateJPEG';
@@ -176,6 +186,7 @@ interface ChallanDetailsStepProps {
   showSuccess: boolean;
   hideExtraColumns: boolean;
   setHideExtraColumns: (value: boolean) => void;
+  stockData: StockData[];
 }
 
 const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
@@ -200,7 +211,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
   errors,
   showSuccess,
   hideExtraColumns,
-  setHideExtraColumns
+  setHideExtraColumns,
+  stockData
 }) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
@@ -408,7 +420,13 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
               </p>
             </div>
           )}
-          <ItemsTable items={items} onChange={setItems} hideColumns={hideExtraColumns} />
+                    <ItemsTable 
+            items={items} 
+            onChange={setItems} 
+            hideColumns={hideExtraColumns}
+            stockData={stockData}
+            showAvailable={true}
+          />
         </div>
 
         {/* Save or Success State - Mobile Optimized */}
@@ -462,6 +480,9 @@ const UdharChallan: React.FC = () => {
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
+  
+  // Stock management
+  const [stockData, setStockData] = useState<StockData[]>([]);
   
   // Challan details
   const [challanNumber, setChallanNumber] = useState('');
@@ -541,11 +562,33 @@ const UdharChallan: React.FC = () => {
     }
   };
 
+  const fetchStock = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stock')
+        .select('*')
+        .order('size');
+
+      if (error) throw error;
+
+      const computed = (data || []).map((s: any) => ({
+        ...s,
+        available_stock: Math.max(0, (s.total_stock || 0) - (s.on_rent_stock || 0) - (s.lost_stock || 0))
+      }));
+
+      setStockData(computed);
+    } catch (error) {
+      console.error('Error fetching stock:', error);
+      toast.error('Failed to fetch stock data');
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
       await fetchClients();
       await generateNextChallanNumber();
       await fetchPreviousDriverNames();
+      await fetchStock();
     };
     init();
   }, []);
@@ -827,6 +870,7 @@ const UdharChallan: React.FC = () => {
                 showSuccess={showSuccess}
                 hideExtraColumns={hideExtraColumns}
                 setHideExtraColumns={setHideExtraColumns}
+                stockData={stockData}
               />
             )
           )}
