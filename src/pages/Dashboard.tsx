@@ -99,62 +99,60 @@ const Dashboard: React.FC = () => {
       />
       <Navbar />
       
-      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0">
-        <div className="w-full px-3 py-3 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-8 max-w-7xl">
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0 pb-safe">
+        <div className="w-full px-2.5 py-2.5 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-8 max-w-7xl">
           {/* Welcome Section - Compact Mobile */}
-          <div className="relative p-3 mb-3 overflow-hidden text-white rounded-lg shadow-lg sm:p-5 sm:mb-5 lg:p-8 lg:mb-8 bg-gradient-to-r from-blue-600 to-indigo-700 sm:rounded-xl lg:rounded-2xl">
-            <div className="absolute top-0 right-0 w-24 h-24 -mt-12 -mr-12 bg-white rounded-full sm:w-40 sm:h-40 lg:w-64 lg:h-64 sm:-mt-20 sm:-mr-20 lg:-mt-32 lg:-mr-32 opacity-5"></div>
-            <div className="absolute bottom-0 left-0 w-20 h-20 -mb-10 -ml-10 bg-white rounded-full sm:w-32 sm:h-32 lg:w-48 lg:h-48 sm:-mb-16 sm:-ml-16 lg:-mb-24 lg:-ml-24 opacity-5"></div>
-            <div className="relative">
-              <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-1.5">
+          <div className="relative overflow-hidden text-white shadow-md rounded-xl bg-gradient-to-r from-blue-600 to-indigo-700 sm:rounded-2xl lg:rounded-3xl">
+            <div className="absolute top-0 right-0 w-20 h-20 -mt-10 -mr-10 bg-white rounded-full sm:w-40 sm:h-40 lg:w-64 lg:h-64 sm:-mt-20 sm:-mr-20 lg:-mt-32 lg:-mr-32 opacity-5"></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 -mb-8 -ml-8 bg-white rounded-full sm:w-32 sm:h-32 lg:w-48 lg:h-48 sm:-mb-16 sm:-ml-16 lg:-mb-24 lg:-ml-24 opacity-5"></div>
+            <div className="relative px-3.5 py-3 sm:p-5 lg:p-8">
+              <div className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2">
                 <Sparkles className="w-4 h-4 text-yellow-300 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                <p className="text-xs font-medium text-blue-100 sm:text-sm lg:text-base">{greeting}!</p>
+                <p className="text-sm font-medium text-blue-100 sm:text-base lg:text-lg">{greeting}!</p>
               </div>
-              <h1 className="mb-1 sm:mb-1.5 text-xl sm:text-2xl lg:text-4xl font-bold leading-tight">
+              <h1 className="mb-1.5 sm:mb-2 text-lg sm:text-2xl lg:text-4xl font-bold leading-tight">
                 {t('appName')}
               </h1>
-              <p className="mb-2 text-xs text-blue-100 sm:text-sm lg:text-base sm:mb-0">{t('Manage_your')}</p>
+              <p className="mb-2 text-[13px] text-blue-100 sm:text-base lg:text-lg sm:mb-0">{t('Manage_your')}</p>
               
-              {/* Mobile Date Display */}
-              <div className="flex items-center gap-1.5 mt-2 sm:hidden">
-                <Calendar className="w-3.5 h-3.5 text-blue-200" />
-                <p className="text-xs font-medium">{format(new Date(), 'dd MMM yyyy')}</p>
-              </div>
-              
-              {/* Desktop Date Display */}
-              <div className="absolute items-center hidden gap-3 top-3 right-3 sm:flex sm:top-4 sm:right-4 lg:top-6 lg:right-6">
-                <div className="text-right">
-                  <p className="mb-0.5 text-[10px] sm:text-xs text-blue-100">{t('Todays_Date')}</p>
-                  <p className="text-sm font-semibold sm:text-base lg:text-xl">{format(new Date(), 'dd MMM yyyy')}</p>
+              {/* Unified Date Display */}
+              <div className="flex items-center justify-between mt-3 sm:mt-4">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <Calendar className="w-4 h-4 text-blue-200 sm:w-5 sm:h-5" />
+                  <div>
+                    <p className="text-[10px] text-blue-100 mb-0.5 sm:text-xs">{t('Todays_Date')}</p>
+                    <p className="text-sm font-medium sm:text-base">{format(new Date(), 'dd MMM yyyy')}</p>
+                  </div>
                 </div>
-                <Calendar className="w-8 h-8 text-blue-200 sm:w-9 sm:h-9 lg:w-12 lg:h-12" />
               </div>
             </div>
           </div>
 
-          {/* Quick Actions - Compact Mobile */}
-          <div className="mb-3 sm:mb-5 lg:mb-8">
-            <div className="flex items-center gap-1.5 sm:gap-2 mb-2.5 sm:mb-4 lg:mb-6">
-              <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-              <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('Quick_Actions')}</h2>
+          {/* Quick Actions - Enhanced Mobile */}
+          <div className="mt-3 mb-3 sm:mt-5 sm:mb-5 lg:mt-8 lg:mb-8">
+            <div className="flex items-center gap-2 mb-3 sm:gap-2.5 sm:mb-4 lg:mb-6">
+              <div className="p-1.5 bg-gray-100 rounded-lg sm:p-2">
+                <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+              </div>
+              <h2 className="text-lg font-bold text-gray-900 sm:text-xl lg:text-2xl">{t('Quick_Actions')}</h2>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 lg:gap-5">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-4 lg:grid-cols-3 lg:gap-6">
               {quickActions.map((action) => (
                 <button
                   key={action.path}
                   onClick={() => navigate(action.path)}
-                  className={`group relative overflow-hidden bg-gradient-to-br ${action.gradient} ${action.hoverGradient} rounded-lg sm:rounded-xl shadow-md sm:shadow-lg p-3 sm:p-4 lg:p-5 text-white transition-all transform active:scale-[0.97] sm:hover:scale-105 hover:shadow-2xl touch-manipulation`}
+                  className={`group relative overflow-hidden bg-gradient-to-br ${action.gradient} ${action.hoverGradient} rounded-xl sm:rounded-2xl shadow-md sm:shadow-lg p-3.5 sm:p-4 lg:p-5 text-white transition-all transform active:scale-[0.97] sm:hover:scale-[1.02] hover:shadow-xl touch-manipulation`}
                 >
-                  <div className="absolute top-0 right-0 w-20 h-20 transition-transform bg-white rounded-bl-full sm:w-24 sm:h-24 lg:w-28 lg:h-28 opacity-10 group-hover:scale-110"></div>
+                  <div className="absolute top-0 right-0 w-24 h-24 transition-transform bg-white rounded-bl-full sm:w-28 sm:h-28 lg:w-32 lg:h-32 opacity-10 group-hover:scale-110"></div>
                   <div className="relative">
-                    <div className="flex items-start justify-between mb-2 sm:mb-3">
-                      <div className="p-1.5 sm:p-2 lg:p-2.5 bg-white rounded-md sm:rounded-lg bg-opacity-20 backdrop-blur-sm">
+                    <div className="flex items-start justify-between mb-2.5 sm:mb-3">
+                      <div className="p-2 bg-white rounded-lg bg-opacity-20 backdrop-blur-sm sm:p-2.5 lg:p-3">
                         <action.icon className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
                       </div>
-                      <ArrowUpRight className="hidden w-4 h-4 transition-opacity opacity-0 sm:block sm:w-4 sm:h-4 lg:w-5 lg:h-5 group-hover:opacity-100" />
+                      <ArrowUpRight className="w-4 h-4 transition-opacity opacity-40 sm:w-5 sm:h-5 group-hover:opacity-100" />
                     </div>
-                    <h3 className="mb-1 text-sm font-bold leading-tight sm:text-base lg:text-lg">{action.title}</h3>
-                    <p className="text-[10px] sm:text-xs text-white text-opacity-90 leading-snug line-clamp-1 sm:line-clamp-none">{action.description}</p>
+                    <h3 className="mb-1 text-[15px] font-bold leading-tight sm:text-lg lg:text-xl">{action.title}</h3>
+                    <p className="text-xs leading-snug text-white text-opacity-90 sm:text-sm">{action.description}</p>
                   </div>
                 </button>
               ))}
