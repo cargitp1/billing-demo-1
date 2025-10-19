@@ -38,6 +38,7 @@ const Landing: React.FC = () => {
   const { t } = useLanguage();
   const [scrolled, setScrolled] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const containerRef = useRef(null);
 
   const { scrollYProgress } = useScroll({
@@ -57,48 +58,48 @@ const Landing: React.FC = () => {
   const features = [
     {
       icon: Users,
-      title: 'Client Management',
-      description: 'Centralized hub for all client data, contacts, and interactions',
+      title: 'ગ્રાહક વ્યવસ્થાપન',
+      description: 'તમામ ગ્રાહક માહિતી, સંપર્કો અને વ્યવહારો માટે કેન્દ્રીય હબ',
       color: 'from-blue-500 to-cyan-500',
       iconBg: 'bg-blue-500/10',
       iconColor: 'text-blue-600'
     },
     {
       icon: FileText,
-      title: 'Smart Challans',
-      description: 'Digital udhar & jama challans with instant generation and tracking',
+      title: 'સ્માર્ટ ચલણ',
+      description: 'તાત્કાલિક ઉત્પન્ન અને ટ્રેકિંગ સાથે ડિજિટલ ઉધાર અને જમા ચલણ',
       color: 'from-pink-500 to-rose-500',
       iconBg: 'bg-pink-500/10',
       iconColor: 'text-pink-600'
     },
     {
       icon: Package,
-      title: 'Inventory Control',
-      description: 'Real-time stock tracking with automated alerts and insights',
+      title: 'સ્ટોક નિયંત્રણ',
+      description: 'સ્વચાલિત એલર્ટ્સ અને માહિતી સાથે રીયલ-ટાઈમ સ્ટોક ટ્રેકિંગ',
       color: 'from-green-500 to-emerald-500',
       iconBg: 'bg-green-500/10',
       iconColor: 'text-green-600'
     },
     {
       icon: BarChart3,
-      title: 'Financial Ledger',
-      description: 'Complete transaction history with balance tracking and reports',
+      title: 'નાણાકીય ખાતાવહી',
+      description: 'બેલેન્સ ટ્રેકિંગ અને રિપોર્ટ્સ સાથે સંપૂર્ણ વ્યવહાર ઇતિહાસ',
       color: 'from-purple-500 to-violet-500',
       iconBg: 'bg-purple-500/10',
       iconColor: 'text-purple-600'
     },
     {
       icon: Shield,
-      title: 'Bank-Level Security',
-      description: 'Enterprise-grade encryption protecting your business data',
+      title: 'બેંક-લેવલ સુરક્ષા',
+      description: 'તમારા વ્યવસાયની માહિતીની સુરક્ષા માટે એન્ટરપ્રાઈઝ-ગ્રેડ એન્ક્રિપ્શન',
       color: 'from-orange-500 to-amber-500',
       iconBg: 'bg-orange-500/10',
       iconColor: 'text-orange-600'
     },
     {
       icon: Zap,
-      title: 'Lightning Speed',
-      description: 'Optimized performance for instant operations and workflow',
+      title: 'વીજળી વેગ',
+      description: 'ઝડપી કામગીરી અને કાર્યપ્રવાહ માટે ઓપ્ટિમાઈઝ કરેલ પરફોર્મન્સ',
       color: 'from-indigo-500 to-blue-500',
       iconBg: 'bg-indigo-500/10',
       iconColor: 'text-indigo-600'
@@ -106,70 +107,70 @@ const Landing: React.FC = () => {
   ];
 
   const benefits = [
-    { icon: Target, title: '10x Faster', description: 'Complete tasks in seconds, not hours' },
-    { icon: TrendingUp, title: '50% Cost Savings', description: 'Reduce operational expenses significantly' },
-    { icon: Rocket, title: '99.9% Uptime', description: 'Always available when you need it' },
-    { icon: Shield, title: 'SOC 2 Certified', description: 'Enterprise security standards' }
+    { icon: Target, title: '10x ઝડપી', description: 'કલાકો નહીં, સેકન્ડોમાં કાર્યો પૂર્ણ કરો' },
+    { icon: TrendingUp, title: '50% ખર્ચ બચત', description: 'કામગીરી ખર્ચમાં નોંધપાત્ર ઘટાડો' },
+    { icon: Rocket, title: '99.9% અપટાઈમ', description: 'જ્યારે જોઈએ ત્યારે હંમેશા ઉપલબ્ધ' },
+    { icon: Shield, title: 'SOC 2 પ્રમાણિત', description: 'એન્ટરપ્રાઈઝ સુરક્ષા ધોરણો' }
   ];
 
   const stats = [
-    { value: '10K+', label: 'Active Users', color: 'from-blue-500 to-cyan-500' },
-    { value: '1M+', label: 'Challans Processed', color: 'from-purple-500 to-pink-500' },
-    { value: '₹500Cr+', label: 'Transactions Managed', color: 'from-green-500 to-emerald-500' },
-    { value: '4.9/5', label: 'User Rating', color: 'from-orange-500 to-red-500' }
+    { value: '10K+', label: 'સક્રિય વપરાશકર્તાઓ', color: 'from-blue-500 to-cyan-500' },
+    { value: '1M+', label: 'પ્રોસેસ કરેલ ચલણો', color: 'from-purple-500 to-pink-500' },
+    { value: '₹500Cr+', label: 'મેનેજ કરેલ વ્યવહારો', color: 'from-green-500 to-emerald-500' },
+    { value: '4.9/5', label: 'વપરાશકર્તા રેટિંગ', color: 'from-orange-500 to-red-500' }
   ];
 
   const pricingTiers = [
     {
-      name: 'Starter',
+      name: 'શરૂઆત',
       price: '₹999',
-      period: '/month',
-      description: 'Perfect for small businesses',
+      period: '/માસ',
+      description: 'નાના વ્યવસાયો માટે શ્રેષ્ઠ',
       features: [
-        'Up to 50 clients',
-        'Unlimited challans',
-        'Basic reports',
-        'Email support',
-        'Mobile app access'
+        '50 ગ્રાહકો સુધી',
+        'અમર્યાદિત ચલણો',
+        'મૂળભૂત રિપોર્ટ્સ',
+        'ઈમેલ સપોર્ટ',
+        'મોબાઈલ એપ એક્સેસ'
       ],
-      cta: 'Start Free Trial',
+      cta: 'ફ્રી ટ્રાયલ શરૂ કરો',
       popular: false,
       gradient: 'from-gray-50 to-gray-100'
     },
     {
-      name: 'Professional',
+      name: 'પ્રોફેશનલ',
       price: '₹1,999',
-      period: '/month',
-      description: 'For growing businesses',
+      period: '/માસ',
+      description: 'વધતા વ્યવસાયો માટે',
       features: [
-        'Unlimited clients',
-        'Unlimited challans',
-        'Advanced analytics',
-        'Priority support',
-        'Custom branding',
-        'API access',
-        'Multi-user accounts',
-        'Export to Excel/PDF'
+        'અમર્યાદિત ગ્રાહકો',
+        'અમર્યાદિત ચલણો',
+        'એડવાન્સ એનાલિટિક્સ',
+        'પ્રાયોરિટી સપોર્ટ',
+        'કસ્ટમ બ્રાન્ડિંગ',
+        'API એક્સેસ',
+        'મલ્ટી-યુઝર એકાઉન્ટ્સ',
+        'એક્સેલ/PDF માં એક્સપોર્ટ'
       ],
-      cta: 'Get Started',
+      cta: 'શરૂ કરો',
       popular: true,
       gradient: 'from-blue-50 to-indigo-50'
     },
     {
-      name: 'Enterprise',
-      price: 'Custom',
+      name: 'એન્ટરપ્રાઈઝ',
+      price: 'કસ્ટમ',
       period: '',
-      description: 'For large organizations',
+      description: 'મોટી કંપનીઓ માટે',
       features: [
-        'Everything in Pro',
-        'Dedicated manager',
-        'Custom integrations',
-        'On-premise option',
-        'SLA guarantee',
-        'Training sessions',
-        'White-label solution'
+        'પ્રો પ્લાનની બધી સુવિધાઓ',
+        'ડેડિકેટેડ મેનેજર',
+        'કસ્ટમ ઈન્ટિગ્રેશન',
+        'ઓન-પ્રિમાઈસ વિકલ્પ',
+        'SLA ગેરંટી',
+        'ટ્રેનિંગ સેશન્સ',
+        'વ્હાઈટ-લેબલ સોલ્યુશન'
       ],
-      cta: 'Contact Sales',
+      cta: 'સેલ્સનો સંપર્ક કરો',
       popular: false,
       gradient: 'from-purple-50 to-pink-50'
     }
@@ -177,26 +178,26 @@ const Landing: React.FC = () => {
 
   const testimonials = [
     {
-      name: 'Rajesh Patel',
-      role: 'CEO, Construction Co.',
-      content: 'This platform revolutionized our rental operations. We saved 15 hours per week on paperwork.',
-      avatar: 'R',
+      name: 'રાજેશ પટેલ',
+      role: 'સીઈઓ, કન્સ્ટ્રક્શન કંપની',
+      content: 'આ પ્લેટફોર્મે અમારી ભાડા કામગીરીમાં ક્રાંતિ આણી છે. અમે પેપરવર્કમાં અઠવાડિયે 15 કલાક બચાવ્યા છે.',
+      avatar: 'ર',
       rating: 5,
-      company: 'BuildTech Industries'
+      company: 'બિલ્ડટેક ઈન્ડસ્ટ્રીઝ'
     },
     {
-      name: 'Priya Sharma',
-      role: 'Operations Head',
-      content: 'The real-time tracking feature is incredible. We always know exactly what equipment is where.',
-      avatar: 'P',
+      name: 'પ્રિયા શર્મા',
+      role: 'ઓપરેશન્સ હેડ',
+      content: 'રીયલ-ટાઈમ ટ્રેકિંગ ફીચર અદ્ભુત છે. અમને હંમેશા ખબર હોય છે કે કયું સાધન ક્યાં છે.',
+      avatar: 'પ',
       rating: 5,
-      company: 'Equipment Solutions'
+      company: 'ઈક્વિપમેન્ટ સોલ્યુશન્સ'
     },
     {
-      name: 'Amit Kumar',
-      role: 'Finance Manager',
-      content: 'Client ledger automation reduced our billing errors to zero. The ROI was immediate.',
-      avatar: 'A',
+      name: 'અમિત કુમાર',
+      role: 'ફાઈનાન્સ મેનેજર',
+      content: 'ક્લાયન્ટ લેજર ઓટોમેશને અમારી બિલિંગ ભૂલો શૂન્ય કરી દીધી. ROI તાત્કાલિક હતો.',
+      avatar: 'અ',
       rating: 5,
       company: 'Rental Express'
     }
@@ -256,11 +257,49 @@ const Landing: React.FC = () => {
             {/* Mobile Menu */}
             <div className="flex items-center gap-3 md:hidden">
               <LanguageToggle />
-              <motion.button whileTap={{ scale: 0.9 }}>
-                <Menu className="w-6 h-6 text-gray-900" />
+              <motion.button 
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                whileTap={{ scale: 0.9 }}
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6 text-gray-900" />
+                ) : (
+                  <Menu className="w-6 h-6 text-gray-900" />
+                )}
               </motion.button>
             </div>
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          <motion.div
+            initial={false}
+            animate={{ height: isMobileMenuOpen ? 'auto' : 0, opacity: isMobileMenuOpen ? 1 : 0 }}
+            className={`md:hidden overflow-hidden ${isMobileMenuOpen ? 'border-t border-gray-200/50' : ''}`}
+          >
+            <div className="px-4 py-3 space-y-3">
+              {['Features', 'Pricing', 'About'].map((item) => (
+                <motion.a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  className="block text-sm font-medium text-gray-700 transition-colors hover:text-blue-600"
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {item}
+                </motion.a>
+              ))}
+              <motion.button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navigate('/login');
+                }}
+                className="w-full px-5 py-2.5 text-sm font-semibold text-white rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600"
+                whileTap={{ scale: 0.98 }}
+              >
+                {t('login')}
+              </motion.button>
+            </div>
+          </motion.div>
         </div>
       </motion.nav>
 
@@ -289,7 +328,7 @@ const Landing: React.FC = () => {
                 <span className="absolute inline-flex w-full h-full bg-green-400 rounded-full opacity-75 animate-ping"></span>
                 <span className="relative inline-flex w-2 h-2 bg-green-500 rounded-full"></span>
               </span>
-              <span className="text-sm font-medium text-gray-900">Trusted by 10,000+ businesses across India</span>
+              <span className="text-sm font-medium text-gray-900">ભારતમાં 10,000+ વ્યવસાયો દ્વારા વિશ્વસનીય</span>
             </motion.div>
 
             {/* Headline */}
@@ -299,10 +338,10 @@ const Landing: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.2 }}
               className="mb-6 text-5xl font-extrabold leading-tight text-gray-900 sm:text-6xl lg:text-7xl"
             >
-              Rental Management
+              ભાડા વ્યવસ્થાપન
               <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600">
-                Reimagined
+                નવી રીતે
               </span>
             </motion.h1>
 
@@ -312,8 +351,8 @@ const Landing: React.FC = () => {
               transition={{ duration: 0.8, delay: 0.4 }}
               className="max-w-3xl mx-auto mb-10 text-xl leading-relaxed text-gray-600 sm:text-2xl"
             >
-              The all-in-one platform that brings clarity to your rental operations. 
-              Track inventory, manage clients, and grow revenue—all in one place.
+              તમારા ભાડા વ્યવસાયને સ્પષ્ટતા આપતું ઓલ-ઇન-વન પ્લેટફોર્મ.
+              સ્ટોક ટ્રેક કરો, ગ્રાહકોનું સંચાલન કરો, અને આવક વધારો - બધું એક જ જગ્યાએ.
             </motion.p>
 
             {/* CTA Buttons */}
@@ -330,7 +369,7 @@ const Landing: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Start Free Trial
+                  ફ્રી ટ્રાયલ શરૂ કરો
                   <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
                 </span>
                 <div className="absolute inset-0 transition-opacity opacity-0 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-500 group-hover:opacity-100 blur"></div>
@@ -342,7 +381,7 @@ const Landing: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
               >
                 <PlayCircle className="w-5 h-5" />
-                Watch Demo
+                ડેમો જુઓ
               </motion.button>
             </motion.div>
 
@@ -355,15 +394,15 @@ const Landing: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>14-day free trial</span>
+                <span>14 દિવસની ફ્રી ટ્રાયલ</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>No credit card required</span>
+                <span>ક્રેડિટ કાર્ડની જરૂર નથી</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>Cancel anytime</span>
+                <span>ગમે ત્યારે કેન્સલ કરો</span>
               </div>
             </motion.div>
           </div>
