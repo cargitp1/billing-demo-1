@@ -66,28 +66,38 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                   {ledger.clientPhone}
                 </span>
               </div>
+
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownloadLedger();
-              }}
-              className="p-2 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
-              title="Download Ledger"
-            >
-              <Download className="w-5 h-5" />
-            </button>
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <span className="text-xs text-gray-500">Balance</span>
+              <span className={`text-sm font-semibold ${ledger.currentBalance.grandTotal > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                {ledger.currentBalance.grandTotal}
+              </span>
+            </div>
 
-            <button className="p-2 text-gray-400 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-600">
-              {isExpanded ? (
-                <ChevronUp className="w-5 h-5" />
-              ) : (
-                <ChevronDown className="w-5 h-5" />
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownloadLedger();
+                }}
+                className="p-2 text-blue-600 transition-colors bg-blue-50 rounded-lg hover:bg-blue-100 hover:text-blue-700"
+                title="Download Ledger"
+              >
+                <Download className="w-5 h-5" />
+              </button>
+
+              <button className="p-2 text-gray-400 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-600">
+                {isExpanded ? (
+                  <ChevronUp className="w-5 h-5" />
+                ) : (
+                  <ChevronDown className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -102,27 +112,36 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 {ledger.clientFullName}
               </p>
             </div>
-            <div className="flex flex-shrink-0 gap-1">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDownloadLedger();
-                }}
-                className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors touch-manipulation active:scale-95"
-                aria-label="Download Ledger"
-              >
-                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
-              <button 
-                className="p-1.5 sm:p-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors touch-manipulation active:scale-95"
-                aria-label={isExpanded ? "Collapse" : "Expand"}
-              >
-                {isExpanded ? (
-                  <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                ) : (
-                  <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                )}
-              </button>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] text-gray-500">Balance</span>
+                <span className={`text-sm font-semibold ${ledger.currentBalance.grandTotal > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                  {ledger.currentBalance.grandTotal}
+                </span>
+              </div>
+
+              <div className="flex flex-shrink-0 gap-1">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadLedger();
+                  }}
+                  className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors touch-manipulation active:scale-95"
+                  aria-label="Download Ledger"
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button 
+                  className="p-1.5 sm:p-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors touch-manipulation active:scale-95"
+                  aria-label={isExpanded ? "Collapse" : "Expand"}
+                >
+                  {isExpanded ? (
+                    <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  ) : (
+                    <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2 text-[10px] sm:text-xs text-gray-600">
