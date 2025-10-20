@@ -44,6 +44,7 @@ interface ClientSelectionStepProps {
   onClientSelect: (clientId: string) => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  onAddNewClick?: () => void;
 }
 
 
@@ -752,9 +753,17 @@ const JamaChallan: React.FC = () => {
         try {
           await generateJPEG('jama', challanNumber, date);
           toast.success('JPEG generated successfully');
+          // Add a delay before refreshing to ensure user sees the success message
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } catch (error) {
           console.error('Error generating JPEG:', error);
           toast.error('Failed to generate JPEG');
+          // Refresh even if JPEG generation fails
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         }
       }, 500);
     } catch (error) {

@@ -750,17 +750,17 @@ const UdharChallan: React.FC = () => {
       try {
         await generateJPEG('udhar', challanNumber, date);
         toast.success('JPEG generated successfully');
-        // Add a small delay before redirecting to ensure the user sees the success message
+        // Add a delay before refreshing to ensure user sees the success message
         setTimeout(() => {
-          handleBack(); // This will trigger the back button functionality
-        }, 1500);
+          window.location.reload();
+        }, 1000);
       } catch (error) {
         console.error('Error generating JPEG:', error);
         toast.error('Failed to generate JPEG');
-        // Still go back even if JPEG generation fails
+        // Refresh even if JPEG generation fails
         setTimeout(() => {
-          handleBack(); // This will trigger the back button functionality
-        }, 1500);
+          window.location.reload();
+        }, 1000);
       }
     }, 500);
   };
