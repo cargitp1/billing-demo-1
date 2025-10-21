@@ -5,25 +5,25 @@ export const generateJPEG = async (
   challanNumber: string,
   date: string
 ): Promise<void> => {
-  // Add a small delay to ensure template is rendered
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
+  // Add delay to ensure template and background image are fully loaded
+  await new Promise(resolve => setTimeout(resolve, 500));
+
   const node = document.getElementById('receipt-template');
   if (!node) {
     throw new Error('Receipt template not found');
   }
 
   try {
-    const dataUrl = await toJpeg(node, { 
-      quality: 0.95, 
+    const dataUrl = await toJpeg(node, {
+      quality: 0.98,
       width: 1200,
-      height: node.scrollHeight,
+      height: 1697,
       style: {
         transform: 'scale(1)',
-        transformOrigin: 'top left',
-        background: '#ffffff'
+        transformOrigin: 'top left'
       },
-      pixelRatio: 2
+      pixelRatio: 2,
+      cacheBust: true
     });
 
     const link = document.createElement('a');
