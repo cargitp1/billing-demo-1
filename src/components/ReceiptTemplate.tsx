@@ -1,5 +1,7 @@
 import React from 'react';
 import { ItemsData, PLATE_SIZES } from './ItemsTable';
+import udharTemplate from '../assets/UdharReceiptTemplate_11zon.jpg';
+import jamaTemplate from '../assets/JamaReceiptTemplate_11zon.jpg';
 
 interface ReceiptTemplateProps {
   challanType: 'udhar' | 'jama';
@@ -45,7 +47,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
           height: '1697px',
           position: 'relative',
           boxSizing: 'border-box',
-          backgroundImage: 'url(/challan-background.jpg)',
+          backgroundImage: `url(${challanType === 'udhar' ? udharTemplate : jamaTemplate})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat'
