@@ -26,6 +26,24 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
 }) => {
   const getQtyOrZero = (qty: number | undefined) => (qty || 0).toString();
 
+  // Helper function to convert coordinates to pixel positions
+  const getPosition = (x: number, y: number) => ({
+    left: `${x}px`,
+    top: `${y}px`,
+  });
+
+  // Define coordinates for each element
+  const coordinates = {
+    challanType: { x: 80, y: 150, align: 'right' },
+    challanNumber: { x: 520, y: 800 },
+    date: { x: 1800, y: 800, align: 'right' },
+    clientName: { x: 450, y: 980 },
+    driverId: { x: 120, y: 280, align: 'right' },
+    site: { x: 450, y: 1080 },
+    phone: { x: 450, y: 1270 },
+    itemsStart: { x: 320, y: 480, increment: 115 }
+  };
+
   const sizes = PLATE_SIZES.reduce((acc, size, index) => {
     const sizeNum = index + 1;
     return {
@@ -56,11 +74,11 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Challan Type Badge - Positioned on background */}
         <div style={{
           position: 'absolute',
-          top: '150px',
-          right: '80px',
+          ...getPosition(coordinates.challanType.x, coordinates.challanType.y),
+          right: coordinates.challanType.align === 'right' ? `${coordinates.challanType.x}px` : undefined,
           fontSize: '32px',
           fontWeight: 'bold',
-          color: '#22c55e',
+          color: '#000000',
           textShadow: '0 2px 4px rgba(0,0,0,0.1)'
         }}>
           {challanType === 'jama' ? 'જમા ચલણ' : 'ઉધાર ચલણ'}
@@ -69,11 +87,10 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Challan Number */}
         <div style={{
           position: 'absolute',
-          top: '210px',
-          left: '180px',
+          ...getPosition(coordinates.challanNumber.x, coordinates.challanNumber.y),
           fontSize: '24px',
           fontWeight: '600',
-          color: '#166534'
+          color: '#000000'
         }}>
           {challanNumber}
         </div>
@@ -81,11 +98,11 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Date */}
         <div style={{
           position: 'absolute',
-          top: '210px',
-          right: '180px',
+          ...getPosition(coordinates.date.x, coordinates.date.y),
+          right: coordinates.date.align === 'right' ? `${coordinates.date.x}px` : undefined,
           fontSize: '24px',
           fontWeight: '600',
-          color: '#166534'
+          color: '#000000'
         }}>
           {date}
         </div>
@@ -93,11 +110,10 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Client Name */}
         <div style={{
           position: 'absolute',
-          top: '280px',
-          left: '120px',
+          ...getPosition(coordinates.clientName.x, coordinates.clientName.y),
           fontSize: '22px',
           fontWeight: '600',
-          color: '#166534',
+          color: '#000000',
           maxWidth: '650px'
         }}>
           {clientName}
@@ -106,11 +122,11 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Driver/ID */}
         <div style={{
           position: 'absolute',
-          top: '280px',
-          right: '120px',
+          ...getPosition(coordinates.driverId.x, coordinates.driverId.y),
+          right: coordinates.driverId.align === 'right' ? `${coordinates.driverId.x}px` : undefined,
           fontSize: '22px',
           fontWeight: '600',
-          color: '#166534',
+          color: '#000000',
           maxWidth: '250px'
         }}>
           {driverName || ''}
@@ -119,11 +135,10 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Site */}
         <div style={{
           position: 'absolute',
-          top: '340px',
-          left: '120px',
+          ...getPosition(coordinates.site.x, coordinates.site.y),
           fontSize: '22px',
           fontWeight: '600',
-          color: '#166534',
+          color: '#000000',
           maxWidth: '1000px'
         }}>
           {site}
@@ -132,28 +147,26 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Phone */}
         <div style={{
           position: 'absolute',
-          top: '400px',
-          left: '160px',
+          ...getPosition(coordinates.phone.x, coordinates.phone.y),
           fontSize: '22px',
           fontWeight: '600',
-          color: '#166534'
+          color: '#000000'
         }}>
           {phone}
         </div>
 
         {/* Items Quantities - Positioned over background table */}
         {Object.entries(sizes).map(([size, value], index) => {
-          const topPosition = 480 + (index * 115);
+          const y = coordinates.itemsStart.y + (index * coordinates.itemsStart.increment);
           return (
             <div
               key={size}
               style={{
                 position: 'absolute',
-                top: `${topPosition}px`,
-                left: '320px',
+                ...getPosition(coordinates.itemsStart.x, y),
                 fontSize: '26px',
                 fontWeight: '600',
-                color: '#166534',
+                color: '#000000',
                 textAlign: 'center',
                 width: '120px'
               }}
