@@ -93,125 +93,221 @@ export default function ClientLedgerDownload({
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
 
+  const rowHeight = 50;
+  const headerY = 200;
+  const currentBalanceRowY = headerY + 45;
+  const transactionsStartY = currentBalanceRowY + rowHeight;
+  const totalHeight = transactionsStartY + (sortedTransactions.length * rowHeight) + 180;
+
+  const colPositions = {
+    challanNum: 30,
+    date: 150,
+    total: 260,
+    size1: 340,
+    size2: 420,
+    size3: 500,
+    size4: 580,
+    size5: 660,
+    size6: 740,
+    size7: 820,
+    size8: 900,
+    size9: 980,
+    site: 1060,
+    driver: 1180,
+  };
+
   return (
-    <div id="client-ledger-download" className="p-8 bg-white" style={{ width: '1920px' }}>
-      <div className="pb-4 mb-6 text-center border-b-2 border-gray-800">
-        <h1 className="mb-2 text-3xl font-bold text-gray-900">Client Ledger</h1>
-        <div className="text-lg text-gray-700">
-          <p className="font-semibold">{clientNicName} - {clientFullName}</p>
-          <p className="mt-1 text-sm">{clientSite} | {clientPhone}</p>
-          <p className="mt-1 text-sm text-gray-500">
-            Generated on: {new Date().toLocaleDateString('en-GB')} at {new Date().toLocaleTimeString('en-GB')}
+    <div
+      id="client-ledger-download"
+      style={{
+        width: '1300px',
+        height: `${totalHeight}px`,
+        position: 'relative',
+        backgroundColor: '#ffffff',
+        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+      }}
+    >
+      <div style={{
+        position: 'absolute',
+        top: '40px',
+        left: '0',
+        right: '0',
+        textAlign: 'center',
+        fontSize: '32px',
+        fontWeight: '700',
+        color: '#111827'
+      }}>
+        Client Ledger
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        top: '90px',
+        left: '0',
+        right: '0',
+        textAlign: 'center',
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#374151'
+      }}>
+        {clientNicName} - {clientFullName}
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        top: '120px',
+        left: '0',
+        right: '0',
+        textAlign: 'center',
+        fontSize: '14px',
+        color: '#6b7280'
+      }}>
+        {clientSite} | {clientPhone}
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        top: '145px',
+        left: '0',
+        right: '0',
+        textAlign: 'center',
+        fontSize: '12px',
+        color: '#9ca3af'
+      }}>
+        Generated on: {new Date().toLocaleDateString('en-GB')} at {new Date().toLocaleTimeString('en-GB')}
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        top: `${headerY}px`,
+        left: `${colPositions.challanNum}px`,
+        right: '30px',
+        height: '40px',
+        backgroundColor: '#f3f4f6',
+        borderTop: '2px solid #d1d5db',
+        borderBottom: '2px solid #d1d5db',
+        display: 'flex',
+        alignItems: 'center',
+        fontWeight: '700',
+        fontSize: '11px',
+        textTransform: 'uppercase',
+        color: '#374151'
+      }}>
+        <div style={{ position: 'absolute', left: '10px', width: '100px' }}>Challan #</div>
+        <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, width: '80px' }}>Date</div>
+        <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, width: '60px', textAlign: 'center' }}>Total</div>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size, idx) => (
+          <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
+            {PLATE_SIZES[size - 1]}
+          </div>
+        ))}
+        <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px`, width: '100px' }}>Site</div>
+        <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px`, width: '100px' }}>Driver</div>
+      </div>
+
+      <div style={{
+        position: 'absolute',
+        top: `${currentBalanceRowY}px`,
+        left: `${colPositions.challanNum}px`,
+        right: '30px',
+        height: `${rowHeight}px`,
+        backgroundColor: '#dbeafe',
+        borderBottom: '1px solid #d1d5db',
+        display: 'flex',
+        alignItems: 'center',
+        fontWeight: '700'
+      }}>
+        <div style={{ position: 'absolute', left: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '12px', height: '12px', backgroundColor: '#2563eb', borderRadius: '50%' }}></div>
+          <span>Current Balance</span>
+        </div>
+        <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
+        <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, fontSize: '18px', textAlign: 'center', width: '60px' }}>
+          {currentBalance.grandTotal}
+        </div>
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => (
+          <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
+            {formatBalanceValue(currentBalance.sizes[size])}
+          </div>
+        ))}
+        <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
+        <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
+      </div>
+
+      {sortedTransactions.map((transaction, index) => {
+        const yPos = transactionsStartY + (index * rowHeight);
+        const bgColor = transaction.type === 'udhar' ? '#fef2f2' : '#f0fdf4';
+        const dotColor = transaction.type === 'udhar' ? '#dc2626' : '#16a34a';
+
+        return (
+          <div
+            key={`${transaction.type}-${transaction.challanId}-${index}`}
+            style={{
+              position: 'absolute',
+              top: `${yPos}px`,
+              left: `${colPositions.challanNum}px`,
+              right: '30px',
+              height: `${rowHeight}px`,
+              backgroundColor: bgColor,
+              borderBottom: '1px solid #e5e7eb',
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <div style={{ position: 'absolute', left: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ width: '12px', height: '12px', backgroundColor: dotColor, borderRadius: '50%' }}></div>
+              <span>#{transaction.challanNumber}</span>
+            </div>
+            <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px` }}>
+              {new Date(transaction.date).toLocaleDateString('en-GB')}
+            </div>
+            <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, fontWeight: '500', textAlign: 'center', width: '60px' }}>
+              {transaction.grandTotal}
+            </div>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => {
+              const sizeNote = transaction.items?.[`size_${size}_note`];
+              return (
+                <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
+                  {formatSizeValue(transaction.sizes[size], sizeNote)}
+                </div>
+              );
+            })}
+            <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px` }}>
+              {transaction.site}
+            </div>
+            <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px` }}>
+              {transaction.driverName || '-'}
+            </div>
+          </div>
+        );
+      })}
+
+      <div style={{
+        position: 'absolute',
+        top: `${transactionsStartY + sortedTransactions.length * rowHeight + 30}px`,
+        left: '30px',
+        right: '30px',
+        display: 'flex',
+        gap: '20px',
+        fontSize: '14px'
+      }}>
+        <div style={{ flex: 1, padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px' }}>
+          <p style={{ fontWeight: '600', color: '#b91c1c', marginBottom: '8px' }}>Udhar Challans</p>
+          <p style={{ fontSize: '24px', fontWeight: '700', color: '#991b1b' }}>
+            {transactions.filter(t => t.type === 'udhar').length}
           </p>
         </div>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-collapse border-gray-300">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">
-                Challan #
-              </th>
-              <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">
-                Date
-              </th>
-              <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">
-                Total
-              </th>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
-                <th key={size} className="px-3 py-3 text-xs font-bold tracking-wider text-center text-gray-700 uppercase border border-gray-300">
-                  {PLATE_SIZES[size - 1]}
-                </th>
-              ))}
-              <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">
-                Site
-              </th>
-              <th className="px-3 py-3 text-xs font-bold tracking-wider text-left text-gray-700 uppercase border border-gray-300">
-                Driver
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="font-semibold bg-blue-100">
-              <td className="px-3 py-4 border border-gray-300">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
-                  <span>Current Balance</span>
-                </div>
-              </td>
-              <td className="px-3 py-4 text-gray-600 border border-gray-300">-</td>
-              <td className="px-3 py-4 text-lg border border-gray-300">
-                {currentBalance.grandTotal}
-              </td>
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => (
-                <td key={size} className="px-3 py-4 text-center border border-gray-300">
-                  {formatBalanceValue(currentBalance.sizes[size])}
-                </td>
-              ))}
-              <td className="px-3 py-4 text-gray-600 border border-gray-300">-</td>
-              <td className="px-3 py-4 text-gray-600 border border-gray-300">-</td>
-            </tr>
-
-            {sortedTransactions.map((transaction, index) => (
-              <tr
-                key={`${transaction.type}-${transaction.challanId}-${index}`}
-                className={transaction.type === 'udhar' ? 'bg-red-50' : 'bg-green-50'}
-              >
-                <td className="px-3 py-4 border border-gray-300">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full ${
-                      transaction.type === 'udhar' ? 'bg-red-600' : 'bg-green-600'
-                    }`}></div>
-                    <span>#{transaction.challanNumber}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-4 border border-gray-300">
-                  {new Date(transaction.date).toLocaleDateString('en-GB')}
-                </td>
-                <td className="px-3 py-4 font-medium border border-gray-300">
-                  {transaction.grandTotal}
-                </td>
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(size => {
-                  const sizeNote = transaction.items?.[`size_${size}_note`];
-                  return (
-                    <td key={size} className="px-3 py-4 text-center border border-gray-300">
-                      {formatSizeValue(transaction.sizes[size], sizeNote)}
-                    </td>
-                  );
-                })}
-                <td className="px-3 py-4 border border-gray-300">
-                  {transaction.site}
-                </td>
-                <td className="px-3 py-4 border border-gray-300">
-                  {transaction.driverName || '-'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="pt-4 mt-6 border-t-2 border-gray-300">
-        <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="p-3 border border-red-200 rounded bg-red-50">
-            <p className="font-semibold text-red-700">Udhar Challans</p>
-            <p className="mt-1 text-2xl font-bold text-red-800">
-              {transactions.filter(t => t.type === 'udhar').length}
-            </p>
-          </div>
-          <div className="p-3 border border-green-200 rounded bg-green-50">
-            <p className="font-semibold text-green-700">Jama Challans</p>
-            <p className="mt-1 text-2xl font-bold text-green-800">
-              {transactions.filter(t => t.type === 'jama').length}
-            </p>
-          </div>
-          <div className="p-3 border border-blue-200 rounded bg-blue-50">
-            <p className="font-semibold text-blue-700">Outstanding Balance</p>
-            <p className="mt-1 text-2xl font-bold text-blue-800">
-              {currentBalance.grandTotal}
-            </p>
-          </div>
+        <div style={{ flex: 1, padding: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
+          <p style={{ fontWeight: '600', color: '#15803d', marginBottom: '8px' }}>Jama Challans</p>
+          <p style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>
+            {transactions.filter(t => t.type === 'jama').length}
+          </p>
+        </div>
+        <div style={{ flex: 1, padding: '16px', backgroundColor: '#dbeafe', border: '1px solid #bfdbfe', borderRadius: '8px' }}>
+          <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>Outstanding Balance</p>
+          <p style={{ fontSize: '24px', fontWeight: '700', color: '#1e3a8a' }}>
+            {currentBalance.grandTotal}
+          </p>
         </div>
       </div>
     </div>
