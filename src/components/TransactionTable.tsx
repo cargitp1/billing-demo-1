@@ -47,6 +47,7 @@ export default function TransactionTable({
         challanNumber={transaction.challanNumber}
         date={new Date(transaction.date).toLocaleDateString('en-GB')}
         clientName={clientFullName}
+        clientSortName={clientNicName}
         site={transaction.site || clientSite}
         phone={clientPhone}
         driverName={transaction.driverName}

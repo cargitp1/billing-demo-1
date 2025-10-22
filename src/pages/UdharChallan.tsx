@@ -899,6 +899,7 @@ const UdharChallan: React.FC = () => {
                   challanNumber={challanNumber}
                   date={new Date(date).toLocaleDateString('en-GB')}
                   clientName={selectedClient.client_name}
+                  clientSortName={selectedClient.client_nic_name}
                   site={alternativeSite || selectedClient.site}
                   phone={secondaryPhone || selectedClient.primary_phone_number}
                   driverName={driverName}

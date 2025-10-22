@@ -879,6 +879,7 @@ const JamaChallan: React.FC = () => {
                 challanNumber={challanNumber}
                 date={date}
                 clientName={selectedClient.client_name}
+                clientSortName={selectedClient.client_nic_name}
                 site={selectedClient.site}
                 phone={selectedClient.primary_phone_number}
                 driverName={driverName}
