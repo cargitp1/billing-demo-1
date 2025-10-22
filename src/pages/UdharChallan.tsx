@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
 import { 
   Search, 
@@ -470,12 +470,13 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
 
 const UdharChallan: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useLanguage();
 
   // Step management
   const [currentStep, setCurrentStep] = useState<Step>('client-selection');
   const [searchQuery, setSearchQuery] = useState('');
-  
+
   // Client management
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
@@ -589,9 +590,16 @@ const UdharChallan: React.FC = () => {
       await generateNextChallanNumber();
       await fetchPreviousDriverNames();
       await fetchStock();
+
+      // Check if client was preselected from navigation
+      const state = location.state as { preselectedClient?: { id: string } };
+      if (state?.preselectedClient?.id) {
+        setSelectedClientId(state.preselectedClient.id);
+        setCurrentStep('challan-details');
+      }
     };
     init();
-  }, []);
+  }, [location]);
 
   const fetchClients = async () => {
     const { data, error } = await supabase

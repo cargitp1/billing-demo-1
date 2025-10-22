@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, MapPin, Phone, Download } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, Phone, Download, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { ClientLedgerData } from '../pages/ClientLedger';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
@@ -17,6 +18,7 @@ interface ClientLedgerCardProps {
 export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
   const { language } = useLanguage();
   const t = translations[language];
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getInitial = (name: string) => {
@@ -34,6 +36,36 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
       console.error('Error generating ledger:', error);
       toast.error('Failed to generate ledger');
     }
+  };
+
+  const handleCreateUdhar = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate('/udhar-challan', {
+      state: {
+        preselectedClient: {
+          id: ledger.clientId,
+          nicName: ledger.clientNicName,
+          fullName: ledger.clientFullName,
+          site: ledger.clientSite,
+          phone: ledger.clientPhone
+        }
+      }
+    });
+  };
+
+  const handleCreateJama = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigate('/jama-challan', {
+      state: {
+        preselectedClient: {
+          id: ledger.clientId,
+          nicName: ledger.clientNicName,
+          fullName: ledger.clientFullName,
+          site: ledger.clientSite,
+          phone: ledger.clientPhone
+        }
+      }
+    });
   };
 
   return (
@@ -80,6 +112,28 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
 
             <div className="flex items-center gap-2">
               <button
+                onClick={handleCreateUdhar}
+                className="px-3 py-2 text-xs font-medium text-white transition-colors bg-amber-500 rounded-lg hover:bg-amber-600"
+                title="Create Udhar Challan"
+              >
+                <span className="flex items-center gap-1">
+                  <Plus className="w-4 h-4" />
+                  Udhar
+                </span>
+              </button>
+
+              <button
+                onClick={handleCreateJama}
+                className="px-3 py-2 text-xs font-medium text-white transition-colors bg-green-500 rounded-lg hover:bg-green-600"
+                title="Create Jama Challan"
+              >
+                <span className="flex items-center gap-1">
+                  <Plus className="w-4 h-4" />
+                  Jama
+                </span>
+              </button>
+
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDownloadLedger();
@@ -122,6 +176,22 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
 
               <div className="flex flex-shrink-0 gap-1">
                 <button
+                  onClick={handleCreateUdhar}
+                  className="px-2 py-1.5 text-[10px] font-medium text-white bg-amber-500 hover:bg-amber-600 rounded-md transition-colors touch-manipulation active:scale-95 flex items-center gap-1"
+                  aria-label="Create Udhar"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Udhar</span>
+                </button>
+                <button
+                  onClick={handleCreateJama}
+                  className="px-2 py-1.5 text-[10px] font-medium text-white bg-green-500 hover:bg-green-600 rounded-md transition-colors touch-manipulation active:scale-95 flex items-center gap-1"
+                  aria-label="Create Jama"
+                >
+                  <Plus className="w-3 h-3" />
+                  <span>Jama</span>
+                </button>
+                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDownloadLedger();
@@ -131,7 +201,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 >
                   <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-                <button 
+                <button
                   className="p-1.5 sm:p-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors touch-manipulation active:scale-95"
                   aria-label={isExpanded ? "Collapse" : "Expand"}
                 >
