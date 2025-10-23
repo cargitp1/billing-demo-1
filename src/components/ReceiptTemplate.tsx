@@ -47,6 +47,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
     itemsStart: { x: 320, y: 721, increment: 63.5 },
     borrowedStockStart: { x: 550, y: 721, increment: 63.5 },
     notesStart: { x: 640, y: 721, increment: 63.5 },
+    grandTotal: { x: 320, y: 1290 },
     mainNotes: { x: 150, y: 1534 }
   };
 
@@ -56,15 +57,23 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
     const borrowedStock = items?.[`size_${sizeNum}_borrowed` as keyof typeof items] as number | undefined;
     const note = items?.[`size_${sizeNum}_note` as keyof typeof items] as string | undefined;
     
+    // Calculate total (main + borrowed) for the pattern display
+    const total = (qty || 0) + (borrowedStock || 0);
+    
     return {
       ...acc,
       [size]: {
-        pattern: getQtyOrZero(qty),
-        borrowedStock: getQtyOrZero(borrowedStock),
+        pattern: getQtyOrZero(total),  // Show combined total in main column
+        borrowedStock: getQtyOrZero(borrowedStock),  // Still show borrowed separately
         note: note || ''
       }
     };
   }, {} as Record<string, { pattern: string, borrowedStock: string, note: string }>);
+
+  // Calculate grand total of all sizes
+  const grandTotal = Object.values(sizes)
+    .map(value => parseInt(value.pattern) || 0)
+    .reduce((total, qty) => total + qty, 0);
 
   return (
     <div className="flex justify-center bg-gray-100" style={{ minHeight: '100vh', padding: '10px' }}>
@@ -224,6 +233,32 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
             </React.Fragment>
           );
         })}
+
+        {/* Grand Total */}
+        <div style={{
+          position: 'absolute',
+          ...getPosition(coordinates.grandTotal.x, coordinates.grandTotal.y),
+          fontSize: '26px',
+          fontWeight: '750',
+          color: '#000000',
+          textAlign: 'center',
+          width: '120px'
+        }}>
+          {grandTotal}
+        </div>
+
+        {/* Grand Total above main notes */}
+        <div style={{
+          position: 'absolute',
+          ...getPosition(coordinates.grandTotal.x + 330 , coordinates.mainNotes.y - 48),
+          fontSize: '26px',
+          fontWeight: '750',
+          color: '#000000',
+          textAlign: 'center',
+          width: '120px'
+        }}>
+          {grandTotal}
+        </div>
 
         {/* Main Notes */}
         {items.main_note && (
