@@ -26,7 +26,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
   driverName,
   items
 }) => {
-  const getQtyOrZero = (qty: number | undefined) => (qty || 0).toString();
+  const getQtyOrZero = (qty: number | undefined) => qty ? qty.toString() : '';
 
   // Helper function to convert coordinates to pixel positions
   const getPosition = (x: number, y: number) => ({
@@ -41,22 +41,30 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
     date: { x: 880, y: 380},
     clientName: { x: 200, y: 468},
     clientSortName: { x: 938, y: 468},  
-    driverId: { x: 120, y: 280},
+    driverId: { x: 952, y: 1155},
     site: { x: 200, y: 518 },
     phone: { x: 200, y: 564 },
-    itemsStart: { x: 320, y: 480, increment: 115 }
+    itemsStart: { x: 320, y: 721, increment: 63.5 },
+    borrowedStockStart: { x: 550, y: 721, increment: 63.5 },
+    notesStart: { x: 640, y: 721, increment: 63.5 },
+    mainNotes: { x: 150, y: 1534 }
   };
 
   const sizes = PLATE_SIZES.reduce((acc, size, index) => {
     const sizeNum = index + 1;
+    const qty = items?.[`size_${sizeNum}_qty` as keyof typeof items] as number | undefined;
+    const borrowedStock = items?.[`size_${sizeNum}_borrowed` as keyof typeof items] as number | undefined;
+    const note = items?.[`size_${sizeNum}_note` as keyof typeof items] as string | undefined;
+    
     return {
       ...acc,
       [size]: {
-        pattern: getQtyOrZero(items?.[`size_${sizeNum}_qty` as keyof typeof items] as number | undefined),
-        detail: ''
+        pattern: getQtyOrZero(qty),
+        borrowedStock: getQtyOrZero(borrowedStock),
+        note: note || ''
       }
     };
-  }, {} as Record<string, { pattern: string, detail: string }>);
+  }, {} as Record<string, { pattern: string, borrowedStock: string, note: string }>);
 
   return (
     <div className="flex justify-center bg-gray-100" style={{ minHeight: '100vh', padding: '10px' }}>
@@ -74,18 +82,6 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
           backgroundRepeat: 'no-repeat'
         }}
       >
-        {/* Challan Type Badge - Positioned on background */}
-        <div style={{
-          position: 'absolute',
-          ...getPosition(coordinates.challanType.x, coordinates.challanType.y),
-          left: `${coordinates.challanType.x}px`,
-          fontSize: '32px',
-          fontWeight: 'bold',
-          color: '#000000',
-          textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          {challanType === 'jama' ? 'જમા ચલણ' : 'ઉધાર ચલણ'}
-        </div>
 
         {/* Challan Number */}
         <div style={{
@@ -140,7 +136,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         <div style={{
           position: 'absolute',
           ...getPosition(coordinates.driverId.x, coordinates.driverId.y),
-          right: coordinates.driverId.align === 'right' ? `${coordinates.driverId.x}px` : undefined,
+          left: `${coordinates.driverId.x}px`,
           fontSize: '26px',
           fontWeight: '750',
           color: '#000000',
@@ -176,22 +172,72 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {Object.entries(sizes).map(([size, value], index) => {
           const y = coordinates.itemsStart.y + (index * coordinates.itemsStart.increment);
           return (
-            <div
-              key={size}
-              style={{
-                position: 'absolute',
-                ...getPosition(coordinates.itemsStart.x, y),
-                fontSize: '26px',
-                fontWeight: '600',
-                color: '#000000',
-                textAlign: 'center',
-                width: '120px'
-              }}
-            >
-              {value.pattern}
-            </div>
+            <React.Fragment key={size}>
+              {/* Regular Quantity */}
+              <div
+                style={{
+                  position: 'absolute',
+                  ...getPosition(coordinates.itemsStart.x, y),
+                  fontSize: '26px',
+                  fontWeight: '750',
+                  color: '#000000',
+                  textAlign: 'center',
+                  width: '120px'
+                }}
+              >
+                {value.pattern}
+              </div>
+              
+              {/* Borrowed Stock */}
+              {value.borrowedStock && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    ...getPosition(coordinates.borrowedStockStart.x, y),
+                    fontSize: '26px',
+                    fontWeight: '750',
+                    color: '#000000', 
+                    textAlign: 'center',
+                    width: '120px'
+                  }}
+                >
+                  {value.borrowedStock}
+                </div>
+              )}
+
+              {/* Notes */}
+              {value.note && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    ...getPosition(coordinates.notesStart.x, y),
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    color: '#666666',
+                    textAlign: 'left',
+                    width: '200px'
+                  }}
+                >
+                  {value.note}
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
+
+        {/* Main Notes */}
+        {items.main_note && (
+          <div style={{
+            position: 'absolute',
+            ...getPosition(coordinates.mainNotes.x, coordinates.mainNotes.y),
+            fontSize: '26px',
+            fontWeight: '750',
+            color: '#000000',
+            maxWidth: '800px'
+          }}>
+            {items.main_note}
+          </div>
+        )}
       </div>
     </div>
   );
