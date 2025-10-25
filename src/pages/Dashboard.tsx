@@ -28,14 +28,6 @@ const Dashboard: React.FC = () => {
 
   const quickActions = [
     {
-      title: t('addClient'),
-      description: t('add_new_clients'),
-      icon: UserPlus,
-      path: '/clients',
-      gradient: 'from-blue-500 to-blue-700',
-      hoverGradient: 'hover:from-blue-600 hover:to-blue-800',
-    },
-    {
       title: t('udharChallan'),
       description: t('create_rental'),
       icon: FileText,
@@ -52,6 +44,14 @@ const Dashboard: React.FC = () => {
       hoverGradient: 'hover:from-green-600 hover:to-green-800',
     },
     {
+      title: t('clientLedger'),
+      description: t('track_balances'),
+      icon: BookMarked,
+      path: '/client-ledger',
+      gradient: 'from-indigo-500 to-indigo-700',
+      hoverGradient: 'hover:from-indigo-600 hover:to-indigo-800',
+    },
+    {
       title: t('stockManagement'),
       description: t('manage_inventory'),
       icon: Package,
@@ -60,20 +60,20 @@ const Dashboard: React.FC = () => {
       hoverGradient: 'hover:from-purple-600 hover:to-purple-800',
     },
     {
+      title: t('addClient'),
+      description: t('add_new_clients'),
+      icon: UserPlus,
+      path: '/clients',
+      gradient: 'from-blue-500 to-blue-700',
+      hoverGradient: 'hover:from-blue-600 hover:to-blue-800',
+    },
+    {
       title: t('challanBook'),
       description: t('view_all_challans'),
       icon: BookOpen,
       path: '/challan-book',
       gradient: 'from-teal-500 to-teal-700',
       hoverGradient: 'hover:from-teal-600 hover:to-teal-800',
-    },
-    {
-      title: t('clientLedger'),
-      description: t('track_balances'),
-      icon: BookMarked,
-      path: '/client-ledger',
-      gradient: 'from-indigo-500 to-indigo-700',
-      hoverGradient: 'hover:from-indigo-600 hover:to-indigo-800',
     },
   ];
 
