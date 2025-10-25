@@ -353,11 +353,16 @@ export default function ClientLedger() {
   }, [currentPage, allClients.length]);
 
 
-  const observerTarget = useInfiniteScroll({
-    loading: loadingMore,
-    hasMore,
-    onLoadMore: loadMoreLedgers
-  });
+  // Scroll handler for infinite loading
+  const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
+    const target = e.currentTarget;
+    const scrolledToBottom = 
+      target.scrollHeight - target.scrollTop <= target.clientHeight * 1.5;
+
+    if (!loadingMore && hasMore && scrolledToBottom) {
+      loadMoreLedgers();
+    }
+  }, [loadingMore, hasMore, loadMoreLedgers]);
 
 
   const getSortLabel = (option: SortOption) => {
@@ -399,8 +404,11 @@ export default function ClientLedger() {
       <Navbar />
 
 
-      <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
-        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
+      <main 
+        className="flex-1 w-full ml-0 overflow-y-auto pt-14 sm:pt-0 lg:ml-64 h-[100dvh]"
+        onScroll={handleScroll}
+      >
+        <div className="w-full h-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {/* Header - Desktop Only */}
           <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
             <div className="flex-1">
@@ -513,15 +521,13 @@ export default function ClientLedger() {
                 ))}
               </div>
 
-              {/* Infinite Scroll Trigger */}
-              {hasMore && (
-                <div ref={observerTarget} className="flex justify-center py-8">
-                  {loadingMore && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Loading more clients...</span>
-                    </div>
-                  )}
+              {/* Loading Indicator */}
+              {hasMore && loadingMore && (
+                <div className="flex justify-center py-4 sm:py-8">
+                  <div className="flex items-center gap-2 text-xs text-gray-600 sm:text-sm">
+                    <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                    <span>Loading more clients...</span>
+                  </div>
                 </div>
               )}
 

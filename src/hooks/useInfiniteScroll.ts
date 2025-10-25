@@ -30,6 +30,7 @@ export const useInfiniteScroll = ({
     if (!element) return;
 
     const observer = new IntersectionObserver(handleObserver, {
+      root: null, // Use viewport as root
       threshold,
       rootMargin: '100px'
     });
