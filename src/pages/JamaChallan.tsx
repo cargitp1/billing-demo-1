@@ -326,11 +326,11 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                     value={driverName}
                     onChange={(e) => setDriverName(e.target.value)}
                     onFocus={() => setPreviousDriversVisible(true)}
-                    onBlur={(e) => {
-                      const relatedTarget = e.relatedTarget as HTMLElement;
-                      if (!relatedTarget?.closest('.driver-suggestions')) {
+                    onBlur={() => {
+                      // Use setTimeout to allow click events to fire on suggestions before hiding
+                      setTimeout(() => {
                         setPreviousDriversVisible(false);
-                      }
+                      }, 200);
                     }}
                     placeholder="Optional"
                     className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm"
@@ -342,7 +342,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                       {previousDrivers.map((driver, index) => (
                         <button
                           key={index}
-                          onMouseDown={(e) => {
+                          onClick={(e) => {
                             e.preventDefault();
                             setDriverName(driver);
                             setPreviousDriversVisible(false);
