@@ -1,12 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { PLATE_SIZES } from '../components/ItemsTable';
 
-import { 
-  Search, 
-  Filter, 
+import {
+  Search,
+  Filter,
   RefreshCw,
   ChevronDown,
-  Users
+  Users,
+  Loader2
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
@@ -14,6 +15,7 @@ import { supabase } from '../utils/supabase';
 import { fetchClientTransactions} from '../utils/challanFetching';
 import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import toast, { Toaster } from 'react-hot-toast';
 
 
@@ -67,8 +69,31 @@ export interface ClientLedgerData {
   udharCount: number;
   jamaCount: number;
   transactions: Transaction[];
+  transactionsLoaded?: boolean;
 }
 
+const ITEMS_PER_PAGE = 10;
+
+const SkeletonCard = memo(() => (
+  <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl animate-pulse">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex items-center flex-1 gap-3 sm:gap-4">
+        <div className="w-10 h-10 bg-gray-200 rounded-full sm:w-12 sm:h-12 lg:w-14 lg:h-14"></div>
+        <div className="flex-1">
+          <div className="w-32 h-4 mb-2 bg-gray-200 rounded sm:w-48 sm:h-5 lg:h-6"></div>
+          <div className="w-40 h-3 mb-1 bg-gray-200 rounded sm:w-56 sm:h-4 lg:w-64"></div>
+          <div className="w-24 h-3 bg-gray-200 rounded sm:w-32 sm:h-4 lg:w-40"></div>
+        </div>
+      </div>
+      <div className="text-right">
+        <div className="w-16 h-6 mb-2 ml-auto bg-gray-200 rounded sm:w-20 sm:h-7 lg:w-24 lg:h-8"></div>
+        <div className="w-20 h-3 ml-auto bg-gray-200 rounded sm:w-24 sm:h-4 lg:w-32"></div>
+      </div>
+    </div>
+  </div>
+));
+
+SkeletonCard.displayName = 'SkeletonCard';
 
 export default function ClientLedger() {
 
@@ -76,38 +101,19 @@ export default function ClientLedger() {
   const t = translations[language];
 
 
+  const [allClients, setAllClients] = useState<any[]>([]);
   const [ledgers, setLedgers] = useState<ClientLedgerData[]>([]);
+  const [displayedLedgers, setDisplayedLedgers] = useState<ClientLedgerData[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('nameAZ');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
 
-  useEffect(() => {
-    loadLedgers();
-  }, []);
-
-
-  const fetchClientsWithChallans = async () => {
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('client_nic_name', { ascending: true });
-
-
-    if (error) {
-      console.error('Error fetching clients:', error);
-      throw error;
-    }
-
-
-    console.debug('Fetched clients:', data?.length || 0);
-    return data || [];
-  };
-
-
-  const calculateTotalsFromChallans = (challans: any[]): SizeBalance => {
+  const calculateTotalsFromChallans = useCallback((challans: any[]): SizeBalance => {
     const totals: SizeBalance = {
       size_1: 0,
       size_2: 0,
@@ -141,114 +147,129 @@ export default function ClientLedger() {
 
 
     return totals;
-  };
+  }, []);
 
 
-  const transformToLedgerData = async (clients: any[]): Promise<ClientLedgerData[]> => {
-    const results = await Promise.all(
-      clients.map(async (client) => {
-        const rawTransactions = await fetchClientTransactions(client.id);
+  const transformClientToLedgerData = useCallback(async (client: any, loadTransactions = false): Promise<ClientLedgerData> => {
+    let transactions: Transaction[] = [];
+    let udharTotals: SizeBalance = {
+      size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0,
+      size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0
+    };
+    let jamaTotals: SizeBalance = { ...udharTotals };
+    let currentBalance: ClientBalance = {
+      grandTotal: 0,
+      sizes: {}
+    };
 
+    for (let i = 1; i <= 9; i++) {
+      currentBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
+    }
 
-        console.log(`Client ${client.client_nic_name} transactions:`, rawTransactions.length);
+    if (loadTransactions) {
+      const rawTransactions = await fetchClientTransactions(client.id);
 
-
-        const transactions: Transaction[] = rawTransactions.map((t: any) => {
-          const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
-          let grandTotal = 0;
-
-
-          for (let i = 1; i <= 9; i++) {
-            const qty = t.items[`size_${i}_qty`] || 0;
-            const borrowed = t.items[`size_${i}_borrowed`] || 0;
-            sizes[i] = { qty, borrowed };
-            grandTotal += qty + borrowed;
-          }
-
-
-          return {
-            type: t.type,
-            challanNumber: t.challanNumber,
-            challanId: t.challanNumber,
-            date: t.date,
-            grandTotal,
-            sizes,
-            site: t.site,
-            driverName: t.driverName || '',
-            items: t.items
-          };
-        });
-
-
-        const udharChallans = transactions.filter(t => t.type === 'udhar');
-        const jamaChallans = transactions.filter(t => t.type === 'jama');
-
-
-        const udharTotals = calculateTotalsFromChallans(udharChallans);
-        const jamaTotals = calculateTotalsFromChallans(jamaChallans);
-
-
-        const currentBalance: ClientBalance = {
-          grandTotal: 0,
-          sizes: {}
-        };
-
+      transactions = rawTransactions.map((t: any) => {
+        const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
+        let grandTotal = 0;
 
         for (let i = 1; i <= 9; i++) {
-          currentBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
+          const qty = t.items[`size_${i}_qty`] || 0;
+          const borrowed = t.items[`size_${i}_borrowed`] || 0;
+          sizes[i] = { qty, borrowed };
+          grandTotal += qty + borrowed;
         }
 
-
-        transactions.forEach(transaction => {
-          for (let i = 1; i <= 9; i++) {
-            const size = transaction.sizes[i];
-            if (transaction.type === 'udhar') {
-              currentBalance.sizes[i].main += size.qty;
-              currentBalance.sizes[i].borrowed += size.borrowed;
-            } else {
-              currentBalance.sizes[i].main -= size.qty;
-              currentBalance.sizes[i].borrowed -= size.borrowed;
-            }
-            currentBalance.sizes[i].total = currentBalance.sizes[i].main + currentBalance.sizes[i].borrowed;
-          }
-        });
-
-
-        currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce((sum, size) => sum + size.total, 0);
-
-
         return {
-          clientId: client.id,
-          clientNicName: client.client_nic_name,
-          clientFullName: client.client_name,
-          clientSite: client.site,
-          clientPhone: client.primary_phone_number,
-          totalUdhar: udharTotals,
-          totalJama: jamaTotals,
-          currentBalance: currentBalance,
-          udharCount: udharChallans.length,
-          jamaCount: jamaChallans.length,
-          transactions: transactions
+          type: t.type,
+          challanNumber: t.challanNumber,
+          challanId: t.challanNumber,
+          date: t.date,
+          grandTotal,
+          sizes,
+          site: t.site,
+          driverName: t.driverName || '',
+          items: t.items
         };
-      })
-    );
+      });
+
+      const udharChallans = transactions.filter(t => t.type === 'udhar');
+      const jamaChallans = transactions.filter(t => t.type === 'jama');
+
+      udharTotals = calculateTotalsFromChallans(udharChallans);
+      jamaTotals = calculateTotalsFromChallans(jamaChallans);
+
+      transactions.forEach(transaction => {
+        for (let i = 1; i <= 9; i++) {
+          const size = transaction.sizes[i];
+          if (transaction.type === 'udhar') {
+            currentBalance.sizes[i].main += size.qty;
+            currentBalance.sizes[i].borrowed += size.borrowed;
+          } else {
+            currentBalance.sizes[i].main -= size.qty;
+            currentBalance.sizes[i].borrowed -= size.borrowed;
+          }
+          currentBalance.sizes[i].total = currentBalance.sizes[i].main + currentBalance.sizes[i].borrowed;
+        }
+      });
+
+      currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce((sum, size) => sum + size.total, 0);
+    }
+
+    return {
+      clientId: client.id,
+      clientNicName: client.client_nic_name,
+      clientFullName: client.client_name,
+      clientSite: client.site,
+      clientPhone: client.primary_phone_number,
+      totalUdhar: udharTotals,
+      totalJama: jamaTotals,
+      currentBalance: currentBalance,
+      udharCount: transactions.filter(t => t.type === 'udhar').length,
+      jamaCount: transactions.filter(t => t.type === 'jama').length,
+      transactions: transactions,
+      transactionsLoaded: loadTransactions
+    };
+  }, [calculateTotalsFromChallans]);
 
 
-    return results;
-  };
+  const fetchClients = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('client_nic_name', { ascending: true });
+
+      if (error) throw error;
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      throw error;
+    }
+  }, []);
 
 
-  const loadLedgers = async (showRefreshToast = false) => {
-    if (showRefreshToast) setRefreshing(true);
-    else setLoading(true);
-
+  const loadInitialData = useCallback(async (showRefreshToast = false) => {
+    if (showRefreshToast) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
 
     try {
-      const rawData = await fetchClientsWithChallans();
-      const transformedLedgers = await transformToLedgerData(rawData);
-      console.debug('Transformed ledgers:', transformedLedgers.length);
-      setLedgers(transformedLedgers);
-      
+      const clients = await fetchClients();
+      setAllClients(clients);
+
+      const initialBatch = clients.slice(0, ITEMS_PER_PAGE);
+      const ledgerData = await Promise.all(
+        initialBatch.map(client => transformClientToLedgerData(client, true))
+      );
+
+      setLedgers(ledgerData);
+      setDisplayedLedgers(ledgerData);
+      setCurrentPage(1);
+
       if (showRefreshToast) {
         toast.success('Ledger data refreshed successfully');
       }
@@ -259,16 +280,47 @@ export default function ClientLedger() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [fetchClients, transformClientToLedgerData]);
+
+
+  const loadMoreLedgers = useCallback(async () => {
+    if (loadingMore || currentPage * ITEMS_PER_PAGE >= allClients.length) return;
+
+    setLoadingMore(true);
+
+    try {
+      const start = currentPage * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      const nextBatch = allClients.slice(start, end);
+
+      const newLedgerData = await Promise.all(
+        nextBatch.map(client => transformClientToLedgerData(client, true))
+      );
+
+      setLedgers(prev => [...prev, ...newLedgerData]);
+      setDisplayedLedgers(prev => [...prev, ...newLedgerData]);
+      setCurrentPage(prev => prev + 1);
+    } catch (error) {
+      console.error('Error loading more ledgers:', error);
+      toast.error('Failed to load more clients');
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [allClients, currentPage, loadingMore, transformClientToLedgerData]);
+
+
+  useEffect(() => {
+    loadInitialData();
+  }, [loadInitialData]);
 
 
   const filteredAndSortedLedgers = useMemo(() => {
-    let filtered = ledgers;
+    let filtered = displayedLedgers;
 
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = ledgers.filter(ledger =>
+      filtered = displayedLedgers.filter(ledger =>
         ledger.clientNicName.toLowerCase().includes(query) ||
         ledger.clientFullName.toLowerCase().includes(query) ||
         ledger.clientSite.toLowerCase().includes(query)
@@ -293,7 +345,19 @@ export default function ClientLedger() {
 
 
     return sorted;
-  }, [ledgers, searchQuery, sortOption]);
+  }, [displayedLedgers, searchQuery, sortOption]);
+
+
+  const hasMore = useMemo(() => {
+    return currentPage * ITEMS_PER_PAGE < allClients.length;
+  }, [currentPage, allClients.length]);
+
+
+  const observerTarget = useInfiniteScroll({
+    loading: loadingMore,
+    hasMore,
+    onLoadMore: loadMoreLedgers
+  });
 
 
   const getSortLabel = (option: SortOption) => {
@@ -306,33 +370,9 @@ export default function ClientLedger() {
     }
   };
 
-
-
-
-
-  const SkeletonCard = () => (
-    <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl animate-pulse">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-center flex-1 gap-3 sm:gap-4">
-          <div className="w-10 h-10 bg-gray-200 rounded-full sm:w-12 sm:h-12 lg:w-14 lg:h-14"></div>
-          <div className="flex-1">
-            <div className="w-32 h-4 mb-2 bg-gray-200 rounded sm:w-48 sm:h-5 lg:h-6"></div>
-            <div className="w-40 h-3 mb-1 bg-gray-200 rounded sm:w-56 sm:h-4 lg:w-64"></div>
-            <div className="w-24 h-3 bg-gray-200 rounded sm:w-32 sm:h-4 lg:w-40"></div>
-          </div>
-        </div>
-        <div className="text-right">
-          <div className="w-16 h-6 mb-2 ml-auto bg-gray-200 rounded sm:w-20 sm:h-7 lg:w-24 lg:h-8"></div>
-          <div className="w-20 h-3 ml-auto bg-gray-200 rounded sm:w-24 sm:h-4 lg:w-32"></div>
-        </div>
-      </div>
-    </div>
-  );
-
-
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -368,7 +408,7 @@ export default function ClientLedger() {
               <p className="mt-1 text-xs text-gray-600">{t.rentalHistory}</p>
             </div>
             <button
-              onClick={() => loadLedgers(true)}
+              onClick={() => loadInitialData(true)}
               disabled={refreshing}
               title="Refresh"
               className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
@@ -376,9 +416,6 @@ export default function ClientLedger() {
               <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-
-
-
 
 
           {/* Search and Filter Section */}
@@ -408,8 +445,8 @@ export default function ClientLedger() {
 
               {showSortMenu && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-10" 
+                  <div
+                    className="fixed inset-0 z-10"
                     onClick={() => setShowSortMenu(false)}
                   ></div>
                   <div className="absolute right-0 z-20 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
@@ -422,8 +459,8 @@ export default function ClientLedger() {
                             setShowSortMenu(false);
                           }}
                           className={`w-full text-left px-3 py-2 text-xs transition-colors touch-manipulation active:scale-[0.98] ${
-                            sortOption === option 
-                              ? 'bg-blue-50 text-blue-700 font-medium' 
+                            sortOption === option
+                              ? 'bg-blue-50 text-blue-700 font-medium'
                               : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
@@ -455,8 +492,8 @@ export default function ClientLedger() {
                 {searchQuery ? t.noMatchingClients : t.noClients}
               </h3>
               <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500">
-                {searchQuery 
-                  ? 'Try adjusting your search criteria' 
+                {searchQuery
+                  ? 'Try adjusting your search criteria'
                   : 'Add clients to start tracking their rental history'}
               </p>
               {searchQuery && (
@@ -469,11 +506,34 @@ export default function ClientLedger() {
               )}
             </div>
           ) : (
-            <div className="space-y-3 sm:space-y-4">
-              {filteredAndSortedLedgers.map(ledger => (
-                <ClientLedgerCard key={ledger.clientId} ledger={ledger} />
-              ))}
-            </div>
+            <>
+              <div className="space-y-3 sm:space-y-4">
+                {filteredAndSortedLedgers.map(ledger => (
+                  <ClientLedgerCard key={ledger.clientId} ledger={ledger} />
+                ))}
+              </div>
+
+              {/* Infinite Scroll Trigger */}
+              {hasMore && (
+                <div ref={observerTarget} className="flex justify-center py-8">
+                  {loadingMore && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Loading more clients...</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* End of List Message */}
+              {!hasMore && displayedLedgers.length > ITEMS_PER_PAGE && (
+                <div className="py-6 text-center">
+                  <p className="text-sm text-gray-500">
+                    You've reached the end of the list
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
