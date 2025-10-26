@@ -25,7 +25,39 @@ const ClientManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [allClients, setAllClients] = useState<ClientFormData[]>([]);
+  const ITEMS_PER_PAGE = 10;
+
+  // Scroll handler for infinite loading
+  const handleScroll = async (e: React.UIEvent<HTMLElement>) => {
+    const target = e.currentTarget;
+    const scrolledToBottom = 
+      target.scrollHeight - target.scrollTop <= target.clientHeight * 1.5;
+
+    if (!loadingMore && hasMore && scrolledToBottom) {
+      setLoadingMore(true);
+      try {
+        const start = currentPage * ITEMS_PER_PAGE;
+        const nextBatch = allClients.slice(start, start + ITEMS_PER_PAGE);
+        
+        if (nextBatch.length > 0) {
+          setClients(prev => [...prev, ...nextBatch]);
+          setCurrentPage(prev => prev + 1);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error('Error loading more clients:', error);
+        toast.error('Failed to load more clients');
+      } finally {
+        setLoadingMore(false);
+      }
+    }
+  };
 
   useEffect(() => {
     fetchClients();
@@ -35,23 +67,39 @@ const ClientManagement: React.FC = () => {
     if (showRefreshToast) setRefreshing(true);
     else setLoading(true);
 
-    const { data, error } = await supabase
-      .from('clients')
-      .select('*')
-      .order('client_nic_name');
+    try {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('client_nic_name');
 
-    if (error) {
-      console.error('Error fetching clients:', error);
-      toast.error(t('failedToLoad'));
-    } else {
-      setClients(data || []);
+      if (error) {
+        console.error('Error fetching clients:', error);
+        toast.error(t('failedToLoad'));
+        return;
+      }
+
+      // Store all clients
+      setAllClients(data || []);
+      
+      // Set initial batch
+      const initialBatch = (data || []).slice(0, ITEMS_PER_PAGE);
+      setClients(initialBatch);
+      
+      // Reset pagination
+      setCurrentPage(1);
+      setHasMore((data || []).length > ITEMS_PER_PAGE);
+
       if (showRefreshToast) {
         toast.success(t('clientsRefreshed'));
       }
+    } catch (error) {
+      console.error('Error fetching clients:', error);
+      toast.error(t('failedToLoad'));
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    setLoading(false);
-    setRefreshing(false);
   };
 
   const handleSubmit = async (data: ClientFormData) => {
@@ -200,10 +248,11 @@ const ClientManagement: React.FC = () => {
         }}
       />
       <Navbar />
-
-      <main className="relative flex-1 w-full overflow-auto lg:ml-64" style={{ marginTop: '56px', backgroundColor: '#f9fafb' }}>
-        <div className="lg:mt-0"></div>
-        <div className="w-full px-4 py-6 mx-auto lg:px-8 lg:py-8 max-w-7xl">
+      <main 
+        className="flex-1 w-full ml-0 overflow-y-auto pt-14 sm:pt-0 lg:ml-64 h-[100dvh]"
+        onScroll={handleScroll}
+      >
+        <div className="w-full px-4 py-6 mx-auto lg:px-8 lg:py-8 max-w-7xl" style={{ backgroundColor: '#f9fafb' }}>
           {/* Header Section */}
           <div className="mb-4 sm:mb-6 lg:mb-8">
             <div className="flex items-center justify-between gap-3">
@@ -430,8 +479,6 @@ const ClientManagement: React.FC = () => {
           </div>
         )}
       </main>
-
-      {/* Add custom CSS for slide-up animation */}
       <style>{`
         @keyframes slide-up {
           from {

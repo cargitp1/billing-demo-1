@@ -74,23 +74,89 @@ export interface ClientLedgerData {
 
 const ITEMS_PER_PAGE = 10;
 
-const SkeletonCard = memo(() => (
-  <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl animate-pulse">
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div className="flex items-center flex-1 gap-3 sm:gap-4">
-        <div className="w-10 h-10 bg-gray-200 rounded-full sm:w-12 sm:h-12 lg:w-14 lg:h-14"></div>
-        <div className="flex-1">
-          <div className="w-32 h-4 mb-2 bg-gray-200 rounded sm:w-48 sm:h-5 lg:h-6"></div>
-          <div className="w-40 h-3 mb-1 bg-gray-200 rounded sm:w-56 sm:h-4 lg:w-64"></div>
-          <div className="w-24 h-3 bg-gray-200 rounded sm:w-32 sm:h-4 lg:w-40"></div>
+// Mobile Skeleton Card
+const MobileSkeletonCard = memo(() => (
+  <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm animate-pulse sm:hidden">
+    {/* Top Section - Client Info & Balance */}
+    <div className="flex items-start justify-between mb-3">
+      {/* Client Info */}
+      <div className="flex items-center gap-3">
+        <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-full"></div>
+        <div>
+          <div className="w-28 h-4 mb-1.5 bg-gray-200 rounded-md"></div>
+          <div className="w-20 h-3 bg-gray-200 rounded-md"></div>
         </div>
       </div>
+      {/* Balance */}
       <div className="text-right">
-        <div className="w-16 h-6 mb-2 ml-auto bg-gray-200 rounded sm:w-20 sm:h-7 lg:w-24 lg:h-8"></div>
-        <div className="w-20 h-3 ml-auto bg-gray-200 rounded sm:w-24 sm:h-4 lg:w-32"></div>
+        <div className="w-10 h-3 mb-1 ml-auto bg-gray-200 rounded-md"></div>
+        <div className="h-4 bg-gray-200 rounded-md w-14"></div>
+      </div>
+    </div>
+    
+    {/* Bottom Section - Location & Actions */}
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-1.5">
+        <div className="w-3.5 h-3.5 bg-gray-200 rounded-full"></div>
+        <div className="w-20 h-3 bg-gray-200 rounded-md"></div>
+      </div>
+      {/* Mobile Action Buttons */}
+      <div className="flex items-center gap-2">
+        <div className="bg-gray-200 rounded-full w-14 h-7"></div>
+        <div className="bg-gray-200 rounded-full w-14 h-7"></div>
+        <div className="bg-gray-200 rounded-full w-7 h-7"></div>
       </div>
     </div>
   </div>
+));
+
+// Desktop Skeleton Card
+const DesktopSkeletonCard = memo(() => (
+  <div className="hidden p-4 bg-white border border-gray-200 shadow-sm sm:block rounded-xl lg:p-6 animate-pulse">
+    <div className="flex items-start justify-between">
+      {/* Left Section - Client Info */}
+      <div className="flex items-center gap-4">
+        <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-full lg:w-14 lg:h-14"></div>
+        <div>
+          <div className="w-48 h-5 mb-3 bg-gray-200 rounded-md lg:h-6"></div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+              <div className="w-56 h-3.5 bg-gray-200 rounded-md"></div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+              <div className="w-32 h-3.5 bg-gray-200 rounded-md"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Section */}
+      <div className="flex flex-col items-end gap-4">
+        {/* Balance */}
+        <div className="text-right">
+          <div className="w-14 h-3.5 mb-1 bg-gray-200 rounded-md"></div>
+          <div className="w-20 h-5 bg-gray-200 rounded-md"></div>
+        </div>
+        {/* Action Buttons */}
+        <div className="flex items-center gap-2">
+          <div className="w-20 h-8 bg-gray-200 rounded-full"></div>
+          <div className="w-20 h-8 bg-gray-200 rounded-full"></div>
+          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+          <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+));
+
+// Combined Skeleton Card Component
+const SkeletonCard = memo(() => (
+  <>
+    <MobileSkeletonCard />
+    <DesktopSkeletonCard />
+  </>
 ));
 
 SkeletonCard.displayName = 'SkeletonCard';
