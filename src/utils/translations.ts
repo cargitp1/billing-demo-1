@@ -1,5 +1,52 @@
 export const translations = {
   gu: {
+    // Landing Page
+    slogan: "મજબૂત પાયો, વિશ્વસનીય ભાડો",
+    subSlogan: "તમારા બાંધકામ માટે શ્રેષ્ઠ પ્લેટ્સ",
+    viewProducts: "પ્લેટ્સ જુઓ",
+    howToUse: "કેવી રીતે વાપરવું",
+    productsAndPrices: "ઉત્પાદનો અને ભાડા દરો",
+    ourPlates: "અમારી પ્લેટ્સ",
+    pricePerDay: "પ્રતિ દિવસ",
+    allSizesOnePrice: "બધા સાઈઝ માટે એક જ દર - માત્ર ₹1.5 પ્રતિ દિવસ",
+    sameRentAllPlates: "બધી પ્લેટ્સ માટે એક જ ભાડું",
+    videoGuide: "વિડીયો માર્ગદર્શિકા",
+    howToUsePlates: "પ્લેટ્સ કેવી રીતે વાપરવી",
+    watchVideo: "સાચી રીતે ઉપયોગ કરવા માટે આ વિડીયો જુઓ",
+    selectSize: "યોગ્ય સાઈઝ પસંદ કરો",
+    properArrangement: "સાચી રીતે ગોઠવો",
+    safeUsage: "સુરક્ષિત રીતે વાપરો",
+    specialNote: "વિશેષ નોંધ",
+    qualityPlates: "બધી પ્લેટ્સ ઉચ્ચ ગુણવત્તાની MS સ્ટીલથી બનેલી છે",
+    minRentDays: "મિનિમમ ભાડા સમયગાળો: 30 દિવસ",
+    bulkDiscount: "બલ્ક ઓર્ડર પર વિશેષ ડિસ્કાઉન્ટ",
+    
+    // Features
+    highQuality: "ઉચ્ચ ગુણવત્તા",
+    qualityDesc: "મજબૂત અને ટકાઉ પ્લેટ્સ",
+    fastService: "ઝડપી સેવા",
+    serviceDesc: "તાત્કાલિક ડિલિવરી",
+    fairRent: "વાજબી ભાડું",
+    rentDesc: "સ્પર્ધાત્મક દરો",
+    allSizes: "બધા સાઈઝ",
+    sizesDesc: "વિવિધ માપ ઉપલબ્ધ",
+
+    // Footer
+    quickLinks: "ઝડપી લિંક્સ",
+    products: "ઉત્પાદનો",
+    aboutUs: "અમારા વિશે",
+    contactUs: "સંપર્ક કરો",
+    workingDays: "સોમવાર - શનિવાર",
+    privacyPolicy: "ગોપનીયતા",
+    terms: "શરતો",
+    
+    // Existing translations...
+    dateNewOld: "તારીખ (નવું → જૂનું)",
+    dateOldNew: "તારીખ (જૂનું → નવું)",
+    numberHighLow: "નંબર (વધુ → ઓછું)",
+    numberLowHigh: "નંબર (ઓછું → વધુ)",
+    tryAdjustingSearch: "તમારા શોધ માપદંડ સમાયોજિત કરવાનો પ્રયાસ કરો",
+    
     // Billing Translations
     billing: "બિલિંગ",
     billingManagement: "બિલિંગ મેનેજમેન્ટ",
@@ -163,13 +210,11 @@ export const translations = {
 
     heroTitle: 'નીલકંઠ પ્લેટ ડેપો',
     heroSubtitle: 'સેંટરિંગ પ્લેટ ભાડા સેવાઓ',
-    aboutUs: 'અમારા વિશે',
     aboutText: 'અમે બાંધકામ ઉદ્યોગ માટે ઉચ્ચ ગુણવત્તાની સેંટરિંગ પ્લેટ ભાડા સેવાઓ પ્રદાન કરીએ છીએ.',
     ourServices: 'અમારી સેવાઓ',
     servicesText: 'વિવિધ કદની પ્લેટો, ઝડપી ડિલિવરી અને વિશ્વસનીય રીટર્ન સેવાઓ.',
     whyChooseUs: 'શા માટે અમને પસંદ કરો',
     whyChooseText: 'વર્ષોનો અનુભવ, સારી સ્થિતિમાં પ્લેટો અને ઉત્તમ ગ્રાહક સેવા.',
-    contactUs: 'સંપર્ક કરો',
     contactText: 'કોઈપણ પૂછપરછ માટે અમારો સંપર્ક કરો. અમે હંમેશા મદદ કરવા તૈયાર છીએ.',
     getStarted: 'શરૂ કરો',
     Manage_your: 'ગ્રાહકનો વિશ્વાસ જ અમારી સૌથી મોટી સિદ્ધિ છે.',
@@ -261,6 +306,53 @@ export const translations = {
     noMatchingClients: 'કોઈ ગ્રાહક મેળ ખાતો નથી',
   },
   en: {
+    // Landing Page
+    slogan: "Strong Foundation, Reliable Rental",
+    subSlogan: "Best Plates for Your Construction",
+    viewProducts: "View Products",
+    howToUse: "How to Use",
+    productsAndPrices: "Products and Rental Rates",
+    ourPlates: "Our Plates",
+    pricePerDay: "per day",
+    allSizesOnePrice: "One Rate for All Sizes - Just ₹1.5 per day",
+    sameRentAllPlates: "Same Rate for All Plates",
+    videoGuide: "Video Guide",
+    howToUsePlates: "How to Use Plates",
+    watchVideo: "Watch this video for proper usage",
+    selectSize: "Select Right Size",
+    properArrangement: "Proper Arrangement",
+    safeUsage: "Safe Usage",
+    specialNote: "Special Note",
+    qualityPlates: "All plates are made of high-quality MS Steel",
+    minRentDays: "Minimum rental period: 30 days",
+    bulkDiscount: "Special discount on bulk orders",
+    
+    // Features
+    highQuality: "High Quality",
+    qualityDesc: "Strong and Durable Plates",
+    fastService: "Fast Service",
+    serviceDesc: "Immediate Delivery",
+    fairRent: "Fair Rent",
+    rentDesc: "Competitive Rates",
+    allSizes: "All Sizes",
+    sizesDesc: "Various Sizes Available",
+
+    // Footer
+    quickLinks: "Quick Links",
+    products: "Products",
+    aboutUs: "About Us",
+    contactUs: "Contact Us",
+    workingDays: "Monday - Saturday",
+    privacyPolicy: "Privacy Policy",
+    terms: "Terms",
+    
+    // Existing translations...
+    dateNewOld: "Date (New → Old)",
+    dateOldNew: "Date (Old → New)",
+    numberHighLow: "Number (High → Low)",
+    numberLowHigh: "Number (Low → High)",
+    tryAdjustingSearch: "Try adjusting your search criteria",
+    
     // Billing Translations
     billing: "Billing",
     billingManagement: "Billing Management",
@@ -377,13 +469,11 @@ export const translations = {
 
     heroTitle: 'Nilkanth Plat Depo',
     heroSubtitle: 'Centering Plate Rental Services',
-    aboutUs: 'About Us',
     aboutText: 'We provide high-quality centering plate rental services for the construction industry.',
     ourServices: 'Our Services',
     servicesText: 'Plates in various sizes, fast delivery, and reliable return services.',
     whyChooseUs: 'Why Choose Us',
     whyChooseText: 'Years of experience, well-maintained plates, and excellent customer service.',
-    contactUs: 'Contact Us',
     contactText: 'Reach out to us for any inquiries. We are always ready to help.',
     getStarted: 'Get Started',
 

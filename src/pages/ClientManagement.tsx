@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   UserPlus, 
-  Search, 
-  RefreshCw,
+  Search,
   TrendingUp,
   MapPin,
   Phone,
-  Plus
+  Plus,
+  Filter
 } from 'lucide-react';
+
+type SortOption = 'nameAZ' | 'nameZA';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ClientList from '../components/ClientList';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -18,18 +20,18 @@ import { supabase } from '../utils/supabase';
 import toast, { Toaster } from 'react-hot-toast';
 
 const ClientManagement: React.FC = () => {
-  const navigate = useNavigate();
   const { t } = useLanguage();
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [editingClient, setEditingClient] = useState<ClientFormData | undefined>(undefined);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [allClients, setAllClients] = useState<ClientFormData[]>([]);
+  const [sortOption, setSortOption] = useState<SortOption>('nameAZ');
+  const [showSortMenu, setShowSortMenu] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
   // Scroll handler for infinite loading
@@ -63,15 +65,39 @@ const ClientManagement: React.FC = () => {
     fetchClients();
   }, []);
 
-  const fetchClients = async (showRefreshToast = false) => {
-    if (showRefreshToast) setRefreshing(true);
-    else setLoading(true);
+  useEffect(() => {
+    fetchClients();
+  }, [sortOption]);
+
+  const getSortLabel = (option: SortOption) => {
+    switch (option) {
+      case 'nameAZ': return t('nameAZ') || 'Name (A to Z)';
+      case 'nameZA': return t('nameZA') || 'Name (Z to A)';
+      default: return '';
+    }
+  };
+
+  // Click outside handler to close sort menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.sort-menu-container')) {
+        setShowSortMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const fetchClients = async () => {
+    setLoading(true);
 
     try {
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .order('client_nic_name');
+        .order('client_nic_name', { ascending: sortOption === 'nameAZ' });
 
       if (error) {
         console.error('Error fetching clients:', error);
@@ -89,16 +115,11 @@ const ClientManagement: React.FC = () => {
       // Reset pagination
       setCurrentPage(1);
       setHasMore((data || []).length > ITEMS_PER_PAGE);
-
-      if (showRefreshToast) {
-        toast.success(t('clientsRefreshed'));
-      }
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error(t('failedToLoad'));
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -253,36 +274,73 @@ const ClientManagement: React.FC = () => {
         onScroll={handleScroll}
       >
         <div className="w-full px-4 py-6 mx-auto lg:px-8 lg:py-8 max-w-7xl" style={{ backgroundColor: '#f9fafb' }}>
-          {/* Header Section */}
-          <div className="mb-4 sm:mb-6 lg:mb-8">
+          {/* Header Section - Hidden on Mobile */}
+          <div className="hidden mb-4 sm:block sm:mb-6 lg:mb-8">
             <div className="flex items-center justify-between gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute w-4 h-4 text-gray-400 transform -translate-y-1/2 left-3 top-1/2 sm:w-5 sm:h-5" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t('searchClients')}
-                  className="w-full pl-9 sm:pl-11 pr-3 sm:pr-4 py-2 sm:py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t('clients')}</h1>
+                <p className="mt-1 text-xs text-gray-600">{t('search')}</p>
               </div>
+              <button
+                onClick={() => setShowForm(true)}
+                className="items-center hidden gap-2 btn-primary lg:inline-flex"
+                style={{ minHeight: '40px' }}
+              >
+                <UserPlus size={20} />
+                {t('addNewClient')}
+              </button>
+            </div>
+          </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => fetchClients(true)}
-                  disabled={refreshing}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation active:scale-95"
-                >
-                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-                </button>
-                <button
-                  onClick={() => setShowForm(true)}
-                  className="items-center hidden gap-2 btn-primary lg:inline-flex"
-                  style={{ minHeight: '40px' }}
-                >
-                  <UserPlus size={20} />
-                  {t('addNewClient')}
-                </button>
+          {/* Enhanced Search Bar with Integrated Filter */}
+          <div className="relative mb-4">
+            <div className="relative flex items-center w-full">
+              <Search className="absolute w-4 h-4 text-gray-400 left-3" />
+              <input
+                type="text"
+                placeholder={t('searchClients')}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-28 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+              <div className="absolute flex items-center gap-2 right-2">
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <div className="flex items-center justify-center w-4 h-4">×</div>
+                  </button>
+                )}
+                <div className="relative sort-menu-container">
+                  <button
+                    onClick={() => setShowSortMenu(prev => !prev)}
+                    className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 rounded-md"
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
+                  </button>
+                  
+                  {/* Sort Options Dropdown */}
+                  {showSortMenu && (
+                    <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                      {(['nameAZ', 'nameZA'] as SortOption[]).map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => {
+                            setSortOption(option);
+                            setShowSortMenu(false);
+                          }}
+                          className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${
+                            sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                          }`}
+                        >
+                          {getSortLabel(option)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

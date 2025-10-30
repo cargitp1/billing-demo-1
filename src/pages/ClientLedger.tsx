@@ -5,7 +5,6 @@ import {
   Search,
   Filter,
   RefreshCw,
-  ChevronDown,
   Users,
   Loader2
 } from 'lucide-react';
@@ -441,6 +440,19 @@ export default function ClientLedger() {
     }
   };
 
+  // Click outside handler to close sort menu
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.sort-menu-container')) {
+        setShowSortMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Toaster
@@ -492,59 +504,56 @@ export default function ClientLedger() {
           </div>
 
 
-          {/* Search and Filter Section */}
-          <div className="flex items-center gap-2 mb-4">
-            {/* Search Input */}
-            <div className="relative flex-1">
-              <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 top-1/2 w-3.5 h-3.5" />
+          {/* Enhanced Search Bar with Integrated Filter */}
+          <div className="relative mb-4">
+            <div className="relative flex items-center w-full">
+              <Search className="absolute w-4 h-4 text-gray-400 left-3" />
               <input
                 type="text"
                 placeholder={t.searchClients}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs min-h-[36px]"
+                className="w-full pl-10 pr-28 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
               />
-            </div>
-
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setShowSortMenu(!showSortMenu)}
-                className="inline-flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 touch-manipulation active:scale-95 min-h-[36px]"
-              >
-                <Filter className="w-3.5 h-3.5" />
-                <span className="truncate">{getSortLabel(sortOption)}</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showSortMenu ? 'rotate-180' : ''}`} />
-              </button>
-
-              {showSortMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowSortMenu(false)}
-                  ></div>
-                  <div className="absolute right-0 z-20 w-56 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
-                    <div className="py-2">
-                      {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map(option => (
+              <div className="absolute flex items-center gap-2 right-2">
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="p-1 text-gray-400 hover:text-gray-600"
+                  >
+                    <div className="flex items-center justify-center w-4 h-4">×</div>
+                  </button>
+                )}
+                <div className="relative sort-menu-container">
+                  <button
+                    onClick={() => setShowSortMenu(prev => !prev)}
+                    className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 rounded-md"
+                  >
+                    <Filter className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
+                  </button>
+                  
+                  {/* Sort Options Dropdown */}
+                  {showSortMenu && (
+                    <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                      {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map((option) => (
                         <button
                           key={option}
                           onClick={() => {
                             setSortOption(option);
                             setShowSortMenu(false);
                           }}
-                          className={`w-full text-left px-3 py-2 text-xs transition-colors touch-manipulation active:scale-[0.98] ${
-                            sortOption === option
-                              ? 'bg-blue-50 text-blue-700 font-medium'
-                              : 'text-gray-700 hover:bg-gray-50'
+                          className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${
+                            sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
                           }`}
                         >
                           {getSortLabel(option)}
                         </button>
                       ))}
                     </div>
-                  </div>
-                </>
-              )}
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
