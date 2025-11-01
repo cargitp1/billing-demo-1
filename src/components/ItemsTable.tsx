@@ -134,9 +134,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                 {outstandingBalances && (
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     <div className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
-                      outstandingBalances[sizeIndex] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
+                      ((outstandingBalances[sizeIndex] || 0) + (borrowedOutstanding?.[sizeIndex] || 0)) > 0 
+                        ? 'bg-red-100 text-red-700' 
+                        : 'bg-gray-100 text-gray-700'
                     }`}>
-                      {outstandingBalances[sizeIndex] || 0}
+                      {(outstandingBalances[sizeIndex] || 0) + (borrowedOutstanding?.[sizeIndex] || 0)}
                     </div>
                   </td>
                 )}
