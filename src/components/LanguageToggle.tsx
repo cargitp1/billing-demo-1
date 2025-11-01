@@ -9,11 +9,10 @@ const LanguageToggle: React.FC = () => {
   return (
     <motion.button
       onClick={() => setLanguage(language === 'gu' ? 'en' : 'gu')}
-      className="relative group flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:border-gray-300 transition-all"
-      whileHover={{ scale: 1.05 }}
+      className="relative group flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 text-sm font-medium text-blue-400 rounded-lg transition-all hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20"
       whileTap={{ scale: 0.95 }}
     >
-      <Globe className="w-4 h-4 text-gray-500 group-hover:text-orange-500 transition-colors" />
+      <Globe className="w-4 h-4 text-blue-400 group-hover:text-blue-300 transition-colors" />
       <span className="relative">
         {/* Desktop View */}
         <span className="hidden md:block">

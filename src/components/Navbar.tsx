@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   UserPlus,
@@ -24,6 +24,19 @@ const Navbar: React.FC = () => {
   const { t } = useLanguage();
   const { logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Add padding to main content when using mobile header
+  useEffect(() => {
+    const mainContent = document.querySelector('main');
+    if (mainContent) {
+      mainContent.style.paddingTop = '72px';  // 56px + 8px + 8px
+    }
+    return () => {
+      if (mainContent) {
+        mainContent.style.paddingTop = '';
+      }
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -157,8 +170,11 @@ const Navbar: React.FC = () => {
 
         <button
           onClick={handleLogout}
-          className="flex items-center justify-center w-full gap-2 btn-error"
-          style={{ minHeight: '44px', color: '#f87171' }}
+          className="flex items-center justify-center w-full gap-2 px-4 py-2 transition-colors duration-150 rounded-lg bg-red-500/10 hover:bg-red-500/20"
+          style={{ 
+            minHeight: '44px', 
+            color: '#f87171'
+          }}
         >
           <LogOut size={20} />
           <span className="font-medium">{t('logout')}</span>
@@ -169,14 +185,25 @@ const Navbar: React.FC = () => {
 
   return (
     <>
+      {/* Desktop Sidebar */}
       <nav className="fixed top-0 left-0 z-50 flex-col hidden h-screen lg:flex" style={{ width: '250px', backgroundColor: '#1f2937' }}>
         <SidebarContent />
       </nav>
 
-      <div className="fixed top-0 left-0 right-0 z-50 flex items-center px-4 bg-white border-b lg:hidden" style={{ height: '56px', borderColor: '#e5e7eb' }}>
+      {/* Mobile Header - Slightly lower position with rounded corners */}
+      <div 
+        className="fixed left-0 right-0 z-50 flex items-center px-4 bg-white border-b shadow-sm lg:hidden" 
+        style={{ 
+          height: '56px', 
+          borderColor: '#e5e7eb',
+          top: '8px',
+          margin: '0 8px',
+          borderRadius: '8px'
+        }}
+      >
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="absolute p-2 left-4"
+          className="p-2 -ml-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
           style={{ color: '#2563eb' }}
         >
           {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -186,6 +213,7 @@ const Navbar: React.FC = () => {
         </h1>
       </div>
 
+      {/* Mobile Menu */}
       {mobileMenuOpen && (
         <>
           <div
