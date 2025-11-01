@@ -184,10 +184,10 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 </button>
                 <button
                   onClick={handleCreateJama}
-                  className="p-1.5 text-[10px] font-medium text-white bg-green-500 hover:bg-green-600 rounded-full transition-colors touch-manipulation active:scale-95 flex items-center"
+                  className="p-1.5 text-[10px] font-medium text-white bg-green-500 hover:bg-green-600 rounded-full transition-colors touch-manipulation active:scale-95 flex items-center justify-center"
                   aria-label="Create Jama"
                 >
-                  <Plus className="w-3.5 h-3.5" />
+                  <span className="text-lg font-bold leading-none" style={{ marginTop: '-2px' }}>-</span>
                 </button>
                 <button
                   onClick={(e) => {
