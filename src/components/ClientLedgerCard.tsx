@@ -128,7 +128,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 title="Create Jama Challan"
               >
                 <span className="flex items-center gap-1">
-                  <Plus className="w-4 h-4" />
+                  <span className="w-4 h-4 flex items-center justify-center text-lg font-bold leading-none">-</span>
                   Jama
                 </span>
               </button>

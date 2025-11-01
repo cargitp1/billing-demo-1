@@ -9,10 +9,10 @@ import {
   BookMarked,
   LogOut,
   LayoutDashboard,
-  Sparkles,
   Menu,
   X
 } from 'lucide-react';
+import logo from '../assets/logo.png';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAuth } from '../contexts/AuthContext';
 import LanguageToggle from './LanguageToggle';
@@ -109,10 +109,15 @@ const Navbar: React.FC = () => {
 
   const SidebarContent = () => (
     <>
-      <div className="p-5" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+            <div className="p-4" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.1)' }}>
-            <Sparkles size={20} className="text-white" />
+          <div className="flex items-center justify-center p-0 overflow-hidden transition-colors w-14 h-14 rounded-xl bg-white/10 hover:bg-white/20">
+            <img 
+              src={logo} 
+              alt="Company Logo"
+              className="w-[200%] h-[200%] object-contain scale-125 transform"
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />
           </div>
           <div>
             <h1 className="text-lg font-bold text-white">{t('appName')}</h1>

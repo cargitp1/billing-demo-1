@@ -16,6 +16,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
 import { Toaster } from 'react-hot-toast';
 import { format } from 'date-fns';
+import '../styles/wave.css';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -107,8 +108,7 @@ const Dashboard: React.FC = () => {
             <div className="absolute bottom-0 left-0 w-20 h-20 -mb-10 -ml-10 bg-white rounded-full sm:w-32 sm:h-32 lg:w-48 lg:h-48 sm:-mb-16 sm:-ml-16 lg:-mb-24 lg:-ml-24 opacity-5"></div>
             <div className="relative">
               <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-1.5">
-                <Sparkles className="w-4 h-4 text-yellow-300 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                <p className="text-xs font-medium text-blue-100 sm:text-sm lg:text-base">{greeting}!</p>
+                <p className="text-xs font-medium text-blue-100 sm:text-sm lg:text-base"><span className="waving-hand">👋</span> {greeting}!</p>
               </div>
               <h1 className="mb-1 sm:mb-1.5 text-xl sm:text-2xl lg:text-4xl font-bold leading-tight">
                 {t('appName')}
