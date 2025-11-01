@@ -114,6 +114,9 @@ export const translations = {
     borrowedStock: 'ઉધાર સ્ટોક',
     note: 'નોંધ',
     mainNote: 'મુખ્ય નોંધ',
+    optionalNote: 'વૈકલ્પિક નોંધ',
+    optionalGeneralNotes: 'વૈકલ્પિક સામાન્ય નોંધ...',
+    optional: 'વૈકલ્પિક',
 
     save: 'સેવ કરો',
     cancel: 'રદ કરો',
@@ -133,6 +136,8 @@ export const translations = {
     totalStock: 'કુલ સ્ટોક',
     onRent: 'ભાડે',
     borrowed: 'ઉધાર',
+    borrowedOutstanding: 'ઉધાર બાકી',
+    outstanding: 'બાકી',
     lost: 'ગુમ',
     available: 'ઉપલબ્ધ',
     stockOverview: 'સ્ટોક ઓવરવ્યુ',
@@ -426,6 +431,9 @@ export const translations = {
     borrowedStock: 'Borrowed Stock',
     note: 'Note',
     mainNote: 'Main Note',
+    optionalNote: 'Optional note',
+    optionalGeneralNotes: 'Optional general notes...',
+    optional: 'Optional',
 
     save: 'Save',
     cancel: 'Cancel',

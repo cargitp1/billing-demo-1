@@ -103,12 +103,12 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
               </th>
               {outstandingBalances && (
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
-                  Outstanding
+                  {t('outstanding')}
                 </th>
               )}
               {showAvailable && (
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
-                  Available
+                  {t('available')}
                 </th>
               )}
               <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
@@ -116,7 +116,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
               </th>
               {outstandingBalances && !hideColumns && (
                 <th className="px-4 py-3 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
-                  Borrowed Outstanding
+                  {t('borrowedOutstanding')}
                 </th>
               )}
               {!hideColumns && (
@@ -215,12 +215,12 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                     </th>
                     {outstandingBalances && (
                       <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
-                        Outstanding
+                        {t('outstanding')}
                       </th>
                     )}
                     {showAvailable && (
                       <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
-                        Available
+                        {t('available')}
                       </th>
                     )}
                     <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
@@ -228,7 +228,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                     </th>
                     {outstandingBalances && !hideColumns && (
                       <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
-                        Borrowed Out.
+                        {t('borrowedOutstanding')}
                       </th>
                     )}
                     {!hideColumns && (
@@ -308,8 +308,8 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                           type="text"
                           value={items[`size_${sizeIndex}_note` as keyof ItemsData] as string}
                           onChange={(e) => handleChange(`size_${sizeIndex}_note` as keyof ItemsData, e.target.value)}
-                          className="w-full px-2 py-2 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
-                              placeholder="Optional note"
+                              className="w-full px-2 py-2 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
+                              placeholder={t('optionalNote')}
                             />
                           </td>
                         </>
@@ -368,7 +368,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
           value={items.main_note}
           onChange={(e) => handleChange('main_note', e.target.value)}
           rows={3}
-          placeholder="Optional general notes..."
+          placeholder={t('optionalGeneralNotes')}
           className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 text-xs sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>

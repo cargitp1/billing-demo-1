@@ -332,7 +332,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                         setPreviousDriversVisible(false);
                       }, 200);
                     }}
-                    placeholder="Optional"
+                    placeholder={t('optional')}
                     className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm"
                   />
                   {previousDriversVisible && previousDrivers.length > 0 && (
