@@ -76,10 +76,16 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
   const { t } = useLanguage();
 
   const handleChange = (field: keyof ItemsData, value: number | string) => {
-    if (typeof value === 'string' && value === '') {
-      onChange({ ...items, [field]: 0 });
-    } else {
+    // If the field is a note field, allow empty string
+    if (field.includes('note')) {
       onChange({ ...items, [field]: value });
+    } else {
+      // For quantity and borrowed fields, convert empty to 0
+      if (typeof value === 'string' && value === '') {
+        onChange({ ...items, [field]: 0 });
+      } else {
+        onChange({ ...items, [field]: value });
+      }
     }
   };
 
