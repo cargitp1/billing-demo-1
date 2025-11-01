@@ -270,7 +270,6 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
             <ChevronRight className="w-4 h-4 text-gray-400 transition-transform sm:w-5 sm:h-5 group-open:rotate-90" />
           </summary>
           <div className="mt-3 sm:mt-4">
-            <p className="mb-3 text-[10px] sm:text-xs lg:text-sm text-gray-500 sm:mb-4">Optional: Override default site or phone</p>
             <div className="grid gap-2 sm:gap-3 md:grid-cols-2 lg:gap-4">
               <div>
                 <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
@@ -281,7 +280,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   type="text"
                   value={alternativeSite}
                   onChange={(e) => setAlternativeSite(e.target.value)}
-                  placeholder="Leave blank for default"
+                  placeholder={t('optional')}
                   className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm"
                 />
               </div>
@@ -294,7 +293,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   type="text"
                   value={secondaryPhone}
                   onChange={(e) => setSecondaryPhone(e.target.value)}
-                  placeholder="Leave blank for primary"
+                  placeholder={t('optional')}
                   className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm"
                 />
               </div>
