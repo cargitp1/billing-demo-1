@@ -11,6 +11,8 @@ import JamaChallan from './pages/JamaChallan';
 import StockManagement from './pages/StockManagement';
 import ChallanBook from './pages/ChallanBook';
 import ClientLedger from './pages/ClientLedger';
+import Billing from './pages/Billing';
+import CreateBill from './pages/CreateBill';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -90,6 +92,24 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/billing">
+              <Route
+                index
+                element={
+                  <ProtectedRoute>
+                    <Billing />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="create/:clientId"
+                element={
+                  <ProtectedRoute>
+                    <CreateBill />
+                  </ProtectedRoute>
+                }
+              />
+            </Route>
           </Routes>
         </Router>
       </LanguageProvider>

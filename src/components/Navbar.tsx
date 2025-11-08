@@ -52,6 +52,12 @@ const Navbar: React.FC = () => {
       colorClass: 'blue'
     },
     {
+      path: '/billing',
+      label: 'Billing',
+      icon: FileText,
+      colorClass: 'blue'
+    },
+    {
       path: '/clients',
       label: t('addClient'),
       icon: UserPlus,

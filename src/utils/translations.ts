@@ -1,5 +1,15 @@
 export const translations = {
   gu: {
+    // Billing Page
+    billDetails: "બિલની વિગતો",
+    billNumber: "બિલ નંબર",
+    billDate: "બિલ તારીખ",
+    tillDate: "સુધીની તારીખ",
+    dailyRent: "દૈનિક ભાડું",
+    ledgerDetails: "લેજર વિગતો",
+    calculateBill: "બિલ ગણો",
+    generateBill: "બિલ જનરેટ કરો",
+    
     // Landing Page
     slogan: "મજબૂત પાયો, વિશ્વસનીય ભાડો",
     subSlogan: "તમારા બાંધકામ માટે શ્રેષ્ઠ પ્લેટ્સ",
@@ -57,7 +67,7 @@ export const translations = {
     // Using the existing translations for fromDate and toDate
     dailyRent: "દૈનિક ભાડું",
     perPiece: "પ્રતિ પીસ",
-    calculateBill: "બિલ ગણો",
+    // calculateBill: "બિલ ગણો",
     rentalCalculation: "ભાડાની ગણતરી",
     totalDays: "કુલ દિવસ",
     totalRent: "કુલ ભાડું",

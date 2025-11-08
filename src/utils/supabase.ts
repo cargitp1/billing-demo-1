@@ -10,4 +10,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     storage: window.localStorage,
   },
+  db: {
+    schema: 'public'
+  },
+  global: {
+    headers: { 'x-my-custom-header': 'my-app-name' }
+  }
 });
