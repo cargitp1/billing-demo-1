@@ -52,12 +52,6 @@ const Navbar: React.FC = () => {
       colorClass: 'blue'
     },
     {
-      path: '/billing',
-      label: 'Billing',
-      icon: FileText,
-      colorClass: 'blue'
-    },
-    {
       path: '/clients',
       label: t('addClient'),
       icon: UserPlus,
@@ -93,6 +87,12 @@ const Navbar: React.FC = () => {
       icon: BookMarked,
       colorClass: 'slate'
     },
+    {
+      path: '/billing',
+      label: 'Billing',
+      icon: FileText,
+      colorClass: 'blue'
+    },
   ];
 
   const getActiveColor = (colorClass: string): string => {
@@ -117,12 +117,16 @@ const Navbar: React.FC = () => {
     <>
             <div className="p-4" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center p-0 overflow-hidden transition-colors w-14 h-14 rounded-xl bg-white/10 hover:bg-white/20">
+          <div className="flex items-center justify-center p-2 overflow-hidden transition-colors w-14 h-14 rounded-xl bg-white/10 hover:bg-white/20">
             <img 
               src={logo} 
               alt="Company Logo"
-              className="w-[200%] h-[200%] object-contain scale-125 transform"
-              style={{ filter: 'brightness(0) invert(1)' }}
+              className="object-contain w-full h-full"
+              style={{ 
+                filter: 'brightness(0) invert(1)',
+                maxWidth: '100%',
+                maxHeight: '100%'
+              }}
             />
           </div>
           <div>

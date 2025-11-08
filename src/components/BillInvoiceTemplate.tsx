@@ -51,11 +51,15 @@ interface BillInvoiceProps {
   }[];
   summary: {
     totalRent: number;
+    totalUdharPlates: number;
+    totalJamaPlates: number;
+    netPlates: number;
+    serviceCharge: number;
     extraCosts: number;
-    subtotal: number;
     discounts: number;
     grandTotal: number;
     totalPaid: number;
+    advancePaid: number;
     duePayment: number;
   };
   mainNote?: string;
@@ -128,8 +132,8 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                 <td>{formatIndianCurrency(charge.amount)}</td>
               </tr>
             ))}
-            <tr className="table-footer">
-              <td colSpan={4}>Total Rental Charges:</td>
+              <tr className="table-footer">
+              <td colSpan={4}>Total Rental Charges / કુલ ભાડા શુલ્ક:</td>
               <td>{formatIndianCurrency(summary.totalRent)}</td>
             </tr>
           </tbody>
@@ -204,20 +208,44 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               <td>{formatIndianCurrency(summary.totalRent)}</td>
             </tr>
             <tr className="summary-row">
-              <td>Extra Costs:</td>
-              <td>{formatIndianCurrency(summary.extraCosts)}</td>
+              <td>Total Plates (Udhar):</td>
+              <td>{summary.totalUdharPlates}</td>
             </tr>
             <tr className="summary-row">
-              <td>Subtotal:</td>
-              <td>{formatIndianCurrency(summary.subtotal)}</td>
+              <td>Total Plates (Jama):</td>
+              <td>{summary.totalJamaPlates}</td>
+            </tr>
+            <tr className="summary-row">
+              <td>Net Plates:</td>
+              <td>{summary.netPlates}</td>
+            </tr>
+            <tr className="summary-row">
+              <td>Service Charge:</td>
+              <td>{formatIndianCurrency(summary.serviceCharge)}</td>
+            </tr>
+            <tr className="summary-row">
+              <td>Extra Costs:</td>
+              <td>{formatIndianCurrency(summary.extraCosts)}</td>
             </tr>
             <tr className="summary-row">
               <td>Discounts:</td>
               <td>{formatIndianCurrency(summary.discounts)}</td>
             </tr>
+            <tr className="summary-row">
+              <td>Advance Paid:</td>
+              <td>{formatIndianCurrency(summary.advancePaid)}</td>
+            </tr>
+            <tr className="summary-row">
+              <td>Total Paid:</td>
+              <td>{formatIndianCurrency(summary.totalPaid)}</td>
+            </tr>
             <tr className="summary-row grand-total-row">
               <td>GRAND TOTAL:</td>
               <td>{formatIndianCurrency(summary.grandTotal)}</td>
+            </tr>
+            <tr className="summary-row due-payment-row">
+              <td>DUE PAYMENT:</td>
+              <td>{formatIndianCurrency(summary.duePayment)}</td>
             </tr>
           </tbody>
         </table>
@@ -344,33 +372,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
         </div>
       )}
 
-      {/* Bill Summary */}
-      <div style={{ marginBottom: '20px', width: '50%', marginLeft: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: '8px' }}>Total Rent:</td>
-              <td style={{ padding: '8px', textAlign: 'right' }}>₹{summary.totalRent.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px' }}>Extra Costs:</td>
-              <td style={{ padding: '8px', textAlign: 'right' }}>₹{summary.extraCosts.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px' }}>Subtotal:</td>
-              <td style={{ padding: '8px', textAlign: 'right' }}>₹{summary.subtotal.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '8px' }}>Discounts:</td>
-              <td style={{ padding: '8px', textAlign: 'right' }}>₹{summary.discounts.toLocaleString('en-IN')}</td>
-            </tr>
-            <tr style={{ borderTop: '2px solid #000' }}>
-              <td style={{ padding: '8px' }}><strong>GRAND TOTAL:</strong></td>
-              <td style={{ padding: '8px', textAlign: 'right' }}><strong>₹{summary.grandTotal.toLocaleString('en-IN')}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+
 
       {/* Payment Details */}
       {payments.length > 0 && (
@@ -448,7 +450,5 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
     </div>
   );
 };
-
-export default BillInvoiceTemplate;
 
 export default BillInvoiceTemplate;

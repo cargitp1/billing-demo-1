@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import * as billCalculations from '../utils/billCalculations';
+import * as periodCalculations from '../utils/billingPeriodCalculations';
 import { validateClientData } from '../utils/dataValidation';
 import { supabase } from '../utils/supabase';
 import Navbar from '../components/Navbar';
@@ -126,6 +127,7 @@ export default function CreateBill() {
   const { t } = useLanguage();
   
   const [client, setClient] = useState<ClientFormData | null>(null);
+  const [billResult, setBillResult] = useState<ReturnType<typeof periodCalculations.calculateBill> | null>(null);
   const [billData, setBillData] = useState<BillData>({
     billNumber: '',
     billDate: format(new Date(), 'yyyy-MM-dd'),
@@ -153,6 +155,29 @@ export default function CreateBill() {
 
   const fetchClient = async () => {
     try {
+      // Generate bill number first
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      
+      const { data: lastBill, error: billError } = await supabase
+        .from('bills')
+        .select('bill_number')
+        .ilike('bill_number', `BILL-${year}${month}-%`)
+        .order('bill_number', { ascending: false })
+        .limit(1);
+
+      if (!billError) {
+        let sequence = 1;
+        if (lastBill && lastBill.length > 0) {
+          const lastNumber = lastBill[0].bill_number;
+          const lastSequence = parseInt(lastNumber.split('-').pop() || '0');
+          sequence = lastSequence + 1;
+        }
+        const newBillNumber = `BILL-${year}${month}-${String(sequence).padStart(3, '0')}`;
+        setBillData(prev => ({ ...prev, billNumber: newBillNumber }));
+      }
+
       // Fetch and validate all client data
       const validation = await validateClientData(clientId!);
       
@@ -214,6 +239,8 @@ export default function CreateBill() {
   };
 
   const validateBillNumber = async (billNumber: string) => {
+    if (!billNumber.trim()) return false;
+    
     try {
       const { data, error } = await supabase
         .from('bills')
@@ -225,10 +252,11 @@ export default function CreateBill() {
       return !data; // Returns true if bill number is available (no matching record found)
     } catch (error) {
       console.error('Error validating bill number:', error);
-      toast.error('Error validating bill number');
       return false;
     }
   };
+
+
 
   const handleInputChange = async (field: keyof BillData, value: string | number) => {
     const newErrors = { ...billData.errors };
@@ -249,26 +277,50 @@ export default function CreateBill() {
     }));
   };
 
-  const getBillSummary = () => {
-    const summary = billCalculations.getBillSummary(
-      billData.fromDate || new Date().toISOString(),
-      billData.toDate || new Date().toISOString(),
-      billData.dailyRent,
-      currentBalance?.sizes || {},
-      billData.extraCosts,
-      billData.discounts,
-      billData.payments
-    );
-
-    return {
-      'Total Rent': summary.totalRent,
-      'Extra Costs': summary.totalExtraCosts,
-      'Total Discounts': summary.totalDiscounts,
-      'GRAND TOTAL': summary.grandTotal,
-      'Payments Received': summary.totalPayments,
-      'DUE PAYMENT': summary.duePayment,
-    } as const;
+  // Compute full bill summary once for rendering (size breakdown, totals, payments, due)
+  const fullSummary = billResult ? {
+    totalRent: billResult.billingPeriods.totalRent,
+    totalUdharPlates: currentBalance?.sizes ? 
+      Object.values(currentBalance.sizes).reduce((sum, size) => sum + (size.main || 0), 0) : 0,
+    totalJamaPlates: currentBalance?.sizes ? 
+      Object.values(currentBalance.sizes).reduce((sum, size) => sum + (size.borrowed || 0), 0) : 0,
+    netPlates: currentBalance?.sizes ? 
+      Object.values(currentBalance.sizes).reduce((sum, size) => 
+        sum + ((size.main || 0) - (size.borrowed || 0)), 0) : 0,
+    serviceCharge: 0, // TODO: Add service charge calculation
+    totalExtraCosts: billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
+    totalDiscounts: billData.discounts.reduce((sum, discount) => sum + discount.total, 0),
+    grandTotal: billResult.billingPeriods.totalRent + 
+      billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
+    totalPaid: billData.payments.reduce((sum, payment) => sum + payment.amount, 0),
+    advancePaid: 0, // TODO: Add advance payment tracking
+    duePayment: billResult.billingPeriods.totalRent + 
+      billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) - 
+      billData.discounts.reduce((sum, discount) => sum + discount.total, 0) - 
+      billData.payments.reduce((sum, payment) => sum + payment.amount, 0)
+  } : {
+    totalRent: 0,
+    totalUdharPlates: 0,
+    totalJamaPlates: 0,
+    netPlates: 0,
+    serviceCharge: 0,
+    totalExtraCosts: 0,
+    totalDiscounts: 0,
+    grandTotal: 0,
+    totalPaid: 0,
+    advancePaid: 0,
+    duePayment: 0
   };
+
+  // UI-friendly map of labels -> amounts (used in Bill Summary section)
+  const summaryMap = {
+    'Total Rent': fullSummary.totalRent,
+    'Extra Costs': fullSummary.totalExtraCosts,
+    'Total Discounts': fullSummary.totalDiscounts,
+    'GRAND TOTAL': fullSummary.grandTotal,
+    'Payments Received': fullSummary.totalPaid,
+    'DUE PAYMENT': fullSummary.duePayment,
+  } as const;
 
   const handleGenerateBill = async () => {
     try {
@@ -351,7 +403,7 @@ export default function CreateBill() {
   const calculateBill = async () => {
     setIsLoading(true);
     try {
-      // Fetch Udhar challans
+      // Fetch Udhar challans with their items
       const { data: udharChallans, error: udharError } = await supabase
         .from('udhar_challans')
         .select(`
@@ -359,7 +411,7 @@ export default function CreateBill() {
           udhar_date,
           driver_name,
           alternative_site,
-          items:udhar_items!udhar_items_udhar_challan_number_fkey (
+          items:udhar_items (
             size_1_qty,
             size_2_qty,
             size_3_qty,
@@ -383,9 +435,14 @@ export default function CreateBill() {
         .eq('client_id', clientId)
         .order('udhar_date', { ascending: true });
 
-      if (udharError) throw udharError;
+      console.log('Udhar Challans:', udharChallans);
 
-      // Fetch Jama challans
+      if (udharError) {
+        console.error('Error fetching Udhar challans:', udharError);
+        throw udharError;
+      }
+
+      // Fetch Jama challans with their items
       const { data: jamaChallans, error: jamaError } = await supabase
         .from('jama_challans')
         .select(`
@@ -393,7 +450,7 @@ export default function CreateBill() {
           jama_date,
           driver_name,
           alternative_site,
-          items:jama_items!jama_items_jama_challan_number_fkey (
+          items:jama_items (
             size_1_qty,
             size_2_qty,
             size_3_qty,
@@ -417,116 +474,78 @@ export default function CreateBill() {
         .eq('client_id', clientId)
         .order('jama_date', { ascending: true });
 
+      console.log('Jama Challans:', jamaChallans);
+
       if (jamaError) throw jamaError;
 
       if (udharChallans && udharChallans.length > 0) {
         const earliestDate = udharChallans[0].udhar_date;
 
-        // Transform challans into transactions
-        const transactions: Transaction[] = [
-          ...udharChallans.map(challan => ({
-            type: 'udhar' as const,
-            challanNumber: challan.udhar_challan_number,
-            date: challan.udhar_date,
-            site: challan.alternative_site,
-            driverName: challan.driver_name,
-            challanId: challan.udhar_challan_number,
-            items: challan.items && challan.items[0] ? [challan.items[0] as ChallanItem] : [],
-            grandTotal: challan.items && challan.items[0] ? Object.keys(challan.items[0] as ChallanItem)
-              .filter(key => key.endsWith('_qty'))
-              .reduce((total, key) => total + ((challan.items[0] as ChallanItem)[key as keyof ChallanItem] || 0), 0) : 0,
-            sizes: challan.items && challan.items[0] ? {
-              1: { qty: challan.items[0].size_1_qty || 0, borrowed: challan.items[0].size_1_borrowed || 0 },
-              2: { qty: challan.items[0].size_2_qty || 0, borrowed: challan.items[0].size_2_borrowed || 0 },
-              3: { qty: challan.items[0].size_3_qty || 0, borrowed: challan.items[0].size_3_borrowed || 0 },
-              4: { qty: challan.items[0].size_4_qty || 0, borrowed: challan.items[0].size_4_borrowed || 0 },
-              5: { qty: challan.items[0].size_5_qty || 0, borrowed: challan.items[0].size_5_borrowed || 0 },
-              6: { qty: challan.items[0].size_6_qty || 0, borrowed: challan.items[0].size_6_borrowed || 0 },
-              7: { qty: challan.items[0].size_7_qty || 0, borrowed: challan.items[0].size_7_borrowed || 0 },
-              8: { qty: challan.items[0].size_8_qty || 0, borrowed: challan.items[0].size_8_borrowed || 0 },
-              9: { qty: challan.items[0].size_9_qty || 0, borrowed: challan.items[0].size_9_borrowed || 0 }
-            } : {
-              1: { qty: 0, borrowed: 0 },
-              2: { qty: 0, borrowed: 0 },
-              3: { qty: 0, borrowed: 0 },
-              4: { qty: 0, borrowed: 0 },
-              5: { qty: 0, borrowed: 0 },
-              6: { qty: 0, borrowed: 0 },
-              7: { qty: 0, borrowed: 0 },
-              8: { qty: 0, borrowed: 0 },
-              9: { qty: 0, borrowed: 0 }
-            }
-          })),
-          ...jamaChallans.map(challan => ({
-            type: 'jama' as const,
-            challanNumber: challan.jama_challan_number,
-            date: challan.jama_date,
-            site: challan.alternative_site,
-            driverName: challan.driver_name,
-            challanId: challan.jama_challan_number,
-            items: challan.items && challan.items[0] ? [challan.items[0] as ChallanItem] : [],
-            grandTotal: challan.items && challan.items[0] ? Object.keys(challan.items[0] as ChallanItem)
-              .filter(key => key.endsWith('_qty'))
-              .reduce((total, key) => total + ((challan.items[0] as ChallanItem)[key as keyof ChallanItem] || 0), 0) : 0,
-            sizes: challan.items && challan.items[0] ? {
-              1: { qty: challan.items[0].size_1_qty || 0, borrowed: challan.items[0].size_1_borrowed || 0 },
-              2: { qty: challan.items[0].size_2_qty || 0, borrowed: challan.items[0].size_2_borrowed || 0 },
-              3: { qty: challan.items[0].size_3_qty || 0, borrowed: challan.items[0].size_3_borrowed || 0 },
-              4: { qty: challan.items[0].size_4_qty || 0, borrowed: challan.items[0].size_4_borrowed || 0 },
-              5: { qty: challan.items[0].size_5_qty || 0, borrowed: challan.items[0].size_5_borrowed || 0 },
-              6: { qty: challan.items[0].size_6_qty || 0, borrowed: challan.items[0].size_6_borrowed || 0 },
-              7: { qty: challan.items[0].size_7_qty || 0, borrowed: challan.items[0].size_7_borrowed || 0 },
-              8: { qty: challan.items[0].size_8_qty || 0, borrowed: challan.items[0].size_8_borrowed || 0 },
-              9: { qty: challan.items[0].size_9_qty || 0, borrowed: challan.items[0].size_9_borrowed || 0 }
-            } : {
-              1: { qty: 0, borrowed: 0 },
-              2: { qty: 0, borrowed: 0 },
-              3: { qty: 0, borrowed: 0 },
-              4: { qty: 0, borrowed: 0 },
-              5: { qty: 0, borrowed: 0 },
-              6: { qty: 0, borrowed: 0 },
-              7: { qty: 0, borrowed: 0 },
-              8: { qty: 0, borrowed: 0 },
-              9: { qty: 0, borrowed: 0 }
-            }
-          }))
-        ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        // Use the new billingPeriodCalculations for accurate rent calculation
+        // Convert cost/discount/payment objects to match the new API
+        const extraCharges = billData.extraCosts.map(cost => ({ 
+          amount: cost.pieces * cost.pricePerPiece 
+        }));
+        const discounts = billData.discounts.map(discount => ({ 
+          amount: discount.pieces * discount.discountPerPiece 
+        }));
+        const payments = billData.payments.map(payment => ({ 
+          amount: payment.amount 
+        }));
 
+        // Calculate bill using the new period-based system
+        const result = periodCalculations.calculateBill(
+          udharChallans,
+          jamaChallans,
+          billData.toDate,
+          billData.dailyRent,
+          extraCharges,
+          discounts,
+          payments
+        );
+        
+        setBillResult(result);
+
+        // Initialize balance tracking
+        // Create balance from the final period's state
+        const lastPeriod = result.billingPeriods.periods[result.billingPeriods.periods.length - 1];
         const balance: ClientBalance = {
-          grandTotal: 0,
+          grandTotal: lastPeriod?.plateCount || 0,
           sizes: {}
         };
-        
-        setCurrentBalance(balance);
 
-        for (let i = 1; i <= 9; i++) {
-          currentBalance.sizes[i] = { size: i.toString(), main: 0, borrowed: 0, total: 0 };
+        // Initialize sizes from transaction history
+        const finalLedgerEntry = result.billingPeriods.ledger[result.billingPeriods.ledger.length - 1];
+        if (finalLedgerEntry) {
+          // We'll initialize from the last ledger entry to capture the final state
+          for (let i = 1; i <= 9; i++) {
+            balance.sizes[i.toString()] = { 
+              size: i.toString(), 
+              main: 0,  // These will be populated from the ledger if available
+              borrowed: 0,
+              total: 0
+            };
+          }
         }
 
-        transactions.forEach(transaction => {
-          Object.entries(transaction.sizes).forEach(([size, { qty, borrowed }]) => {
-            if (transaction.type === 'udhar') {
-              currentBalance.sizes[size].main += qty;
-              currentBalance.sizes[size].borrowed += borrowed;
-            } else {
-              currentBalance.sizes[size].main -= qty;
-              currentBalance.sizes[size].borrowed -= borrowed;
-            }
-            currentBalance.sizes[size].total = currentBalance.sizes[size].main + currentBalance.sizes[size].borrowed;
-          });
-        });
-
-        // Update total
-        currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce(
-          (acc, { total }) => acc + total,
-          0
-        );
-
+        // Update state with the calculated results
+        setCurrentBalance(balance);
         setBillData(prev => ({
           ...prev,
           fromDate: earliestDate,
-          transactions,
-          currentBalance
+          currentBalance: balance,
+          // Convert transactions from the ledger for UI display
+          transactions: result.billingPeriods.ledger.map(entry => ({
+            type: entry.entryType,
+            challanNumber: entry.challanNumber,
+            date: entry.transactionDate,
+            grandTotal: entry.entryType === 'udhar' ? entry.udharAmount || 0 : entry.jamaAmount || 0,
+            items: [], // We don't need detailed items for display
+            sizes: {}, // We don't need size breakdown for display
+            site: '',  // This info isn't critical for the ledger display
+            driverName: '',
+            challanId: entry.challanNumber
+          }))
         }));
         setShowLedger(true);
       }
@@ -597,9 +616,12 @@ export default function CreateBill() {
                       className={`block w-full py-2 pl-10 pr-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                         billData.errors.billNumber ? 'border-red-500' : 'border-gray-300'
                       }`}
-                      placeholder="E.g., BILL001, INV-2025-001"
+                      placeholder="Auto-generated (BILL-YYYYMM-###)"
                     />
                   </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Bill number is auto-generated. You can modify if needed.
+                  </p>
                   {billData.errors.billNumber && (
                     <p className="mt-1 text-xs text-red-500">{billData.errors.billNumber}</p>
                   )}
@@ -669,7 +691,7 @@ export default function CreateBill() {
           {/* Section C: Rental Calculation */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <h4 className="text-base font-medium text-gray-900 mb-4">
+              <h4 className="mb-4 text-base font-medium text-gray-900">
                 Rental Calculation / ભાડાની ગણતરી
               </h4>
               <div className="space-y-4">
@@ -691,34 +713,26 @@ export default function CreateBill() {
                 </div>
 
                 <div className="mt-4">
-                  <h5 className="text-sm font-medium mb-3">Size-wise Breakdown / સાઈઝ મુજબ વિગત:</h5>
-                  <div className="space-y-2">
-                    {Object.entries(currentBalance?.sizes || {}).map(([size, { total }]) => {
-                      if (!total || total <= 0) return null;
-                      const days = differenceInDays(
-                        new Date(billData.toDate || new Date()),
-                        new Date(billData.fromDate || new Date())
-                      ) + 1;
-                      const amount = total * days * billData.dailyRent;
-
-                      return (
-                        <div key={size} className="flex justify-between text-sm">
-                          <span>Size {size}: {total} pieces × {days} days × ₹{billData.dailyRent}</span>
-                          <span>= ₹{amount.toLocaleString('en-IN')}</span>
+                  <h5 className="mb-3 text-sm font-medium">Size-wise Breakdown / સાઈઝ મુજબ વિગત:</h5>
+                  <div className="space-y-4">
+                    {/* Billing Periods Display */}
+                    {billResult?.billingPeriods.periods.map((period, index) => (
+                      <div key={index} className="p-3 rounded-lg bg-gray-50">
+                        <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
+                          <span>Period {index + 1}: {format(parseISO(period.startDate), 'dd/MM/yyyy')} to {format(parseISO(period.endDate), 'dd/MM/yyyy')}</span>
+                          <span className="font-medium">{period.days} days</span>
                         </div>
-                      );
-                    })}
+                        <div className="flex justify-between text-sm">
+                          <span>{period.plateCount} pieces × {period.days} days × ₹{billData.dailyRent}</span>
+                          <span className="font-medium">= ₹{period.rent.toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div className="border-t mt-4 pt-4">
+                  <div className="pt-4 mt-4 border-t">
                     <div className="flex justify-between text-base font-semibold">
                       <span>Total Rent / કુલ ભાડું:</span>
-                      <span>₹{Object.entries(currentBalance?.sizes || {}).reduce((acc, [_, { total }]) => {
-                        const days = differenceInDays(
-                          new Date(billData.toDate || new Date()),
-                          new Date(billData.fromDate || new Date())
-                        ) + 1;
-                        return acc + (total * days * billData.dailyRent);
-                      }, 0).toLocaleString('en-IN')}</span>
+                      <span>₹{billResult?.billingPeriods.totalRent.toLocaleString('en-IN') || '0'}</span>
                     </div>
                   </div>
                 </div>
@@ -729,7 +743,7 @@ export default function CreateBill() {
           {/* Section D: Extra Costs */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <h4 className="text-base font-medium text-gray-900">
                   Extra Costs / વધારાનો ખર્ચ
                 </h4>
@@ -750,7 +764,7 @@ export default function CreateBill() {
                       ]
                     }));
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md hover:bg-gray-200"
                 >
                   <Plus className="w-4 h-4" />
                   Add Extra Cost / વધારાનો ખર્ચ ઉમેરો
@@ -782,7 +796,7 @@ export default function CreateBill() {
                                 newCosts[index] = { ...cost, date: e.target.value };
                                 setBillData(prev => ({ ...prev, extraCosts: newCosts }));
                               }}
-                              className="w-36 px-2 py-1 border rounded"
+                              className="px-2 py-1 border rounded w-36"
                             />
                           </td>
                           <td className="px-4 py-2">
@@ -852,7 +866,7 @@ export default function CreateBill() {
                         </tr>
                       ))}
                       {billData.extraCosts.length > 0 && (
-                        <tr className="bg-gray-50 font-medium">
+                        <tr className="font-medium bg-gray-50">
                           <td colSpan={4} className="px-4 py-3 text-right">
                             Total Extra Costs:
                           </td>
@@ -871,7 +885,7 @@ export default function CreateBill() {
           {/* Section E: Discounts */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <h4 className="text-base font-medium text-gray-900">
                   Discounts / છૂટ
                 </h4>
@@ -892,7 +906,7 @@ export default function CreateBill() {
                       ]
                     }));
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md hover:bg-gray-200"
                 >
                   <Plus className="w-4 h-4" />
                   Add Discount / છૂટ ઉમેરો
@@ -924,7 +938,7 @@ export default function CreateBill() {
                                 newDiscounts[index] = { ...discount, date: e.target.value };
                                 setBillData(prev => ({ ...prev, discounts: newDiscounts }));
                               }}
-                              className="w-36 px-2 py-1 border rounded"
+                              className="px-2 py-1 border rounded w-36"
                             />
                           </td>
                           <td className="px-4 py-2">
@@ -994,7 +1008,7 @@ export default function CreateBill() {
                         </tr>
                       ))}
                       {billData.discounts.length > 0 && (
-                        <tr className="bg-gray-50 font-medium">
+                        <tr className="font-medium bg-gray-50">
                           <td colSpan={4} className="px-4 py-3 text-right">
                             Total Discounts:
                           </td>
@@ -1013,7 +1027,7 @@ export default function CreateBill() {
           {/* Section F: Payments */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <h4 className="text-base font-medium text-gray-900">
                   Payments / ચુકવણી
                 </h4>
@@ -1033,7 +1047,7 @@ export default function CreateBill() {
                       ]
                     }));
                   }}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md text-sm font-medium"
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md hover:bg-gray-200"
                 >
                   <Plus className="w-4 h-4" />
                   Add Payment / ચુકવણી ઉમેરો
@@ -1064,7 +1078,7 @@ export default function CreateBill() {
                                 newPayments[index] = { ...payment, date: e.target.value };
                                 setBillData(prev => ({ ...prev, payments: newPayments }));
                               }}
-                              className="w-36 px-2 py-1 border rounded"
+                              className="px-2 py-1 border rounded w-36"
                             />
                           </td>
                           <td className="px-4 py-2">
@@ -1130,7 +1144,7 @@ export default function CreateBill() {
                         </tr>
                       ))}
                       {billData.payments.length > 0 && (
-                        <tr className="bg-gray-50 font-medium">
+                        <tr className="font-medium bg-gray-50">
                           <td colSpan={3} className="px-4 py-3 text-right">
                             Total Payments:
                           </td>
@@ -1149,11 +1163,11 @@ export default function CreateBill() {
           {/* Section G: Bill Summary */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <h4 className="text-base font-medium text-gray-900 mb-4">
+              <h4 className="mb-4 text-base font-medium text-gray-900">
                 BILL SUMMARY / બિલ સારાંશ
               </h4>
               <div className="space-y-3 text-sm">
-                {Object.entries(getBillSummary()).map(([label, amount]) => (
+                {Object.entries(summaryMap as Record<string, number>).map(([label, amount]) => (
                   <div key={label} className={`flex justify-between items-center ${
                     label === 'DUE PAYMENT' 
                       ? 'pt-2 text-base font-semibold ' + (amount > 0 ? 'text-red-600' : 'text-green-600')
@@ -1170,7 +1184,7 @@ export default function CreateBill() {
           {/* Section H: Main Note */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <h4 className="text-base font-medium text-gray-900 mb-4">
+              <h4 className="mb-4 text-base font-medium text-gray-900">
                 Main Note / મુખ્ય નોંધ
               </h4>
               <textarea
@@ -1184,7 +1198,7 @@ export default function CreateBill() {
 
           {/* Section I: Action Buttons */}
           {showLedger && billData.fromDate && (
-            <div className="flex gap-4 justify-end">
+            <div className="flex justify-end gap-4">
               <button
                 onClick={() => navigate('/billing')}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
