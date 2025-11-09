@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { format, parseISO, differenceInDays, subDays } from 'date-fns';
-import { 
-  ArrowLeft, 
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { format, parseISO, differenceInDays, subDays, addDays } from "date-fns";
+import {
+  ArrowLeft,
   Calendar,
   MapPin,
   Phone,
@@ -10,15 +10,15 @@ import {
   CreditCard,
   Plus,
   Trash2,
-} from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import * as billCalculations from '../utils/billCalculations';
-import * as periodCalculations from '../utils/billingPeriodCalculations';
-import { validateClientData } from '../utils/dataValidation';
-import { supabase } from '../utils/supabase';
-import Navbar from '../components/Navbar';
-import toast, { Toaster } from 'react-hot-toast';
-import { ClientFormData } from '../components/ClientForm';
+} from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import * as billCalculations from "../utils/billCalculations";
+import * as periodCalculations from "../utils/billingPeriodCalculations";
+import { validateClientData } from "../utils/dataValidation";
+import { supabase } from "../utils/supabase";
+import Navbar from "../components/Navbar";
+import toast, { Toaster } from "react-hot-toast";
+import { ClientFormData } from "../components/ClientForm";
 
 interface SizeBalance {
   size: string;
@@ -30,7 +30,7 @@ interface SizeBalance {
 interface Payment {
   id?: string;
   date: string;
-  method: 'cash' | 'bank' | 'upi' | 'cheque' | 'card' | 'other';
+  method: "cash" | "bank" | "upi" | "cheque" | "card" | "other";
   note: string;
   amount: number;
 }
@@ -59,7 +59,7 @@ interface ChallanItem {
 }
 
 interface Transaction {
-  type: 'udhar' | 'jama';
+  type: "udhar" | "jama";
   challanNumber: string;
   date: string;
   grandTotal: number;
@@ -98,7 +98,7 @@ interface Payment {
   date: string;
   note: string;
   amount: number;
-  method: 'cash' | 'bank' | 'upi' | 'cheque' | 'card' | 'other';
+  method: "cash" | "bank" | "upi" | "cheque" | "card" | "other";
 }
 
 interface BillData {
@@ -125,19 +125,21 @@ export default function CreateBill() {
   const { clientId } = useParams();
   const navigate = useNavigate();
   const { t } = useLanguage();
-  
+
   const [client, setClient] = useState<ClientFormData | null>(null);
-  const [billResult, setBillResult] = useState<ReturnType<typeof periodCalculations.calculateBill> | null>(null);
+  const [billResult, setBillResult] = useState<ReturnType<
+    typeof periodCalculations.calculateBill
+  > | null>(null);
   const [billData, setBillData] = useState<BillData>({
-    billNumber: '',
-    billDate: format(new Date(), 'yyyy-MM-dd'),
-    toDate: format(new Date(), 'yyyy-MM-dd'),
+    billNumber: "",
+    billDate: format(new Date(), "yyyy-MM-dd"),
+    toDate: format(new Date(), "yyyy-MM-dd"),
     dailyRent: 1,
     extraCosts: [],
     discounts: [],
     payments: [],
-    mainNote: '',
-    errors: {}
+    mainNote: "",
+    errors: {},
   });
   const [showLedger, setShowLedger] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -157,11 +159,11 @@ export default function CreateBill() {
     try {
       // Fetch and validate all client data first
       const validation = await validateClientData(clientId!);
-      
+
       if (!validation.success) {
-        console.error('Data validation failed:', validation.message);
+        console.error("Data validation failed:", validation.message);
         toast.error(validation.message);
-        navigate('/billing');
+        navigate("/billing");
         return;
       }
 
@@ -169,59 +171,66 @@ export default function CreateBill() {
 
       // Generate bill number
       const { data: lastBill, error: billError } = await supabase
-        .from('bills')
-        .select('bill_number')
-        .order('bill_number', { ascending: false })
+        .from("bills")
+        .select("bill_number")
+        .order("bill_number", { ascending: false })
         .limit(100); // Get more bills to ensure we find the right sequence
 
       if (!billError) {
         let sequence = 1;
         const clientPrefix = client?.client_nic_name || clientId;
-        
+
         // Find the last bill number for this client
-        const clientBills = lastBill?.filter(bill => bill.bill_number.startsWith(clientPrefix + '/')) || [];
-        
+        const clientBills =
+          lastBill?.filter((bill) =>
+            bill.bill_number.startsWith(clientPrefix + "/")
+          ) || [];
+
         if (clientBills.length > 0) {
           // Extract the highest sequence number
-          const sequences = clientBills.map(bill => {
+          const sequences = clientBills.map((bill) => {
             const match = bill.bill_number.match(/\/(\d+)$/);
             return match ? parseInt(match[1]) : 0;
           });
           sequence = Math.max(...sequences) + 1;
         }
-        
+
         const newBillNumber = `${clientPrefix}/${sequence}`;
-        setBillData(prev => ({ ...prev, billNumber: newBillNumber }));
+        setBillData((prev) => ({ ...prev, billNumber: newBillNumber }));
       }
 
       // Log validation results
-      console.log('Data Validation Results:', {
+      console.log("Data Validation Results:", {
         client: validation.data.validation.clientData,
         udharChallans: validation.data.validation.udharChallans,
-        jamaChallans: validation.data.validation.jamaChallans
+        jamaChallans: validation.data.validation.jamaChallans,
       });
 
       // Log detailed data for debugging
-      console.log('Client Data:', {
+      console.log("Client Data:", {
         id: client.id,
         name: client.client_name,
         nickname: client.client_nic_name,
         site: client.site,
-        phone: client.primary_phone_number
+        phone: client.primary_phone_number,
       });
 
-      console.log('Udhar Challans:', {
+      console.log("Udhar Challans:", {
         count: udharChallans?.length || 0,
         firstDate: udharChallans?.[0]?.udhar_date,
         lastDate: udharChallans?.[udharChallans.length - 1]?.udhar_date,
-        hasItems: udharChallans?.every((c: { items?: any[] }) => Array.isArray(c.items) && c.items.length > 0)
+        hasItems: udharChallans?.every(
+          (c: { items?: any[] }) => Array.isArray(c.items) && c.items.length > 0
+        ),
       });
 
-      console.log('Jama Challans:', {
+      console.log("Jama Challans:", {
         count: jamaChallans?.length || 0,
         firstDate: jamaChallans?.[0]?.jama_date,
         lastDate: jamaChallans?.[jamaChallans.length - 1]?.jama_date,
-        hasItems: jamaChallans?.every((c: { items?: any[] }) => Array.isArray(c.items) && c.items.length > 0)
+        hasItems: jamaChallans?.every(
+          (c: { items?: any[] }) => Array.isArray(c.items) && c.items.length > 0
+        ),
       });
 
       // Set client data
@@ -229,55 +238,57 @@ export default function CreateBill() {
 
       // Set from date to first udhar date if available
       if (udharChallans?.[0]) {
-        setBillData(prev => ({
+        setBillData((prev) => ({
           ...prev,
-          fromDate: udharChallans[0].udhar_date
+          fromDate: udharChallans[0].udhar_date,
         }));
       }
-
     } catch (error) {
-      console.error('Error fetching client:', error);
-      toast.error(error instanceof Error ? error.message : 'Error fetching client data');
-      navigate('/billing');
+      console.error("Error fetching client:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Error fetching client data"
+      );
+      navigate("/billing");
     }
   };
 
   const validateBillNumber = async (billNumber: string) => {
     if (!billNumber.trim()) return false;
-    
+
     try {
       const { data, error } = await supabase
-        .from('bills')
-        .select('bill_number')
-        .eq('bill_number', billNumber)
+        .from("bills")
+        .select("bill_number")
+        .eq("bill_number", billNumber)
         .maybeSingle();
 
       if (error) throw error;
       return !data; // Returns true if bill number is available (no matching record found)
     } catch (error) {
-      console.error('Error validating bill number:', error);
+      console.error("Error validating bill number:", error);
       return false;
     }
   };
 
-
-
-  const handleInputChange = async (field: keyof BillData, value: string | number) => {
+  const handleInputChange = async (
+    field: keyof BillData,
+    value: string | number
+  ) => {
     const newErrors = { ...billData.errors };
-    
-    if (field === 'billNumber') {
+
+    if (field === "billNumber") {
       const isValid = await validateBillNumber(value as string);
       if (!isValid) {
-        newErrors.billNumber = 'Bill number already exists';
+        newErrors.billNumber = "Bill number already exists";
       } else {
         delete newErrors.billNumber;
       }
     }
 
-    setBillData(prev => ({
+    setBillData((prev) => ({
       ...prev,
       [field]: value,
-      errors: newErrors
+      errors: newErrors,
     }));
   };
 
@@ -285,56 +296,86 @@ export default function CreateBill() {
   const calculatedTotalRent = billResult?.billingPeriods.totalRent || 0;
 
   // Compute full bill summary once for rendering (size breakdown, totals, payments, due)
-  const fullSummary = billResult ? {
-    totalRent: calculatedTotalRent,
-    totalUdharPlates: currentBalance?.sizes ? 
-      Object.values(currentBalance.sizes).reduce((sum, size) => sum + (size.main || 0), 0) : 0,
-    totalJamaPlates: currentBalance?.sizes ? 
-      Object.values(currentBalance.sizes).reduce((sum, size) => sum + (size.borrowed || 0), 0) : 0,
-    netPlates: currentBalance?.sizes ? 
-      Object.values(currentBalance.sizes).reduce((sum, size) => 
-        sum + ((size.main || 0) - (size.borrowed || 0)), 0) : 0,
-    serviceCharge: 0, // TODO: Add service charge calculation
-    totalExtraCosts: billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
-    totalDiscounts: billData.discounts.reduce((sum, discount) => sum + discount.total, 0),
-    grandTotal: calculatedTotalRent + 
-      billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
-    totalPaid: billData.payments.reduce((sum, payment) => sum + payment.amount, 0),
-    advancePaid: 0, // TODO: Add advance payment tracking
-    duePayment: calculatedTotalRent + 
-      billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) - 
-      billData.discounts.reduce((sum, discount) => sum + discount.total, 0) - 
-      billData.payments.reduce((sum, payment) => sum + payment.amount, 0)
-  } : {
-    totalRent: 0,
-    totalUdharPlates: 0,
-    totalJamaPlates: 0,
-    netPlates: 0,
-    serviceCharge: 0,
-    totalExtraCosts: 0,
-    totalDiscounts: 0,
-    grandTotal: 0,
-    totalPaid: 0,
-    advancePaid: 0,
-    duePayment: 0
-  };
+  const fullSummary = billResult
+    ? {
+        totalRent: calculatedTotalRent,
+        totalUdharPlates: currentBalance?.sizes
+          ? Object.values(currentBalance.sizes).reduce(
+              (sum, size) => sum + (size.main || 0),
+              0
+            )
+          : 0,
+        totalJamaPlates: currentBalance?.sizes
+          ? Object.values(currentBalance.sizes).reduce(
+              (sum, size) => sum + (size.borrowed || 0),
+              0
+            )
+          : 0,
+        netPlates: currentBalance?.sizes
+          ? Object.values(currentBalance.sizes).reduce(
+              (sum, size) => sum + ((size.main || 0) - (size.borrowed || 0)),
+              0
+            )
+          : 0,
+        serviceCharge: 0, // TODO: Add service charge calculation
+        totalExtraCosts: billData.extraCosts.reduce(
+          (sum, cost) => sum + cost.total,
+          0
+        ),
+        totalDiscounts: billData.discounts.reduce(
+          (sum, discount) => sum + discount.total,
+          0
+        ),
+        grandTotal:
+          calculatedTotalRent +
+          billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
+        totalPaid: billData.payments.reduce(
+          (sum, payment) => sum + payment.amount,
+          0
+        ),
+        advancePaid: 0, // TODO: Add advance payment tracking
+        duePayment:
+          calculatedTotalRent +
+          billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) -
+          billData.discounts.reduce(
+            (sum, discount) => sum + discount.total,
+            0
+          ) -
+          billData.payments.reduce((sum, payment) => sum + payment.amount, 0),
+      }
+    : {
+        totalRent: 0,
+        totalUdharPlates: 0,
+        totalJamaPlates: 0,
+        netPlates: 0,
+        serviceCharge: 0,
+        totalExtraCosts: 0,
+        totalDiscounts: 0,
+        grandTotal: 0,
+        totalPaid: 0,
+        advancePaid: 0,
+        duePayment: 0,
+      };
 
   // UI-friendly map of labels -> amounts (used in Bill Summary section)
   const summaryMap = {
-    'Total Rent / કુલ ભાડું': fullSummary.totalRent,
-    'Service Charges / સેવા ચાર્જ': fullSummary.serviceCharge,
-    'Extra Charges / વધારાના ચાર્જ': fullSummary.totalExtraCosts,
-    'Sub Total / પેટા કુલ': fullSummary.totalRent + fullSummary.serviceCharge + fullSummary.totalExtraCosts,
-    'Discounts / છૂટ': fullSummary.totalDiscounts,
-    'GRAND TOTAL / કુલ રકમ': fullSummary.grandTotal,
-    'Payments Received / ચૂકવણી મળી': fullSummary.totalPaid,
-    'DUE PAYMENT / બાકી રકમ': fullSummary.duePayment,
+    "Total Rent / કુલ ભાડું": fullSummary.totalRent,
+    "Service Charges / સેવા ચાર્જ": fullSummary.serviceCharge,
+    "Extra Charges / વધારાના ચાર્જ": fullSummary.totalExtraCosts,
+    "Sub Total / પેટા કુલ":
+      fullSummary.totalRent +
+      fullSummary.serviceCharge +
+      fullSummary.totalExtraCosts,
+    "Discounts / છૂટ": fullSummary.totalDiscounts,
+    "GRAND TOTAL / કુલ રકમ": fullSummary.grandTotal,
+    "Payments Received / ચૂકવણી મળી": fullSummary.totalPaid,
+    "DUE PAYMENT / બાકી રકમ": fullSummary.duePayment,
   } as const;
 
   const handleGenerateBill = async () => {
     try {
       // TODO: Save bill data to database
-      const { error } = await supabase.from('bills').insert({
+      const { error } = await supabase.from("bills").insert({
         bill_number: billData.billNumber,
         billdate: billData.billDate,
         from_date: billData.fromDate,
@@ -347,70 +388,70 @@ export default function CreateBill() {
         grand_total: fullSummary.grandTotal,
         total_paid: fullSummary.totalPaid,
         due_payment: fullSummary.duePayment,
-        status: 'generated'
+        status: "generated",
       });
 
       if (error) throw error;
 
       // Save extra costs
       if (billData.extraCosts.length > 0) {
-        const extraCostsData = billData.extraCosts.map(cost => ({
+        const extraCostsData = billData.extraCosts.map((cost) => ({
           bill_number: billData.billNumber,
           date: cost.date,
           note: cost.note,
           pieces: cost.pieces,
           price_per_piece: cost.pricePerPiece,
-          total_amount: cost.total
+          total_amount: cost.total,
         }));
-        
+
         const { error: extraCostsError } = await supabase
-          .from('bill_extra_costs')
+          .from("bill_extra_costs")
           .insert(extraCostsData);
-        
+
         if (extraCostsError) throw extraCostsError;
       }
 
       // Save discounts
       if (billData.discounts.length > 0) {
-        const discountsData = billData.discounts.map(discount => ({
+        const discountsData = billData.discounts.map((discount) => ({
           bill_number: billData.billNumber,
           date: discount.date,
           note: discount.note,
           pieces: discount.pieces,
           discount_per_piece: discount.discountPerPiece,
-          total_amount: discount.total
+          total_amount: discount.total,
         }));
-        
+
         const { error: discountsError } = await supabase
-          .from('bill_discounts')
+          .from("bill_discounts")
           .insert(discountsData);
-        
+
         if (discountsError) throw discountsError;
       }
 
       // Save payments
       if (billData.payments.length > 0) {
-        const paymentsData = billData.payments.map(payment => ({
+        const paymentsData = billData.payments.map((payment) => ({
           bill_number: billData.billNumber,
           date: payment.date,
           note: payment.note,
           amount: payment.amount,
-          payment_method: payment.method
+          payment_method: payment.method,
         }));
-        
+
         const { error: paymentsError } = await supabase
-          .from('bill_payments')
+          .from("bill_payments")
           .insert(paymentsData);
-        
+
         if (paymentsError) throw paymentsError;
       }
 
-      toast.success('Bill generated successfully!');
+      toast.success("Bill generated successfully!");
       // TODO: Generate and download PDF/JPEG
-      navigate('/billing');
+      navigate("/billing");
     } catch (error) {
-      console.error('Error generating bill:', error);
-      toast.error('Failed to generate bill');
+      console.error("Error generating bill:", error);
+      toast.error("Failed to generate bill");
     }
   };
 
@@ -419,8 +460,9 @@ export default function CreateBill() {
     try {
       // Fetch Udhar challans with their items
       const { data: udharChallans, error: udharError } = await supabase
-        .from('udhar_challans')
-        .select(`
+        .from("udhar_challans")
+        .select(
+          `
           udhar_challan_number,
           udhar_date,
           driver_name,
@@ -445,21 +487,23 @@ export default function CreateBill() {
             size_8_borrowed,
             size_9_borrowed
           )
-        `)
-        .eq('client_id', clientId)
-        .order('udhar_date', { ascending: true });
+        `
+        )
+        .eq("client_id", clientId)
+        .order("udhar_date", { ascending: true });
 
-      console.log('Udhar Challans:', udharChallans);
+      console.log("Udhar Challans:", udharChallans);
 
       if (udharError) {
-        console.error('Error fetching Udhar challans:', udharError);
+        console.error("Error fetching Udhar challans:", udharError);
         throw udharError;
       }
 
       // Fetch Jama challans with their items
       const { data: jamaChallans, error: jamaError } = await supabase
-        .from('jama_challans')
-        .select(`
+        .from("jama_challans")
+        .select(
+          `
           jama_challan_number,
           jama_date,
           driver_name,
@@ -484,11 +528,12 @@ export default function CreateBill() {
             size_8_borrowed,
             size_9_borrowed
           )
-        `)
-        .eq('client_id', clientId)
-        .order('jama_date', { ascending: true });
+        `
+        )
+        .eq("client_id", clientId)
+        .order("jama_date", { ascending: true });
 
-      console.log('Jama Challans:', jamaChallans);
+      console.log("Jama Challans:", jamaChallans);
 
       if (jamaError) throw jamaError;
 
@@ -497,14 +542,14 @@ export default function CreateBill() {
 
         // Use the new billingPeriodCalculations for accurate rent calculation
         // Convert cost/discount/payment objects to match the new API
-        const extraCharges = billData.extraCosts.map(cost => ({ 
-          amount: cost.pieces * cost.pricePerPiece 
+        const extraCharges = billData.extraCosts.map((cost) => ({
+          amount: cost.pieces * cost.pricePerPiece,
         }));
-        const discounts = billData.discounts.map(discount => ({ 
-          amount: discount.pieces * discount.discountPerPiece 
+        const discounts = billData.discounts.map((discount) => ({
+          amount: discount.pieces * discount.discountPerPiece,
         }));
-        const payments = billData.payments.map(payment => ({ 
-          amount: payment.amount 
+        const payments = billData.payments.map((payment) => ({
+          amount: payment.amount,
         }));
 
         // Calculate bill using the new period-based system
@@ -517,55 +562,62 @@ export default function CreateBill() {
           discounts,
           payments
         );
-        
+
         setBillResult(result);
 
         // Initialize balance tracking
         // Create balance from the final period's state
-        const lastPeriod = result.billingPeriods.periods[result.billingPeriods.periods.length - 1];
+        const lastPeriod =
+          result.billingPeriods.periods[
+            result.billingPeriods.periods.length - 1
+          ];
         const balance: ClientBalance = {
           grandTotal: lastPeriod?.plateCount || 0,
-          sizes: {}
+          sizes: {},
         };
 
         // Initialize sizes from transaction history
-        const finalLedgerEntry = result.billingPeriods.ledger[result.billingPeriods.ledger.length - 1];
+        const finalLedgerEntry =
+          result.billingPeriods.ledger[result.billingPeriods.ledger.length - 1];
         if (finalLedgerEntry) {
           // We'll initialize from the last ledger entry to capture the final state
           for (let i = 1; i <= 9; i++) {
-            balance.sizes[i.toString()] = { 
-              size: i.toString(), 
-              main: 0,  // These will be populated from the ledger if available
+            balance.sizes[i.toString()] = {
+              size: i.toString(),
+              main: 0, // These will be populated from the ledger if available
               borrowed: 0,
-              total: 0
+              total: 0,
             };
           }
         }
 
         // Update state with the calculated results
         setCurrentBalance(balance);
-        setBillData(prev => ({
+        setBillData((prev) => ({
           ...prev,
           fromDate: earliestDate,
           currentBalance: balance,
           // Convert transactions from the ledger for UI display
-          transactions: result.billingPeriods.ledger.map(entry => ({
+          transactions: result.billingPeriods.ledger.map((entry) => ({
             type: entry.entryType,
             challanNumber: entry.challanNumber,
             date: entry.transactionDate,
-            grandTotal: entry.entryType === 'udhar' ? entry.udharAmount || 0 : entry.jamaAmount || 0,
+            grandTotal:
+              entry.entryType === "udhar"
+                ? entry.udharAmount || 0
+                : entry.jamaAmount || 0,
             items: [], // We don't need detailed items for display
             sizes: {}, // We don't need size breakdown for display
-            site: '',  // This info isn't critical for the ledger display
-            driverName: '',
-            challanId: entry.challanNumber
-          }))
+            site: "", // This info isn't critical for the ledger display
+            driverName: "",
+            challanId: entry.challanNumber,
+          })),
         }));
         setShowLedger(true);
       }
     } catch (error) {
-      console.error('Error calculating bill:', error);
-      toast.error('Failed to calculate bill');
+      console.error("Error calculating bill:", error);
+      toast.error("Failed to calculate bill");
     } finally {
       setIsLoading(false);
     }
@@ -573,8 +625,8 @@ export default function CreateBill() {
 
   const handleSave = async () => {
     // Implement save functionality
-    toast.success('Bill generated successfully!');
-    navigate('/billing');
+    toast.success("Bill generated successfully!");
+    navigate("/billing");
   };
 
   if (!client) {
@@ -590,13 +642,15 @@ export default function CreateBill() {
           <div className="p-4 bg-white border border-gray-200 rounded-xl">
             <div className="flex items-center gap-3 mb-4">
               <button
-                onClick={() => navigate('/billing')}
+                onClick={() => navigate("/billing")}
                 className="p-2 text-gray-400 transition-colors rounded-lg hover:bg-gray-100 hover:text-gray-600"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">{client.client_nic_name}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {client.client_nic_name}
+                </h3>
                 <p className="text-sm text-gray-500">{client.client_name}</p>
               </div>
             </div>
@@ -614,21 +668,28 @@ export default function CreateBill() {
 
           {/* Section B: Bill Header Information */}
           <div className="p-4 bg-white border border-gray-200 rounded-xl">
-            <h4 className="mb-4 text-base font-medium text-gray-900">{t('billDetails')}</h4>
+            <h4 className="mb-4 text-base font-medium text-gray-900">
+              {t("billDetails")}
+            </h4>
             <form className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {t('billNumber')} / બિલ નંબર <span className="text-red-500">*</span>
+                    {t("billNumber")} / બિલ નંબર{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Receipt className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
                     <input
                       type="text"
                       value={billData.billNumber}
-                      onChange={(e) => handleInputChange('billNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("billNumber", e.target.value)
+                      }
                       className={`block w-full py-2 pl-10 pr-3 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        billData.errors.billNumber ? 'border-red-500' : 'border-gray-300'
+                        billData.errors.billNumber
+                          ? "border-red-500"
+                          : "border-gray-300"
                       }`}
                       placeholder="Auto-generated (BILL-YYYYMM-###)"
                     />
@@ -637,20 +698,25 @@ export default function CreateBill() {
                     Bill number is auto-generated. You can modify if needed.
                   </p>
                   {billData.errors.billNumber && (
-                    <p className="mt-1 text-xs text-red-500">{billData.errors.billNumber}</p>
+                    <p className="mt-1 text-xs text-red-500">
+                      {billData.errors.billNumber}
+                    </p>
                   )}
                 </div>
 
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {t('billDate')} / બિલ તારીખ <span className="text-red-500">*</span>
+                    {t("billDate")} / બિલ તારીખ{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Calendar className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
                     <input
                       type="date"
                       value={billData.billDate}
-                      onChange={(e) => handleInputChange('billDate', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("billDate", e.target.value)
+                      }
                       className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -658,14 +724,17 @@ export default function CreateBill() {
 
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {t('tillDate')} / સુધીની તારીખ <span className="text-red-500">*</span>
+                    {t("tillDate")} / સુધીની તારીખ{" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <Calendar className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
                     <input
                       type="date"
                       value={billData.toDate}
-                      onChange={(e) => handleInputChange('toDate', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("toDate", e.target.value)
+                      }
                       className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -673,7 +742,8 @@ export default function CreateBill() {
 
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {t('dailyRent')} / દૈનિક ભાડું (પ્રતિ પીસ) <span className="text-red-500">*</span>
+                    {t("dailyRent")} / દૈનિક ભાડું (પ્રતિ પીસ){" "}
+                    <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <CreditCard className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
@@ -681,7 +751,12 @@ export default function CreateBill() {
                       type="number"
                       step="0.01"
                       value={billData.dailyRent}
-                      onChange={(e) => handleInputChange('dailyRent', parseFloat(e.target.value))}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "dailyRent",
+                          parseFloat(e.target.value)
+                        )
+                      }
                       className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="E.g., 5.00"
                     />
@@ -695,10 +770,17 @@ export default function CreateBill() {
           <div className="flex justify-end">
             <button
               onClick={calculateBill}
-              disabled={isLoading || !billData.billNumber || !billData.billDate || !billData.toDate || !billData.dailyRent || Object.keys(billData.errors).length > 0}
+              disabled={
+                isLoading ||
+                !billData.billNumber ||
+                !billData.billDate ||
+                !billData.toDate ||
+                !billData.dailyRent ||
+                Object.keys(billData.errors).length > 0
+              }
               className="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
             >
-              {isLoading ? 'Calculating...' : `${t('calculateBill')} / બિલ ગણો`}
+              {isLoading ? "Calculating..." : `${t("calculateBill")} / બિલ ગણો`}
             </button>
           </div>
 
@@ -707,7 +789,7 @@ export default function CreateBill() {
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-base font-medium text-gray-900">
-                  {t('rentalCalculation')} / ભાડાની ગણતરી
+                  {t("rentalCalculation")} / ભાડાની ગણતરી
                 </h4>
               </div>
               <div className="space-y-6">
@@ -729,13 +811,17 @@ export default function CreateBill() {
                   <tbody>
                     <tr className="bg-white">
                       <td className="px-4 py-3 font-medium">
-                        {format(new Date(billData.fromDate), 'dd/MM/yyyy')}
+                        {format(new Date(billData.fromDate), "dd/MM/yyyy")}
                       </td>
                       <td className="px-4 py-3 font-medium">
-                        {format(new Date(billData.toDate), 'dd/MM/yyyy')}
+                        {format(new Date(billData.toDate), "dd/MM/yyyy")}
                       </td>
                       <td className="px-4 py-3 font-medium">
-                        {differenceInDays(new Date(billData.toDate), new Date(billData.fromDate)) + 1} days
+                        {differenceInDays(
+                          new Date(billData.toDate),
+                          new Date(billData.fromDate)
+                        ) + 1}{" "}
+                        days
                       </td>
                     </tr>
                   </tbody>
@@ -761,46 +847,90 @@ export default function CreateBill() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {billResult?.billingPeriods.periods.map((period, index, array) => {
-                        const isLastPeriod = index === array.length - 1;
-                        // For Jama periods, show the actual return date
-                        // For other periods, show one day before the next period starts
-                        const displayEndDate = period.causeType === 'jama' ?
-                          format(parseISO(period.endDate), 'dd/MM/yyyy') :
-                          format(subDays(parseISO(period.endDate), 1), 'dd/MM/yyyy');
-                        
-                        // Days calculation is now handled in billingPeriodCalculations.ts
-                        const amount = period.plateCount * period.days * billData.dailyRent;
-                        
-                        return (
-                          <tr key={index} className={period.causeType === 'udhar' ? 'bg-red-50' : 'bg-green-50'}>
-                            <td className="px-4 py-3">
-                              <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-2 h-2 rounded-full ${
-                                    period.causeType === 'udhar' ? 'bg-red-500' : 'bg-green-500'
-                                  }`}></div>
-                                  <span>
-                                    {format(parseISO(period.startDate), 'dd/MM/yyyy')} થી {displayEndDate}
-                                  </span>
+                      {billResult?.billingPeriods.periods.map(
+                        (period, index, array) => {
+                          const isLastPeriod = index === array.length - 1;
+                          // For Jama periods, show the actual return date
+                          // For other periods, show one day before the next period starts
+                          const nextType = array[index + 1]?.causeType;
+                          let end = parseISO(period.endDate);
+
+                          let newDisplayEndDate =
+                            period.causeType === "jama"
+                              ? format(end, "dd/MM/yyyy")
+                              : format(subDays(end, 1), "dd/MM/yyyy");
+
+                          if (period.causeType !== nextType) {
+                            newDisplayEndDate =
+                              nextType === "jama"
+                                ? format(end, "dd/MM/yyyy")
+                                : format(subDays(end, 1), "dd/MM/yyyy");
+                          }
+
+                          // Days calculation is now handled in billingPeriodCalculations.ts
+                          const amount =
+                            period.plateCount *
+                            period.days *
+                            billData.dailyRent;
+
+                          return (
+                            <tr
+                              key={index}
+                              className={
+                                period.causeType === "udhar"
+                                  ? "bg-red-50"
+                                  : "bg-green-50"
+                              }
+                            >
+                              <td className="px-4 py-3">
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      className={`w-2 h-2 rounded-full ${
+                                        period.causeType === "udhar"
+                                          ? "bg-red-500"
+                                          : "bg-green-500"
+                                      }`}
+                                    ></div>
+                                    <span>
+                                      {period.causeType === "jama"
+                                        ? format(
+                                            addDays(
+                                              parseISO(period.startDate),
+                                              1
+                                            ),
+                                            "dd/MM/yyyy"
+                                          )
+                                        : format(
+                                            parseISO(period.startDate),
+                                            "dd/MM/yyyy"
+                                          )}{" "}
+                                      થી {newDisplayEndDate}
+                                    </span>
+                                  </div>
+                                  {!isLastPeriod && (
+                                    <span className="text-xs text-gray-500">
+                                      Next:{" "}
+                                      {format(
+                                        parseISO(period.endDate),
+                                        "dd/MM/yyyy"
+                                      )}
+                                    </span>
+                                  )}
                                 </div>
-                                {!isLastPeriod && (
-                                  <span className="text-xs text-gray-500">Next: {format(parseISO(period.endDate), 'dd/MM/yyyy')}</span>
-                                )}
-                              </div>
-                            </td>
-                            <td className="px-4 py-3">
-                              {period.days}
-                            </td>
-                            <td className="px-4 py-3">
-                              {period.plateCount} pieces × {period.days} days × ₹{billData.dailyRent}
-                            </td>
-                            <td className="px-4 py-3 font-medium text-right">
-                              ₹{amount.toLocaleString('en-IN')}
-                            </td>
-                          </tr>
-                        );
-                      })}
+                              </td>
+                              <td className="px-4 py-3">{period.days}</td>
+                              <td className="px-4 py-3">
+                                {period.plateCount} pieces × {period.days} days
+                                × ₹{billData.dailyRent}
+                              </td>
+                              <td className="px-4 py-3 font-medium text-right">
+                                ₹{amount.toLocaleString("en-IN")}
+                              </td>
+                            </tr>
+                          );
+                        }
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -808,7 +938,12 @@ export default function CreateBill() {
                 <div className="pt-4 mt-4 border-t">
                   <div className="flex justify-between text-base font-semibold">
                     <span>Total Rent / કુલ ભાડું:</span>
-                    <span>₹{(billResult?.billingPeriods.totalRent || 0).toLocaleString('en-IN')}</span>
+                    <span>
+                      ₹
+                      {(
+                        billResult?.billingPeriods.totalRent || 0
+                      ).toLocaleString("en-IN")}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -824,19 +959,19 @@ export default function CreateBill() {
                 </h4>
                 <button
                   onClick={() => {
-                    setBillData(prev => ({
+                    setBillData((prev) => ({
                       ...prev,
                       extraCosts: [
                         ...prev.extraCosts,
                         {
                           id: crypto.randomUUID(),
-                          date: format(new Date(), 'yyyy-MM-dd'),
-                          note: '',
+                          date: format(new Date(), "yyyy-MM-dd"),
+                          note: "",
                           pieces: 0,
                           pricePerPiece: 0,
-                          total: 0
-                        }
-                      ]
+                          total: 0,
+                        },
+                      ],
                     }));
                   }}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md hover:bg-gray-200"
@@ -868,8 +1003,14 @@ export default function CreateBill() {
                               value={cost.date}
                               onChange={(e) => {
                                 const newCosts = [...billData.extraCosts];
-                                newCosts[index] = { ...cost, date: e.target.value };
-                                setBillData(prev => ({ ...prev, extraCosts: newCosts }));
+                                newCosts[index] = {
+                                  ...cost,
+                                  date: e.target.value,
+                                };
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  extraCosts: newCosts,
+                                }));
                               }}
                               className="px-2 py-1 border rounded w-36"
                             />
@@ -880,8 +1021,14 @@ export default function CreateBill() {
                               value={cost.note}
                               onChange={(e) => {
                                 const newCosts = [...billData.extraCosts];
-                                newCosts[index] = { ...cost, note: e.target.value };
-                                setBillData(prev => ({ ...prev, extraCosts: newCosts }));
+                                newCosts[index] = {
+                                  ...cost,
+                                  note: e.target.value,
+                                };
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  extraCosts: newCosts,
+                                }));
                               }}
                               placeholder="Enter note"
                               className="w-full px-2 py-1 border rounded"
@@ -897,9 +1044,12 @@ export default function CreateBill() {
                                 newCosts[index] = {
                                   ...cost,
                                   pieces,
-                                  total: pieces * cost.pricePerPiece
+                                  total: pieces * cost.pricePerPiece,
                                 };
-                                setBillData(prev => ({ ...prev, extraCosts: newCosts }));
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  extraCosts: newCosts,
+                                }));
                               }}
                               min="0"
                               className="w-20 px-2 py-1 border rounded"
@@ -915,9 +1065,12 @@ export default function CreateBill() {
                                 newCosts[index] = {
                                   ...cost,
                                   pricePerPiece: price,
-                                  total: cost.pieces * price
+                                  total: cost.pieces * price,
                                 };
-                                setBillData(prev => ({ ...prev, extraCosts: newCosts }));
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  extraCosts: newCosts,
+                                }));
                               }}
                               min="0"
                               step="0.01"
@@ -925,13 +1078,18 @@ export default function CreateBill() {
                             />
                           </td>
                           <td className="px-4 py-2">
-                            ₹{cost.total.toLocaleString('en-IN')}
+                            ₹{cost.total.toLocaleString("en-IN")}
                           </td>
                           <td className="px-4 py-2">
                             <button
                               onClick={() => {
-                                const newCosts = billData.extraCosts.filter(c => c.id !== cost.id);
-                                setBillData(prev => ({ ...prev, extraCosts: newCosts }));
+                                const newCosts = billData.extraCosts.filter(
+                                  (c) => c.id !== cost.id
+                                );
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  extraCosts: newCosts,
+                                }));
                               }}
                               className="text-red-600 hover:text-red-800"
                             >
@@ -946,7 +1104,10 @@ export default function CreateBill() {
                             Total Extra Costs:
                           </td>
                           <td colSpan={2} className="px-4 py-3">
-                            ₹{billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0).toLocaleString('en-IN')}
+                            ₹
+                            {billData.extraCosts
+                              .reduce((sum, cost) => sum + cost.total, 0)
+                              .toLocaleString("en-IN")}
                           </td>
                         </tr>
                       )}
@@ -966,19 +1127,19 @@ export default function CreateBill() {
                 </h4>
                 <button
                   onClick={() => {
-                    setBillData(prev => ({
+                    setBillData((prev) => ({
                       ...prev,
                       discounts: [
                         ...prev.discounts,
                         {
                           id: crypto.randomUUID(),
-                          date: format(new Date(), 'yyyy-MM-dd'),
-                          note: '',
+                          date: format(new Date(), "yyyy-MM-dd"),
+                          note: "",
                           pieces: 0,
                           discountPerPiece: 0,
-                          total: 0
-                        }
-                      ]
+                          total: 0,
+                        },
+                      ],
                     }));
                   }}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md hover:bg-gray-200"
@@ -1010,8 +1171,14 @@ export default function CreateBill() {
                               value={discount.date}
                               onChange={(e) => {
                                 const newDiscounts = [...billData.discounts];
-                                newDiscounts[index] = { ...discount, date: e.target.value };
-                                setBillData(prev => ({ ...prev, discounts: newDiscounts }));
+                                newDiscounts[index] = {
+                                  ...discount,
+                                  date: e.target.value,
+                                };
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  discounts: newDiscounts,
+                                }));
                               }}
                               className="px-2 py-1 border rounded w-36"
                             />
@@ -1022,8 +1189,14 @@ export default function CreateBill() {
                               value={discount.note}
                               onChange={(e) => {
                                 const newDiscounts = [...billData.discounts];
-                                newDiscounts[index] = { ...discount, note: e.target.value };
-                                setBillData(prev => ({ ...prev, discounts: newDiscounts }));
+                                newDiscounts[index] = {
+                                  ...discount,
+                                  note: e.target.value,
+                                };
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  discounts: newDiscounts,
+                                }));
                               }}
                               placeholder="Enter note"
                               className="w-full px-2 py-1 border rounded"
@@ -1039,9 +1212,12 @@ export default function CreateBill() {
                                 newDiscounts[index] = {
                                   ...discount,
                                   pieces,
-                                  total: pieces * discount.discountPerPiece
+                                  total: pieces * discount.discountPerPiece,
                                 };
-                                setBillData(prev => ({ ...prev, discounts: newDiscounts }));
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  discounts: newDiscounts,
+                                }));
                               }}
                               min="0"
                               className="w-20 px-2 py-1 border rounded"
@@ -1052,14 +1228,18 @@ export default function CreateBill() {
                               type="number"
                               value={discount.discountPerPiece}
                               onChange={(e) => {
-                                const discountPerPiece = parseFloat(e.target.value) || 0;
+                                const discountPerPiece =
+                                  parseFloat(e.target.value) || 0;
                                 const newDiscounts = [...billData.discounts];
                                 newDiscounts[index] = {
                                   ...discount,
                                   discountPerPiece,
-                                  total: discount.pieces * discountPerPiece
+                                  total: discount.pieces * discountPerPiece,
                                 };
-                                setBillData(prev => ({ ...prev, discounts: newDiscounts }));
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  discounts: newDiscounts,
+                                }));
                               }}
                               min="0"
                               step="0.01"
@@ -1067,13 +1247,18 @@ export default function CreateBill() {
                             />
                           </td>
                           <td className="px-4 py-2">
-                            ₹{discount.total.toLocaleString('en-IN')}
+                            ₹{discount.total.toLocaleString("en-IN")}
                           </td>
                           <td className="px-4 py-2">
                             <button
                               onClick={() => {
-                                const newDiscounts = billData.discounts.filter(d => d.id !== discount.id);
-                                setBillData(prev => ({ ...prev, discounts: newDiscounts }));
+                                const newDiscounts = billData.discounts.filter(
+                                  (d) => d.id !== discount.id
+                                );
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  discounts: newDiscounts,
+                                }));
                               }}
                               className="text-red-600 hover:text-red-800"
                             >
@@ -1088,7 +1273,13 @@ export default function CreateBill() {
                             Total Discounts:
                           </td>
                           <td colSpan={2} className="px-4 py-3">
-                            ₹{billData.discounts.reduce((sum, discount) => sum + discount.total, 0).toLocaleString('en-IN')}
+                            ₹
+                            {billData.discounts
+                              .reduce(
+                                (sum, discount) => sum + discount.total,
+                                0
+                              )
+                              .toLocaleString("en-IN")}
                           </td>
                         </tr>
                       )}
@@ -1108,18 +1299,18 @@ export default function CreateBill() {
                 </h4>
                 <button
                   onClick={() => {
-                    setBillData(prev => ({
+                    setBillData((prev) => ({
                       ...prev,
                       payments: [
                         ...prev.payments,
                         {
                           id: crypto.randomUUID(),
-                          date: format(new Date(), 'yyyy-MM-dd'),
-                          note: '',
+                          date: format(new Date(), "yyyy-MM-dd"),
+                          note: "",
                           amount: 0,
-                          method: 'cash'
-                        }
-                      ]
+                          method: "cash",
+                        },
+                      ],
                     }));
                   }}
                   className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md hover:bg-gray-200"
@@ -1150,8 +1341,14 @@ export default function CreateBill() {
                               value={payment.date}
                               onChange={(e) => {
                                 const newPayments = [...billData.payments];
-                                newPayments[index] = { ...payment, date: e.target.value };
-                                setBillData(prev => ({ ...prev, payments: newPayments }));
+                                newPayments[index] = {
+                                  ...payment,
+                                  date: e.target.value,
+                                };
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  payments: newPayments,
+                                }));
                               }}
                               className="px-2 py-1 border rounded w-36"
                             />
@@ -1162,8 +1359,14 @@ export default function CreateBill() {
                               value={payment.note}
                               onChange={(e) => {
                                 const newPayments = [...billData.payments];
-                                newPayments[index] = { ...payment, note: e.target.value };
-                                setBillData(prev => ({ ...prev, payments: newPayments }));
+                                newPayments[index] = {
+                                  ...payment,
+                                  note: e.target.value,
+                                };
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  payments: newPayments,
+                                }));
                               }}
                               placeholder="Enter note"
                               className="w-full px-2 py-1 border rounded"
@@ -1176,14 +1379,19 @@ export default function CreateBill() {
                                 const newPayments = [...billData.payments];
                                 newPayments[index] = {
                                   ...payment,
-                                  method: e.target.value as Payment['method']
+                                  method: e.target.value as Payment["method"],
                                 };
-                                setBillData(prev => ({ ...prev, payments: newPayments }));
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  payments: newPayments,
+                                }));
                               }}
                               className="w-32 px-2 py-1 border rounded"
                             >
                               <option value="cash">Cash / રોકડ</option>
-                              <option value="bank">Bank Transfer / બેંક ટ્રાન્સફર</option>
+                              <option value="bank">
+                                Bank Transfer / બેંક ટ્રાન્સફર
+                              </option>
                               <option value="upi">UPI</option>
                               <option value="cheque">Cheque / ચેક</option>
                               <option value="card">Card / કાર્ડ</option>
@@ -1198,7 +1406,10 @@ export default function CreateBill() {
                                 const amount = parseFloat(e.target.value) || 0;
                                 const newPayments = [...billData.payments];
                                 newPayments[index] = { ...payment, amount };
-                                setBillData(prev => ({ ...prev, payments: newPayments }));
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  payments: newPayments,
+                                }));
                               }}
                               min="0"
                               step="0.01"
@@ -1208,8 +1419,13 @@ export default function CreateBill() {
                           <td className="px-4 py-2">
                             <button
                               onClick={() => {
-                                const newPayments = billData.payments.filter(p => p.id !== payment.id);
-                                setBillData(prev => ({ ...prev, payments: newPayments }));
+                                const newPayments = billData.payments.filter(
+                                  (p) => p.id !== payment.id
+                                );
+                                setBillData((prev) => ({
+                                  ...prev,
+                                  payments: newPayments,
+                                }));
                               }}
                               className="text-red-600 hover:text-red-800"
                             >
@@ -1224,7 +1440,10 @@ export default function CreateBill() {
                             Total Payments:
                           </td>
                           <td colSpan={2} className="px-4 py-3">
-                            ₹{billData.payments.reduce((sum, payment) => sum + payment.amount, 0).toLocaleString('en-IN')}
+                            ₹
+                            {billData.payments
+                              .reduce((sum, payment) => sum + payment.amount, 0)
+                              .toLocaleString("en-IN")}
                           </td>
                         </tr>
                       )}
@@ -1242,19 +1461,31 @@ export default function CreateBill() {
                 BILL SUMMARY / બિલ સારાંશ
               </h4>
               <div className="space-y-3 text-sm">
-                {Object.entries(summaryMap as Record<string, number>).map(([label, amount]) => (
-                  <div key={label} className={`flex justify-between items-center ${
-                    label.startsWith('Sub Total') || label.startsWith('GRAND TOTAL') || label.startsWith('DUE PAYMENT')
-                      ? 'pt-2 text-base font-semibold border-t border-gray-200' : ''
-                  } ${
-                    label.startsWith('DUE PAYMENT') 
-                      ? (amount > 0 ? 'text-red-600' : 'text-green-600')
-                      : label.startsWith('GRAND TOTAL') ? 'text-blue-600' : ''
-                  }`}>
-                    <span>{label}:</span>
-                    <span>₹{Math.abs(amount).toLocaleString('en-IN')}</span>
-                  </div>
-                ))}
+                {Object.entries(summaryMap as Record<string, number>).map(
+                  ([label, amount]) => (
+                    <div
+                      key={label}
+                      className={`flex justify-between items-center ${
+                        label.startsWith("Sub Total") ||
+                        label.startsWith("GRAND TOTAL") ||
+                        label.startsWith("DUE PAYMENT")
+                          ? "pt-2 text-base font-semibold border-t border-gray-200"
+                          : ""
+                      } ${
+                        label.startsWith("DUE PAYMENT")
+                          ? amount > 0
+                            ? "text-red-600"
+                            : "text-green-600"
+                          : label.startsWith("GRAND TOTAL")
+                          ? "text-blue-600"
+                          : ""
+                      }`}
+                    >
+                      <span>{label}:</span>
+                      <span>₹{Math.abs(amount).toLocaleString("en-IN")}</span>
+                    </div>
+                  )
+                )}
               </div>
             </div>
           )}
@@ -1267,7 +1498,9 @@ export default function CreateBill() {
               </h4>
               <textarea
                 value={billData.mainNote}
-                onChange={(e) => setBillData(prev => ({ ...prev, mainNote: e.target.value }))}
+                onChange={(e) =>
+                  setBillData((prev) => ({ ...prev, mainNote: e.target.value }))
+                }
                 placeholder="Additional notes, terms, conditions..."
                 className="w-full h-32 px-3 py-2 border rounded-lg resize-none"
               />
@@ -1278,13 +1511,15 @@ export default function CreateBill() {
           {showLedger && billData.fromDate && (
             <div className="flex justify-end gap-4">
               <button
-                onClick={() => navigate('/billing')}
+                onClick={() => navigate("/billing")}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800"
               >
                 Cancel
               </button>
               <button
-                onClick={() => {/* TODO: Implement save as draft */}}
+                onClick={() => {
+                  /* TODO: Implement save as draft */
+                }}
                 className="px-4 py-2 text-sm font-medium text-gray-800 bg-gray-100 rounded-lg hover:bg-gray-200"
               >
                 Save as Draft
@@ -1302,9 +1537,13 @@ export default function CreateBill() {
           {showLedger && billData.fromDate && (
             <div className="p-4 bg-white border border-gray-200 rounded-xl">
               <div className="mb-4">
-                <h4 className="text-base font-medium text-gray-900">{t('ledgerDetails')}</h4>
+                <h4 className="text-base font-medium text-gray-900">
+                  {t("ledgerDetails")}
+                </h4>
                 <p className="mt-1 text-sm text-gray-600">
-                  From Date / થી તારીખ: {format(new Date(billData.fromDate), 'dd/MM/yyyy')} (Auto-calculated)
+                  From Date / થી તારીખ:{" "}
+                  {format(new Date(billData.fromDate), "dd/MM/yyyy")}{" "}
+                  (Auto-calculated)
                 </p>
               </div>
 
@@ -1322,10 +1561,17 @@ export default function CreateBill() {
                   </thead>
                   <tbody>
                     {transactions.map((transaction: Transaction) => (
-                      <tr key={transaction.challanId} className="bg-white border-b">
-                        <td className="px-4 py-3">{format(new Date(transaction.date), 'dd/MM/yyyy')}</td>
+                      <tr
+                        key={transaction.challanId}
+                        className="bg-white border-b"
+                      >
+                        <td className="px-4 py-3">
+                          {format(new Date(transaction.date), "dd/MM/yyyy")}
+                        </td>
                         <td className="px-4 py-3">{transaction.type}</td>
-                        <td className="px-4 py-3">{transaction.challanNumber}</td>
+                        <td className="px-4 py-3">
+                          {transaction.challanNumber}
+                        </td>
                         <td className="px-4 py-3">{transaction.grandTotal}</td>
                         <td className="px-4 py-3">{transaction.grandTotal}</td>
                       </tr>
@@ -1339,17 +1585,17 @@ export default function CreateBill() {
           {/* Final Action Buttons */}
           <div className="flex justify-end gap-3">
             <button
-              onClick={() => navigate('/billing')}
+              onClick={() => navigate("/billing")}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
             >
-              {t('cancel')}
+              {t("cancel")}
             </button>
             <button
               onClick={handleSave}
               disabled={!showLedger || isLoading}
               className="px-4 py-2 text-sm font-medium text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-green-300"
             >
-              {t('generateBill')} / બિલ જનરેટ કરો
+              {t("generateBill")} / બિલ જનરેટ કરો
             </button>
           </div>
         </div>
