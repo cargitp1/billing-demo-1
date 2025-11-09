@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import { 
   Search, 
   MapPin,
@@ -88,14 +89,22 @@ export default function Billing() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="container max-w-6xl px-4 py-4 mx-auto mt-16 sm:px-6 lg:px-8 sm:py-6 lg:py-8">
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-          {/* Header */}
-          <div className="items-center justify-between hidden p-4 mb-4 bg-white border border-gray-200 sm:flex rounded-xl">
+        {/* Page Header - Hidden on Mobile */}
+        <div className="hidden pb-5 mb-5 border-b border-gray-200 sm:block">
+          <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t('selectClient')}</h3>
-              <p className="mt-0.5 text-xs text-gray-500 lg:text-sm">Choose client for billing</p>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
+                {t('billing')}
+              </h1>
+              <p className="mt-1 text-sm text-gray-500">
+                {format(new Date(), 'MMMM d, yyyy')}
+              </p>
             </div>
           </div>
+        </div>
+
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+          {/* Search and Client List */}
 
           {/* Search Bar - Compact */}
           <div className="relative">

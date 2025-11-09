@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
     },
     {
       path: '/billing',
-      label: 'Billing',
+      label: t('billing'),
       icon: FileText,
       colorClass: 'blue'
     },
@@ -123,7 +123,6 @@ const Navbar: React.FC = () => {
               alt="Company Logo"
               className="object-contain w-full h-full"
               style={{ 
-                filter: 'brightness(0) invert(1)',
                 maxWidth: '100%',
                 maxHeight: '100%'
               }}

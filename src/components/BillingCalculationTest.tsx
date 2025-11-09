@@ -50,14 +50,14 @@ const testCases: TestCase[] = [
         toDate: "2025-01-31",
         days: 31
       },
-      dailyRent: 5,
+      dailyRent: 1,
       outstanding: [
         { size: 1, pieces: 50 },
         { size: 2, pieces: 30 }
       ]
     },
     expected: {
-      totalRent: 12400, // (50 × 31 × 5) + (30 × 31 × 5)
+      totalRent: 2480, // (50 × 31 × 1) + (30 × 31 × 1)
       extraCostsTotal: 0,
       discountsTotal: 0,
       grandTotal: 12400,
@@ -73,7 +73,7 @@ const testCases: TestCase[] = [
         toDate: "2025-01-31",
         days: 31
       },
-      dailyRent: 5,
+      dailyRent: 1,
       outstanding: [
         { size: 1, pieces: 50 }
       ],

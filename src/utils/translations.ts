@@ -1,8 +1,13 @@
+import { b } from "motion/react-client";
+
 export const translations = {
   gu: {
     // Billing Page
+    billing: "બિલિંગ",
     billDetails: "બિલની વિગતો",
     billNumber: "બિલ નંબર",
+    createNewBill: "નવું બિલ બનાવો",
+    chooseClientForBilling: "બિલિંગ માટે ગ્રાહક પસંદ કરો",
     billDate: "બિલ તારીખ",
     tillDate: "સુધીની તારીખ",
     dailyRent: "દૈનિક ભાડું",
@@ -570,6 +575,11 @@ export const translations = {
     of: 'of',
     clients: 'clients',
     noMatchingClients: 'No matching clients',
+
+
+
+    //billing: "Billing",
+    billing: "Billing",
   },
 };
 

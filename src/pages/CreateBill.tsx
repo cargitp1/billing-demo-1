@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { format, parseISO, differenceInDays } from 'date-fns';
+import { format, parseISO, differenceInDays, subDays } from 'date-fns';
 import { 
   ArrowLeft, 
   Calendar,
@@ -132,7 +132,7 @@ export default function CreateBill() {
     billNumber: '',
     billDate: format(new Date(), 'yyyy-MM-dd'),
     toDate: format(new Date(), 'yyyy-MM-dd'),
-    dailyRent: 5,
+    dailyRent: 1,
     extraCosts: [],
     discounts: [],
     payments: [],
@@ -155,30 +155,7 @@ export default function CreateBill() {
 
   const fetchClient = async () => {
     try {
-      // Generate bill number first
-      const today = new Date();
-      const year = today.getFullYear();
-      const month = String(today.getMonth() + 1).padStart(2, '0');
-      
-      const { data: lastBill, error: billError } = await supabase
-        .from('bills')
-        .select('bill_number')
-        .ilike('bill_number', `BILL-${year}${month}-%`)
-        .order('bill_number', { ascending: false })
-        .limit(1);
-
-      if (!billError) {
-        let sequence = 1;
-        if (lastBill && lastBill.length > 0) {
-          const lastNumber = lastBill[0].bill_number;
-          const lastSequence = parseInt(lastNumber.split('-').pop() || '0');
-          sequence = lastSequence + 1;
-        }
-        const newBillNumber = `BILL-${year}${month}-${String(sequence).padStart(3, '0')}`;
-        setBillData(prev => ({ ...prev, billNumber: newBillNumber }));
-      }
-
-      // Fetch and validate all client data
+      // Fetch and validate all client data first
       const validation = await validateClientData(clientId!);
       
       if (!validation.success) {
@@ -189,6 +166,33 @@ export default function CreateBill() {
       }
 
       const { client, udharChallans, jamaChallans } = validation.data;
+
+      // Generate bill number
+      const { data: lastBill, error: billError } = await supabase
+        .from('bills')
+        .select('bill_number')
+        .order('bill_number', { ascending: false })
+        .limit(100); // Get more bills to ensure we find the right sequence
+
+      if (!billError) {
+        let sequence = 1;
+        const clientPrefix = client?.client_nic_name || clientId;
+        
+        // Find the last bill number for this client
+        const clientBills = lastBill?.filter(bill => bill.bill_number.startsWith(clientPrefix + '/')) || [];
+        
+        if (clientBills.length > 0) {
+          // Extract the highest sequence number
+          const sequences = clientBills.map(bill => {
+            const match = bill.bill_number.match(/\/(\d+)$/);
+            return match ? parseInt(match[1]) : 0;
+          });
+          sequence = Math.max(...sequences) + 1;
+        }
+        
+        const newBillNumber = `${clientPrefix}/${sequence}`;
+        setBillData(prev => ({ ...prev, billNumber: newBillNumber }));
+      }
 
       // Log validation results
       console.log('Data Validation Results:', {
@@ -277,9 +281,12 @@ export default function CreateBill() {
     }));
   };
 
+  // Calculate total rent with adjusted days
+  const calculatedTotalRent = billResult?.billingPeriods.totalRent || 0;
+
   // Compute full bill summary once for rendering (size breakdown, totals, payments, due)
   const fullSummary = billResult ? {
-    totalRent: billResult.billingPeriods.totalRent,
+    totalRent: calculatedTotalRent,
     totalUdharPlates: currentBalance?.sizes ? 
       Object.values(currentBalance.sizes).reduce((sum, size) => sum + (size.main || 0), 0) : 0,
     totalJamaPlates: currentBalance?.sizes ? 
@@ -290,11 +297,11 @@ export default function CreateBill() {
     serviceCharge: 0, // TODO: Add service charge calculation
     totalExtraCosts: billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
     totalDiscounts: billData.discounts.reduce((sum, discount) => sum + discount.total, 0),
-    grandTotal: billResult.billingPeriods.totalRent + 
+    grandTotal: calculatedTotalRent + 
       billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
     totalPaid: billData.payments.reduce((sum, payment) => sum + payment.amount, 0),
     advancePaid: 0, // TODO: Add advance payment tracking
-    duePayment: billResult.billingPeriods.totalRent + 
+    duePayment: calculatedTotalRent + 
       billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) - 
       billData.discounts.reduce((sum, discount) => sum + discount.total, 0) - 
       billData.payments.reduce((sum, payment) => sum + payment.amount, 0)
@@ -314,12 +321,14 @@ export default function CreateBill() {
 
   // UI-friendly map of labels -> amounts (used in Bill Summary section)
   const summaryMap = {
-    'Total Rent': fullSummary.totalRent,
-    'Extra Costs': fullSummary.totalExtraCosts,
-    'Total Discounts': fullSummary.totalDiscounts,
-    'GRAND TOTAL': fullSummary.grandTotal,
-    'Payments Received': fullSummary.totalPaid,
-    'DUE PAYMENT': fullSummary.duePayment,
+    'Total Rent / કુલ ભાડું': fullSummary.totalRent,
+    'Service Charges / સેવા ચાર્જ': fullSummary.serviceCharge,
+    'Extra Charges / વધારાના ચાર્જ': fullSummary.totalExtraCosts,
+    'Sub Total / પેટા કુલ': fullSummary.totalRent + fullSummary.serviceCharge + fullSummary.totalExtraCosts,
+    'Discounts / છૂટ': fullSummary.totalDiscounts,
+    'GRAND TOTAL / કુલ રકમ': fullSummary.grandTotal,
+    'Payments Received / ચૂકવણી મળી': fullSummary.totalPaid,
+    'DUE PAYMENT / બાકી રકમ': fullSummary.duePayment,
   } as const;
 
   const handleGenerateBill = async () => {
@@ -327,13 +336,18 @@ export default function CreateBill() {
       // TODO: Save bill data to database
       const { error } = await supabase.from('bills').insert({
         bill_number: billData.billNumber,
-        billing_date: billData.billDate,
+        billdate: billData.billDate,
         from_date: billData.fromDate,
         to_date: billData.toDate,
         daily_rent: billData.dailyRent,
         client_id: clientId,
-        main_note: billData.mainNote,
-        status: 'completed'
+        total_rent: fullSummary.totalRent,
+        extra_costs_total: fullSummary.totalExtraCosts,
+        discounts_total: fullSummary.totalDiscounts,
+        grand_total: fullSummary.grandTotal,
+        total_paid: fullSummary.totalPaid,
+        due_payment: fullSummary.duePayment,
+        status: 'generated'
       });
 
       if (error) throw error;
@@ -691,49 +705,110 @@ export default function CreateBill() {
           {/* Section C: Rental Calculation */}
           {showLedger && billData.fromDate && (
             <div className="p-4 mb-4 bg-white border border-gray-200 rounded-xl">
-              <h4 className="mb-4 text-base font-medium text-gray-900">
-                Rental Calculation / ભાડાની ગણતરી
-              </h4>
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-600">From Date / થી તારીખ:</p>
-                    <p className="font-medium">{format(new Date(billData.fromDate), 'dd/MM/yyyy')}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">To Date / સુધી તારીખ:</p>
-                    <p className="font-medium">{format(new Date(billData.toDate), 'dd/MM/yyyy')}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Days / કુલ દિવસો:</p>
-                    <p className="font-medium">
-                      {differenceInDays(new Date(billData.toDate), new Date(billData.fromDate)) + 1} days
-                    </p>
-                  </div>
-                </div>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-base font-medium text-gray-900">
+                  {t('rentalCalculation')} / ભાડાની ગણતરી
+                </h4>
+              </div>
+              <div className="space-y-6">
+                {/* Date Information Table */}
+                <table className="w-full overflow-hidden text-sm border border-gray-200 rounded-lg">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        From Date / થી તારીખ
+                      </th>
+                      <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        To Date / સુધી તારીખ
+                      </th>
+                      <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                        Total Days / કુલ દિવસો
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-white">
+                      <td className="px-4 py-3 font-medium">
+                        {format(new Date(billData.fromDate), 'dd/MM/yyyy')}
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        {format(new Date(billData.toDate), 'dd/MM/yyyy')}
+                      </td>
+                      <td className="px-4 py-3 font-medium">
+                        {differenceInDays(new Date(billData.toDate), new Date(billData.fromDate)) + 1} days
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
 
-                <div className="mt-4">
-                  <h5 className="mb-3 text-sm font-medium">Size-wise Breakdown / સાઈઝ મુજબ વિગત:</h5>
-                  <div className="space-y-4">
-                    {/* Billing Periods Display */}
-                    {billResult?.billingPeriods.periods.map((period, index) => (
-                      <div key={index} className="p-3 rounded-lg bg-gray-50">
-                        <div className="flex items-center justify-between mb-2 text-sm text-gray-600">
-                          <span>Period {index + 1}: {format(parseISO(period.startDate), 'dd/MM/yyyy')} to {format(parseISO(period.endDate), 'dd/MM/yyyy')}</span>
-                          <span className="font-medium">{period.days} days</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>{period.plateCount} pieces × {period.days} days × ₹{billData.dailyRent}</span>
-                          <span className="font-medium">= ₹{period.rent.toLocaleString('en-IN')}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="pt-4 mt-4 border-t">
-                    <div className="flex justify-between text-base font-semibold">
-                      <span>Total Rent / કુલ ભાડું:</span>
-                      <span>₹{billResult?.billingPeriods.totalRent.toLocaleString('en-IN') || '0'}</span>
-                    </div>
+                {/* Rental Breakdown Table */}
+                <div className="overflow-hidden border border-gray-200 rounded-lg">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="w-1/4 px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                          Period / સમયગાળો
+                        </th>
+                        <th className="w-1/6 px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                          Days / દિવસો
+                        </th>
+                        <th className="px-4 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase">
+                          Calculation / ગણતરી
+                        </th>
+                        <th className="w-1/6 px-4 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase">
+                          Amount / રકમ
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {billResult?.billingPeriods.periods.map((period, index, array) => {
+                        const isLastPeriod = index === array.length - 1;
+                        // For Jama periods, show the actual return date
+                        // For other periods, show one day before the next period starts
+                        const displayEndDate = period.causeType === 'jama' ?
+                          format(parseISO(period.endDate), 'dd/MM/yyyy') :
+                          format(subDays(parseISO(period.endDate), 1), 'dd/MM/yyyy');
+                        
+                        // Days calculation is now handled in billingPeriodCalculations.ts
+                        const amount = period.plateCount * period.days * billData.dailyRent;
+                        
+                        return (
+                          <tr key={index} className={period.causeType === 'udhar' ? 'bg-red-50' : 'bg-green-50'}>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${
+                                    period.causeType === 'udhar' ? 'bg-red-500' : 'bg-green-500'
+                                  }`}></div>
+                                  <span>
+                                    {format(parseISO(period.startDate), 'dd/MM/yyyy')} થી {displayEndDate}
+                                  </span>
+                                </div>
+                                {!isLastPeriod && (
+                                  <span className="text-xs text-gray-500">Next: {format(parseISO(period.endDate), 'dd/MM/yyyy')}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3">
+                              {period.days}
+                            </td>
+                            <td className="px-4 py-3">
+                              {period.plateCount} pieces × {period.days} days × ₹{billData.dailyRent}
+                            </td>
+                            <td className="px-4 py-3 font-medium text-right">
+                              ₹{amount.toLocaleString('en-IN')}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Total Row */}
+                <div className="pt-4 mt-4 border-t">
+                  <div className="flex justify-between text-base font-semibold">
+                    <span>Total Rent / કુલ ભાડું:</span>
+                    <span>₹{(billResult?.billingPeriods.totalRent || 0).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
@@ -1169,12 +1244,15 @@ export default function CreateBill() {
               <div className="space-y-3 text-sm">
                 {Object.entries(summaryMap as Record<string, number>).map(([label, amount]) => (
                   <div key={label} className={`flex justify-between items-center ${
-                    label === 'DUE PAYMENT' 
-                      ? 'pt-2 text-base font-semibold ' + (amount > 0 ? 'text-red-600' : 'text-green-600')
-                      : ''
+                    label.startsWith('Sub Total') || label.startsWith('GRAND TOTAL') || label.startsWith('DUE PAYMENT')
+                      ? 'pt-2 text-base font-semibold border-t border-gray-200' : ''
+                  } ${
+                    label.startsWith('DUE PAYMENT') 
+                      ? (amount > 0 ? 'text-red-600' : 'text-green-600')
+                      : label.startsWith('GRAND TOTAL') ? 'text-blue-600' : ''
                   }`}>
                     <span>{label}:</span>
-                    <span>₹{amount.toLocaleString('en-IN')}</span>
+                    <span>₹{Math.abs(amount).toLocaleString('en-IN')}</span>
                   </div>
                 ))}
               </div>

@@ -53,6 +53,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   onClientSelect,
   searchQuery,
   onSearchChange,
+  onAddNewClick,
 }) => {
   const { t } = useLanguage();
   const filteredClients = clients.filter(client => 
@@ -65,16 +66,8 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      {/* Header - Desktop Only */}
-      <div className="hidden sm:block">
-        <div className="flex flex-col items-start gap-2 p-4 bg-white border border-gray-200 shadow-sm rounded-xl lg:p-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t('selectClient')}</h3>
-            <p className="mt-0.5 text-xs lg:text-sm text-gray-500">Choose client for jama challan</p>
-          </div>
-        </div>
-      </div>
-
+      {/* Header with Add Client Button */}
+      {/* Search Bar - Compact */}
 
       {/* Search Bar - Compact */}
       <div className="relative">
@@ -817,18 +810,23 @@ const JamaChallan: React.FC = () => {
         <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {step === 'client-selection' ? (
             <>
-              <div className="hidden mb-6 sm:block lg:mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t('jamaChallan')}</h2>
-                <p className="mt-1 text-xs text-gray-600 lg:text-sm lg:mt-2">Create new jama challan for returned items</p>
+              <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t('jamaChallan')}</h2>
+                  <p className="mt-1 text-xs text-gray-600 lg:text-sm lg:mt-2">Create new jama challan for returned items</p>
+                </div>
+                {!showAddClient && (
+                  <button
+                    onClick={handleAddNewClick}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-green-600 transition-colors bg-green-50 rounded-lg hover:bg-green-100 touch-manipulation active:scale-95"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                    {t('addNewClient')}
+                  </button>
+                )}
               </div>
               {showAddClient ? (
                 <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
-                  <div className="flex items-center gap-2 mb-4 sm:gap-3 sm:mb-6">
-                    <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
-                      <UserPlus className="w-4 h-4 text-green-600 sm:w-5 sm:h-5" />
-                    </div>
-                    <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('addNewClient')}</h3>
-                  </div>
                   <ClientForm 
                     onSubmit={handleQuickAddClient}
                     onCancel={() => setShowAddClient(false)}
