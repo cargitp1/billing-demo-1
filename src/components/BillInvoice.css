@@ -1,10 +1,23 @@
 .invoice-container {
-  background-color: white;
+  background-color: #ffffff !important;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   font-family: Arial, sans-serif;
-  max-width: 800px;
+  width: 794px;
   margin: 0 auto;
   padding: 30px;
+  position: relative;
+  color: #000000;
+}
+
+/* Force white background for print/image generation */
+@media print {
+  .invoice-container {
+    background-color: #ffffff !important;
+    box-shadow: none;
+  }
+  body {
+    background-color: #ffffff !important;
+  }
 }
 
 .invoice-header {
@@ -75,13 +88,15 @@
   background-color: #f3f4f6;
   text-align: left;
   padding: 10px;
-  border-bottom: 2px solid #e5e7eb;
-  color: #4b5563;
+  border-bottom: 2px solid #000000;
+  color: #000000;
+  font-weight: bold;
 }
 
 .invoice-table td {
   padding: 10px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #000000;
+  color: #000000;
 }
 
 .table-footer {

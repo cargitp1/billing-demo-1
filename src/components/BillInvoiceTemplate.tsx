@@ -55,7 +55,7 @@ interface BillInvoiceProps {
     totalJamaPlates: number;
     netPlates: number;
     serviceCharge: number;
-    extraCosts: number;
+    totalExtraCosts: number;
     discounts: number;
     grandTotal: number;
     totalPaid: number;
@@ -162,7 +162,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               ))}
               <tr className="table-footer">
                 <td colSpan={2}>Total Extra Costs:</td>
-                <td>{formatIndianCurrency(summary.extraCosts)}</td>
+                <td>{formatIndianCurrency(summary.totalExtraCosts)}</td>
               </tr>
             </tbody>
           </table>
@@ -225,7 +225,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
             </tr>
             <tr className="summary-row">
               <td>Extra Costs:</td>
-              <td>{formatIndianCurrency(summary.extraCosts)}</td>
+              <td>{formatIndianCurrency(summary.totalExtraCosts)}</td>
             </tr>
             <tr className="summary-row">
               <td>Discounts:</td>
@@ -337,7 +337,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                   <strong>Total Extra Costs:</strong>
                 </td>
                 <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>
-                  <strong>₹{summary.extraCosts.toLocaleString('en-IN')}</strong>
+                  <strong>₹{summary.totalExtraCosts.toLocaleString('en-IN')}</strong>
                 </td>
               </tr>
             </tbody>
