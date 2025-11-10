@@ -306,6 +306,7 @@ const ChallanBook: React.FC = () => {
             challanNumber={challan.challanNumber}
             date={new Date(challan.date).toLocaleDateString('en-GB')}
             clientName={challan.clientFullName}
+            clientSortName={challan.clientNicName}
             site={challan.site}
             phone={challan.phone}
             driverName={challan.driverName || ''}
