@@ -72,49 +72,49 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
             {clients.map((client: ClientFormData) => (
               <div 
                 key={client.id} 
-                className="bg-white p-2.5 sm:p-3 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                className="bg-white p-2 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
               >
-                {/* Header Row - Name and Actions */}
-                <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="flex items-center justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base">
-                      {client.client_nic_name}
-                    </h4>
-                    <p className="text-[10px] sm:text-xs text-gray-600 truncate">
-                      {client.client_name}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-[11px] font-semibold text-gray-900 truncate">
+                        {client.client_nic_name}
+                      </h4>
+                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-blue-50 text-blue-700">
+                        {t('challanInfo')}
+                      </span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <div className="flex items-center gap-1 text-[9px] text-gray-600">
+                        <MapPin className="w-2.5 h-2.5 text-gray-400" />
+                        <span className="truncate max-w-[100px]">{client.site}</span>
+                      </div>
+                      <a 
+                        href={`tel:${client.primary_phone_number}`}
+                        className="flex items-center gap-1 text-[9px] text-blue-600"
+                      >
+                        <Phone className="w-2.5 h-2.5" />
+                        <span>{client.primary_phone_number}</span>
+                      </a>
+                    </div>
                   </div>
-                  <div className="flex flex-shrink-0 gap-1">
+
+                  <div className="flex items-center gap-1">
                     <button
                       onClick={() => onEdit(client)}
-                      className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors touch-manipulation active:scale-95"
-                      aria-label="Edit"
+                      className="p-1 text-[9px] font-medium text-gray-600 hover:text-blue-600 bg-gray-50 hover:bg-blue-50 rounded transition-colors touch-manipulation active:scale-95 flex items-center gap-0.5"
+                      aria-label={t('clientInfo')}
                     >
-                      <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      {t('clientInfo')}
                     </button>
                     <button
                       onClick={() => handleDelete(client.id!, client.client_nic_name)}
-                      className="p-1.5 sm:p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-md transition-colors touch-manipulation active:scale-95"
-                      aria-label="Delete"
+                      className="p-1 text-red-600 bg-red-50 hover:bg-red-100 rounded transition-colors touch-manipulation active:scale-95"
                     >
-                      <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
-                </div>
-
-                {/* Details Row - Compact Info */}
-                <div className="flex items-center gap-3 sm:gap-4 text-[10px] sm:text-xs text-gray-600">
-                  <div className="flex items-center flex-1 min-w-0 gap-1">
-                    <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0 text-gray-400" />
-                    <span className="truncate">{client.site}</span>
-                  </div>
-                  <a 
-                    href={`tel:${client.primary_phone_number}`}
-                    className="flex items-center flex-shrink-0 gap-1 text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95"
-                  >
-                    <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                    <span className="font-medium">{client.primary_phone_number}</span>
-                  </a>
                 </div>
               </div>
             ))}
