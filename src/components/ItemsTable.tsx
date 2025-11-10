@@ -317,37 +317,43 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                     </tr>
                   ))}
                   {/* Totals Summary Row */}
-                  <tr className="border-t-2 border-gray-300 bg-gray-50">
-                    <td className="sticky left-0 z-10 px-1 py-2 text-[8px] sm:text-[10px] font-bold text-center text-gray-900 border-r-2 border-gray-300 bg-inherit">
+                  <tr className="bg-gray-100 border-t-2 border-gray-300">
+                    <td className="sticky left-0 z-10 px-1 py-3 text-[10px] sm:text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 bg-inherit">
                       કુલ
                     </td>
                     {outstandingBalances && (
-                      <td className="px-1 py-2 text-center border-r border-gray-200">
+                      <td className="px-1 py-3 text-center border-r border-gray-200">
                         -
                       </td>
                     )}
                     {showAvailable && (
-                      <td className="px-1 py-2 text-center border-r border-gray-200">
+                      <td className="px-1 py-3 text-center border-r border-gray-200">
                         -
                       </td>
                     )}
-                    <td className="px-1 py-2 text-[8px] sm:text-[10px] font-semibold text-center border-r border-gray-200">
-                      {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0), 0)} સંખ્યા
+                    <td className="px-1 py-3 text-[10px] sm:text-sm font-bold text-center border-r border-gray-200">
+                      <div className="px-2 py-1 rounded-lg bg-blue-50">
+                        {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0), 0)} સંખ્યા
+                      </div>
                     </td>
                     {outstandingBalances && !hideColumns && (
-                      <td className="px-1 py-2 text-center border-r border-gray-200">
+                      <td className="px-1 py-3 text-center border-r border-gray-200">
                         -
                       </td>
                     )}
                     {!hideColumns && (
                       <>
-                        <td className="px-1 py-2 text-[8px] sm:text-[10px] font-semibold text-center border-r border-gray-200">
-                          {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} ઉધાર
+                        <td className="px-1 py-3 text-[10px] sm:text-sm font-bold text-center border-r border-gray-200">
+                          <div className="px-2 py-1 rounded-lg bg-orange-50">
+                            {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} ઉધાર
+                          </div>
                         </td>
-                        <td className="px-1 py-2 text-[8px] sm:text-[10px] font-semibold text-center">
-                          {sizeIndices.reduce((total, sizeIndex) => 
-                            total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0) + 
-                            (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} કુલ
+                        <td className="px-1 py-3 text-[10px] sm:text-sm font-extrabold text-center">
+                          <div className="px-3 py-1.5 bg-blue-100 rounded-lg text-blue-800">
+                            {sizeIndices.reduce((total, sizeIndex) => 
+                              total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0) + 
+                              (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} કુલ
+                          </div>
                         </td>
                       </>
                     )}

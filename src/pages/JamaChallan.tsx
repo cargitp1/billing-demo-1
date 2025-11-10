@@ -875,7 +875,11 @@ const JamaChallan: React.FC = () => {
               <ReceiptTemplate
                 challanType="jama"
                 challanNumber={challanNumber}
-                date={date}
+                date={new Date(date).toLocaleDateString('en-GB', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric'
+                })}
                 clientName={selectedClient.client_name}
                 clientSortName={selectedClient.client_nic_name}
                 site={selectedClient.site}

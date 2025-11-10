@@ -39,11 +39,11 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
     challanType: { x: 80, y: 150},
     challanNumber: { x: 230, y: 380 },
     date: { x: 880, y: 380},
-    clientName: { x: 200, y: 468},
-    clientSortName: { x: 938, y: 468},  
+    clientName: { x: 200, y: 462 },
+    clientSortName: { x: 938, y: 462 },  
     driverId: { x: 850, y: 1150},
-    site: { x: 200, y: 518 },
-    phone: { x: 200, y: 564 },
+    site: { x: 200, y: 512},
+    phone: { x: 200, y: 558 },
     itemsStart: { x: 320, y: 700, increment: 63.5 },
     borrowedStockStart: { x: 550, y: 700, increment: 63.5 },
     notesStart: { x: 640, y: 710, increment: 63.5 },
@@ -119,7 +119,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         <div style={{
           position: 'absolute',
           ...getPosition(coordinates.clientName.x, coordinates.clientName.y),
-          fontSize: '28px',
+          fontSize: '31px',
           fontWeight: '720',
           color: '#000000',
           maxWidth: '650px'
@@ -132,7 +132,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
           <div style={{
             position: 'absolute',
             ...getPosition(coordinates.clientSortName.x, coordinates.clientSortName.y),
-            fontSize: '28px',
+            fontSize: '31px',
             fontWeight: '720',
             color: '#000000'
           }}>
@@ -157,7 +157,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         <div style={{
           position: 'absolute',
           ...getPosition(coordinates.site.x, coordinates.site.y),
-          fontSize: '28px',
+          fontSize: '31px',
           fontWeight: '720',
           color: '#000000',
           maxWidth: '1000px'
@@ -169,7 +169,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         <div style={{
           position: 'absolute',
           ...getPosition(coordinates.phone.x, coordinates.phone.y),
-          fontSize: '28px',
+          fontSize: '31px',
           fontWeight: '720',
           color: '#000000'
         }}>
@@ -237,11 +237,14 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         <div style={{
           position: 'absolute',
           ...getPosition(coordinates.grandTotal.x, coordinates.grandTotal.y),
-          fontSize: '34px',
-          fontWeight: '750',
+          fontSize: '40px',
+          fontWeight: '800',
           color: '#000000',
           textAlign: 'center',
-          width: '120px'
+          width: '120px',
+          backgroundColor: '#f0f0f0',
+          padding: '4px 8px',
+          borderRadius: '8px'
         }}>
           {grandTotal}
         </div>
@@ -250,11 +253,14 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         <div style={{
           position: 'absolute',
           ...getPosition(coordinates.grandTotal.x + 330 , coordinates.mainNotes.y - 48),
-          fontSize: '26px',
-          fontWeight: '750',
+          fontSize: '32px',
+          fontWeight: '800',
           color: '#000000',
           textAlign: 'center',
-          width: '120px'
+          width: '120px',
+          backgroundColor: '#f0f0f0',
+          padding: '4px 8px',
+          borderRadius: '8px'
         }}>
           {grandTotal}
         </div>

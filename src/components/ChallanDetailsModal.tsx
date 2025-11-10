@@ -144,20 +144,20 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
 
           <div className="p-4 bg-white border border-gray-200 rounded-lg">
             <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('items')}</h3>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
+                    <th className="sticky left-0 z-10 px-2 py-2 text-[10px] sm:text-xs font-medium text-left text-gray-500 uppercase bg-gray-50 sm:px-4">
                       {t('size')}
                     </th>
-                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
+                    <th className="px-2 py-2 text-[10px] sm:text-xs font-medium text-center text-gray-500 uppercase sm:px-4">
                       {t('quantity')}
                     </th>
-                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
+                    <th className="px-2 py-2 text-[10px] sm:text-xs font-medium text-center text-gray-500 uppercase sm:px-4">
                       {t('borrowedStock')}
                     </th>
-                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
+                    <th className="px-2 py-2 text-[10px] sm:text-xs font-medium text-left text-gray-500 uppercase sm:px-4">
                       {t('note')}
                     </th>
                   </tr>
@@ -172,16 +172,20 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
 
                     return (
                       <tr key={size} className="hover:bg-gray-50">
-                        <td className="px-4 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">
+                        <td className="sticky left-0 z-10 px-2 py-2 text-[11px] sm:text-sm font-medium text-gray-900 whitespace-nowrap bg-inherit sm:px-4">
                           {PLATE_SIZES[size - 1]}
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                          {qty}
+                        <td className="px-2 py-2 text-[11px] sm:text-sm text-gray-900 whitespace-nowrap text-center sm:px-4">
+                          <span className="inline-block min-w-[40px] px-2 py-1 bg-blue-50 rounded">
+                            {qty}
+                          </span>
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-900 whitespace-nowrap">
-                          {borrowed}
+                        <td className="px-2 py-2 text-[11px] sm:text-sm text-gray-900 whitespace-nowrap text-center sm:px-4">
+                          <span className="inline-block min-w-[40px] px-2 py-1 bg-orange-50 rounded">
+                            {borrowed}
+                          </span>
                         </td>
-                        <td className="px-4 py-2 text-sm text-gray-900">
+                        <td className="px-2 py-2 text-[11px] sm:text-sm text-gray-600 sm:px-4">
                           {note || '-'}
                         </td>
                       </tr>
