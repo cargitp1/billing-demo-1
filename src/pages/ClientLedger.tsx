@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
-import { PLATE_SIZES } from '../components/ItemsTable';
 import {
   Search,
   Filter,
@@ -13,7 +12,7 @@ import { supabase } from '../utils/supabase';
 import { fetchClientTransactions } from '../utils/challanFetching';
 import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
-import { useInfiniteScroll } from '../hooks/useInfiniteScroll'; // Not directly used
+
 import toast, { Toaster } from 'react-hot-toast';
 
 type SortOption = 'nameAZ' | 'nameZA' | 'balanceHighLow' | 'balanceLowHigh';
@@ -63,12 +62,10 @@ export interface ClientLedgerData {
   transactionsLoaded?: boolean;
 }
 
-// Mobile Skeleton Card
+// Skeleton Cards
 const MobileSkeletonCard = memo(() => (
   <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm animate-pulse sm:hidden">
-    {/* Top Section - Client Info & Balance */}
     <div className="flex items-start justify-between mb-3">
-      {/* Client Info */}
       <div className="flex items-center gap-3">
         <div className="flex-shrink-0 w-10 h-10 bg-gray-200 rounded-full"></div>
         <div>
@@ -76,20 +73,16 @@ const MobileSkeletonCard = memo(() => (
           <div className="w-20 h-3 bg-gray-200 rounded-md"></div>
         </div>
       </div>
-      {/* Balance */}
       <div className="text-right">
         <div className="w-10 h-3 mb-1 ml-auto bg-gray-200 rounded-md"></div>
         <div className="h-4 bg-gray-200 rounded-md w-14"></div>
       </div>
     </div>
-    
-    {/* Bottom Section - Location & Actions */}
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-1.5">
         <div className="w-3.5 h-3.5 bg-gray-200 rounded-full"></div>
         <div className="w-20 h-3 bg-gray-200 rounded-md"></div>
       </div>
-      {/* Mobile Action Buttons */}
       <div className="flex items-center gap-2">
         <div className="bg-gray-200 rounded-full w-14 h-7"></div>
         <div className="bg-gray-200 rounded-full w-14 h-7"></div>
@@ -99,11 +92,9 @@ const MobileSkeletonCard = memo(() => (
   </div>
 ));
 
-// Desktop Skeleton Card
 const DesktopSkeletonCard = memo(() => (
   <div className="hidden p-4 bg-white border border-gray-200 shadow-sm sm:block rounded-xl lg:p-6 animate-pulse">
     <div className="flex items-start justify-between">
-      {/* Left Section - Client Info */}
       <div className="flex items-center gap-4">
         <div className="flex-shrink-0 w-12 h-12 bg-gray-200 rounded-full lg:w-14 lg:h-14"></div>
         <div>
@@ -120,15 +111,11 @@ const DesktopSkeletonCard = memo(() => (
           </div>
         </div>
       </div>
-
-      {/* Right Section */}
       <div className="flex flex-col items-end gap-4">
-        {/* Balance */}
         <div className="text-right">
           <div className="w-14 h-3.5 mb-1 bg-gray-200 rounded-md"></div>
           <div className="w-20 h-5 bg-gray-200 rounded-md"></div>
         </div>
-        {/* Action Buttons */}
         <div className="flex items-center gap-2">
           <div className="w-20 h-8 bg-gray-200 rounded-full"></div>
           <div className="w-20 h-8 bg-gray-200 rounded-full"></div>
@@ -140,7 +127,6 @@ const DesktopSkeletonCard = memo(() => (
   </div>
 ));
 
-// Combined Skeleton Card Component
 const SkeletonCard = memo(() => (
   <>
     <MobileSkeletonCard />
@@ -152,17 +138,15 @@ SkeletonCard.displayName = 'SkeletonCard';
 MobileSkeletonCard.displayName = 'MobileSkeletonCard';
 DesktopSkeletonCard.displayName = 'DesktopSkeletonCard';
 
-SkeletonCard.displayName = 'SkeletonCard';
-
 const ITEMS_PER_PAGE = 10;
 
 export default function ClientLedger() {
   const { language } = useLanguage();
   const t = translations[language];
 
+  // State
   const [allClients, setAllClients] = useState<any[]>([]);
   const [ledgers, setLedgers] = useState<ClientLedgerData[]>([]);
-  const [displayedLedgers, setDisplayedLedgers] = useState<ClientLedgerData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -171,7 +155,27 @@ export default function ClientLedger() {
   const [sortOption, setSortOption] = useState<SortOption>('nameAZ');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-  // 1. Memoized helpers
+  // Helper function to filter clients based on search query
+  const getFilteredClients = useCallback((clients: any[]) => {
+    if (!searchQuery.trim()) return clients;
+    const query = searchQuery.toLowerCase();
+    return clients.filter(client =>
+      client.client_nic_name.toLowerCase().includes(query)
+      || client.client_name.toLowerCase().includes(query)
+      || client.site.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
+
+  // Calculate total counts
+  const { filteredCount, hasMore } = useMemo(() => {
+    const filteredClients = getFilteredClients(allClients);
+    return {
+      filteredCount: filteredClients.length,
+      hasMore: currentPage * ITEMS_PER_PAGE < filteredClients.length
+    };
+  }, [allClients, currentPage, getFilteredClients]);
+
+  // Helper functions
   const calculateTotalsFromChallans = useCallback((challans: any[]): SizeBalance => {
     const totals: SizeBalance = {
       size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0,
@@ -210,50 +214,53 @@ export default function ClientLedger() {
     }
 
     if (loadTransactions) {
-      const rawTransactions = await fetchClientTransactions(client.id);
-
-      transactions = rawTransactions.map((t: any) => {
-        const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
-        let grandTotal = 0;
-        for (let i = 1; i <= 9; i++) {
-          const qty = t.items[`size_${i}_qty`] || 0;
-          const borrowed = t.items[`size_${i}_borrowed`] || 0;
-          sizes[i] = { qty, borrowed };
-          grandTotal += qty + borrowed;
-        }
-        return {
-          type: t.type,
-          challanNumber: t.challanNumber,
-          challanId: t.challanNumber,
-          date: t.date,
-          grandTotal,
-          sizes,
-          site: t.site,
-          driverName: t.driverName || '',
-          items: t.items
-        };
-      });
-
-      const udharChallans = transactions.filter(t => t.type === 'udhar');
-      const jamaChallans = transactions.filter(t => t.type === 'jama');
-      udharTotals = calculateTotalsFromChallans(udharChallans);
-      jamaTotals = calculateTotalsFromChallans(jamaChallans);
-
-      transactions.forEach(transaction => {
-        for (let i = 1; i <= 9; i++) {
-          const size = transaction.sizes[i];
-          if (transaction.type === 'udhar') {
-            currentBalance.sizes[i].main += size.qty;
-            currentBalance.sizes[i].borrowed += size.borrowed;
-          } else {
-            currentBalance.sizes[i].main -= size.qty;
-            currentBalance.sizes[i].borrowed -= size.borrowed;
+      try {
+        const rawTransactions = await fetchClientTransactions(client.id);
+        transactions = rawTransactions.map((t: any) => {
+          const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
+          let grandTotal = 0;
+          for (let i = 1; i <= 9; i++) {
+            const qty = t.items[`size_${i}_qty`] || 0;
+            const borrowed = t.items[`size_${i}_borrowed`] || 0;
+            sizes[i] = { qty, borrowed };
+            grandTotal += qty + borrowed;
           }
-          currentBalance.sizes[i].total = currentBalance.sizes[i].main + currentBalance.sizes[i].borrowed;
-        }
-      });
+          return {
+            type: t.type,
+            challanNumber: t.challanNumber,
+            challanId: t.challanNumber,
+            date: t.date,
+            grandTotal,
+            sizes,
+            site: t.site,
+            driverName: t.driverName || '',
+            items: t.items
+          };
+        });
 
-      currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce((sum, size) => sum + size.total, 0);
+        const udharChallans = transactions.filter(t => t.type === 'udhar');
+        const jamaChallans = transactions.filter(t => t.type === 'jama');
+        udharTotals = calculateTotalsFromChallans(udharChallans);
+        jamaTotals = calculateTotalsFromChallans(jamaChallans);
+
+        transactions.forEach(transaction => {
+          for (let i = 1; i <= 9; i++) {
+            const size = transaction.sizes[i];
+            if (transaction.type === 'udhar') {
+              currentBalance.sizes[i].main += size.qty;
+              currentBalance.sizes[i].borrowed += size.borrowed;
+            } else {
+              currentBalance.sizes[i].main -= size.qty;
+              currentBalance.sizes[i].borrowed -= size.borrowed;
+            }
+            currentBalance.sizes[i].total = currentBalance.sizes[i].main + currentBalance.sizes[i].borrowed;
+          }
+        });
+
+        currentBalance.grandTotal = Object.values(currentBalance.sizes).reduce((sum, size) => sum + size.total, 0);
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+      }
     }
 
     return {
@@ -264,15 +271,15 @@ export default function ClientLedger() {
       clientPhone: client.primary_phone_number,
       totalUdhar: udharTotals,
       totalJama: jamaTotals,
-      currentBalance: currentBalance,
+      currentBalance,
       udharCount: transactions.filter(t => t.type === 'udhar').length,
       jamaCount: transactions.filter(t => t.type === 'jama').length,
-      transactions: transactions,
+      transactions,
       transactionsLoaded: loadTransactions
     };
   }, [calculateTotalsFromChallans]);
 
-  // 2. Fetch clients (keep dependency array empty)
+  // Data fetching
   const fetchClients = useCallback(async () => {
     const { data, error } = await supabase
       .from('clients')
@@ -282,7 +289,6 @@ export default function ClientLedger() {
     return data || [];
   }, []);
 
-  // 3. Initial & refresh loader
   const loadInitialData = useCallback(async (showRefreshToast = false) => {
     setLoading(true);
     setRefreshing(showRefreshToast);
@@ -294,7 +300,6 @@ export default function ClientLedger() {
         initialBatch.map(client => transformClientToLedgerData(client, true))
       );
       setLedgers(ledgerData);
-      setDisplayedLedgers(ledgerData);
       setCurrentPage(1);
       if (showRefreshToast) toast.success('Ledger data refreshed successfully');
     } catch (err) {
@@ -306,70 +311,123 @@ export default function ClientLedger() {
     }
   }, [fetchClients, transformClientToLedgerData]);
 
-  // 4. Lazy loading: load more on scroll
-  const loadMoreLedgers = useCallback(async () => {
+  // Load visible ledgers when needed
+  const loadVisibleLedgers = useCallback(async () => {
     if (loadingMore) return;
-    if ((currentPage * ITEMS_PER_PAGE) >= allClients.length) return;
     setLoadingMore(true);
     try {
-      const start = currentPage * ITEMS_PER_PAGE;
-      const end = start + ITEMS_PER_PAGE;
-      const nextBatch = allClients.slice(start, end);
-      const newLedgerData = await Promise.all(
-        nextBatch.map(client => transformClientToLedgerData(client, true))
+      const filteredClients = getFilteredClients(allClients);
+      const start = 0;
+      const end = currentPage * ITEMS_PER_PAGE;
+      const paginatedClients = filteredClients.slice(start, end);
+      
+      const unloadedClients = paginatedClients.filter(client => 
+        !ledgers.some(l => l.clientId === client.id && l.transactionsLoaded)
       );
-      setLedgers(prev => [...prev, ...newLedgerData]);
-      setDisplayedLedgers(prev => [...prev, ...newLedgerData]);
-      setCurrentPage(prev => prev + 1);
+
+      if (unloadedClients.length > 0) {
+        const newLedgerData = await Promise.all(
+          unloadedClients.map(client => transformClientToLedgerData(client, true))
+        );
+        setLedgers(prev => {
+          const updated = [...prev];
+          newLedgerData.forEach(newLedger => {
+            const index = updated.findIndex(l => l.clientId === newLedger.clientId);
+            if (index !== -1) {
+              updated[index] = newLedger;
+            } else {
+              updated.push(newLedger);
+            }
+          });
+          return updated;
+        });
+      }
     } catch (err) {
-      toast.error('Failed to load more clients');
+      console.error('Error loading ledgers:', err);
+      toast.error('Failed to load client data');
     } finally {
       setLoadingMore(false);
     }
-  }, [allClients, currentPage, loadingMore, transformClientToLedgerData]);
+  }, [allClients, currentPage, getFilteredClients, ledgers, loadingMore, transformClientToLedgerData]);
 
+  // Filtered and sorted ledgers for display
+  const filteredAndSortedLedgers = useMemo(() => {
+    const filteredClients = getFilteredClients(allClients);
+
+    // Sort the filtered clients
+    const sortedClients = [...filteredClients].sort((a, b) => {
+      switch (sortOption) {
+        case 'nameAZ': return a.client_nic_name.localeCompare(b.client_nic_name);
+        case 'nameZA': return b.client_nic_name.localeCompare(a.client_nic_name);
+        case 'balanceHighLow': {
+          const balanceA = ledgers.find(l => l.clientId === a.id)?.currentBalance.grandTotal || 0;
+          const balanceB = ledgers.find(l => l.clientId === b.id)?.currentBalance.grandTotal || 0;
+          return balanceB - balanceA;
+        }
+        case 'balanceLowHigh': {
+          const balanceA = ledgers.find(l => l.clientId === a.id)?.currentBalance.grandTotal || 0;
+          const balanceB = ledgers.find(l => l.clientId === b.id)?.currentBalance.grandTotal || 0;
+          return balanceA - balanceB;
+        }
+        default: return 0;
+      }
+    });
+
+    // Get the paginated portion
+    const start = 0;
+    const end = currentPage * ITEMS_PER_PAGE;
+    const paginatedClients = sortedClients.slice(start, end);
+
+    // Map to ledger data
+    return paginatedClients.map(client => {
+      const existingLedger = ledgers.find(l => l.clientId === client.id);
+      if (existingLedger) {
+        return existingLedger;
+      }
+      // Return a placeholder ledger if we don't have the data yet
+      const initialSizes: { [key: string]: { main: number; borrowed: number; total: number } } = {};
+      for (let i = 1; i <= 9; i++) {
+        initialSizes[i] = { main: 0, borrowed: 0, total: 0 };
+      }
+      return {
+        clientId: client.id,
+        clientNicName: client.client_nic_name,
+        clientFullName: client.client_name,
+        clientSite: client.site,
+        clientPhone: client.primary_phone_number,
+        totalUdhar: { size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0, size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0 },
+        totalJama: { size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0, size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0 },
+        currentBalance: { grandTotal: 0, sizes: initialSizes },
+        udharCount: 0,
+        jamaCount: 0,
+        transactions: [],
+        transactionsLoaded: false
+      };
+    });
+  }, [allClients, ledgers, getFilteredClients, sortOption, currentPage]);
+
+  // Scroll handler for infinite loading
+  const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
+    const target = e.currentTarget;
+    if (!loadingMore && hasMore && (target.scrollHeight - target.scrollTop - target.clientHeight < 100)) {
+      setCurrentPage(prev => prev + 1);
+    }
+  }, [loadingMore, hasMore]);
+
+  // Effects
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
 
-  // 5. Infinite scroll handler
-  const hasMore = useMemo(() => {
-    return currentPage * ITEMS_PER_PAGE < allClients.length;
-  }, [currentPage, allClients.length]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
-  const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
-    const target = e.currentTarget;
-    // Adjusted to be more responsive for short lists
-    if (!loadingMore && hasMore && (target.scrollHeight - target.scrollTop - target.clientHeight < 100)) {
-      loadMoreLedgers();
-    }
-  }, [loadingMore, hasMore, loadMoreLedgers]);
+  useEffect(() => {
+    loadVisibleLedgers();
+  }, [loadVisibleLedgers]);
 
-  // 6. Search and sorting
-  const filteredAndSortedLedgers = useMemo(() => {
-    let results: ClientLedgerData[] = [];
-    if (!searchQuery.trim()) {
-      results = displayedLedgers;
-    } else {
-      const query = searchQuery.toLowerCase();
-      results = displayedLedgers.filter(ledger =>
-        ledger.clientNicName.toLowerCase().includes(query)
-        || ledger.clientFullName.toLowerCase().includes(query)
-        || ledger.clientSite.toLowerCase().includes(query)
-      );
-    }
-    return [...results].sort((a, b) => {
-      switch (sortOption) {
-        case 'nameAZ': return a.clientNicName.localeCompare(b.clientNicName);
-        case 'nameZA': return b.clientNicName.localeCompare(a.clientNicName);
-        case 'balanceHighLow': return b.currentBalance.grandTotal - a.currentBalance.grandTotal;
-        case 'balanceLowHigh': return a.currentBalance.grandTotal - b.currentBalance.grandTotal;
-        default: return 0;
-      }
-    });
-  }, [displayedLedgers, searchQuery, sortOption]);
-
-  // 7. Sort labels
+  // Get sort label
   const getSortLabel = (option: SortOption) => {
     switch (option) {
       case 'nameAZ': return t.nameAZ;
@@ -380,7 +438,7 @@ export default function ClientLedger() {
     }
   };
 
-  // 8. Sort menu close on outside click
+  // Click outside handler for sort menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -397,7 +455,10 @@ export default function ClientLedger() {
       <Toaster position="top-center" toastOptions={{
         duration: 3000,
         style: {
-          background: '#363636', color: '#fff', fontSize: '13px', padding: '10px 14px'
+          background: '#363636',
+          color: '#fff',
+          fontSize: '13px',
+          padding: '10px 14px'
         },
         success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
         error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } }
@@ -422,7 +483,7 @@ export default function ClientLedger() {
               <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-          {/* Search + Sort */}
+
           <div className="relative mb-4">
             <div className="relative flex items-center w-full">
               <Search className="absolute w-4 h-4 text-gray-400 left-3" />
@@ -472,7 +533,7 @@ export default function ClientLedger() {
               </div>
             </div>
           </div>
-          {/* LIST/LOADING */}
+
           {loading ? (
             <div className="space-y-3 sm:space-y-4">
               <SkeletonCard />
@@ -489,9 +550,7 @@ export default function ClientLedger() {
                 {searchQuery ? t.noMatchingClients : t.noClients}
               </h3>
               <p className="text-[10px] sm:text-xs lg:text-sm text-gray-500">
-                {searchQuery
-                  ? 'Try adjusting your search criteria'
-                  : 'Add clients to start tracking their rental history'}
+                {searchQuery ? 'Try adjusting your search criteria' : 'Add clients to start tracking their rental history'}
               </p>
               {searchQuery && (
                 <button
@@ -517,7 +576,7 @@ export default function ClientLedger() {
                   </div>
                 </div>
               )}
-              {!hasMore && displayedLedgers.length > ITEMS_PER_PAGE && (
+              {!hasMore && filteredCount > ITEMS_PER_PAGE && (
                 <div className="py-6 text-center">
                   <p className="text-sm text-gray-500">
                     You've reached the end of the list
