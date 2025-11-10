@@ -6,6 +6,7 @@ import {
   Users,
   Loader2
 } from 'lucide-react';
+import { naturalSort } from '../utils/sortingUtils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../utils/supabase';
@@ -158,12 +159,30 @@ export default function ClientLedger() {
   // Helper function to filter clients based on search query
   const getFilteredClients = useCallback((clients: any[]) => {
     if (!searchQuery.trim()) return clients;
-    const query = searchQuery.toLowerCase();
-    return clients.filter(client =>
-      client.client_nic_name.toLowerCase().includes(query)
-      || client.client_name.toLowerCase().includes(query)
-      || client.site.toLowerCase().includes(query)
-    );
+    
+    const query = searchQuery.toLowerCase().trim();
+    
+    // Try to parse the search term as a number
+    const searchNum = parseInt(query);
+    const isSearchingNumber = !isNaN(searchNum);
+
+    return clients.filter(client => {
+      // If searching for a number, try to match it against the numeric part of client_nic_name
+      if (isSearchingNumber) {
+        const nicNameMatch = client.client_nic_name?.match(/^(\d+)/);
+        if (nicNameMatch) {
+          const clientNum = parseInt(nicNameMatch[1]);
+          if (clientNum === searchNum) return true;
+        }
+      }
+
+      // Standard text search
+      return (
+        (client.client_nic_name || '').toLowerCase().includes(query) ||
+        (client.client_name || '').toLowerCase().includes(query) ||
+        (client.site || '').toLowerCase().includes(query)
+      );
+    });
   }, [searchQuery]);
 
   // Calculate total counts
@@ -357,17 +376,39 @@ export default function ClientLedger() {
     // Sort the filtered clients
     const sortedClients = [...filteredClients].sort((a, b) => {
       switch (sortOption) {
-        case 'nameAZ': return a.client_nic_name.localeCompare(b.client_nic_name);
-        case 'nameZA': return b.client_nic_name.localeCompare(a.client_nic_name);
+        case 'nameAZ': 
+          return naturalSort(
+            a.client_nic_name || '', 
+            b.client_nic_name || ''
+          );
+        case 'nameZA': 
+          return naturalSort(
+            b.client_nic_name || '', 
+            a.client_nic_name || ''
+          );
         case 'balanceHighLow': {
           const balanceA = ledgers.find(l => l.clientId === a.id)?.currentBalance.grandTotal || 0;
           const balanceB = ledgers.find(l => l.clientId === b.id)?.currentBalance.grandTotal || 0;
-          return balanceB - balanceA;
+          if (balanceA !== balanceB) {
+            return balanceB - balanceA;
+          }
+          // If balances are equal, sort by name
+          return naturalSort(
+            a.client_nic_name || '', 
+            b.client_nic_name || ''
+          );
         }
         case 'balanceLowHigh': {
           const balanceA = ledgers.find(l => l.clientId === a.id)?.currentBalance.grandTotal || 0;
           const balanceB = ledgers.find(l => l.clientId === b.id)?.currentBalance.grandTotal || 0;
-          return balanceA - balanceB;
+          if (balanceA !== balanceB) {
+            return balanceA - balanceB;
+          }
+          // If balances are equal, sort by name
+          return naturalSort(
+            a.client_nic_name || '', 
+            b.client_nic_name || ''
+          );
         }
         default: return 0;
       }

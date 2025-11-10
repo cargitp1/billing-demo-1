@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { naturalSort } from '../utils/sortingUtils';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
 import ReceiptTemplate from '../components/ReceiptTemplate';
@@ -54,12 +55,35 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   onSearchChange,
 }) => {
   const { t } = useLanguage();
-  const filteredClients = clients.filter(client => 
-    client.client_nic_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.site.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.primary_phone_number.includes(searchQuery)
-  );
+  const filteredClients = clients
+    .filter(client => {
+      const searchLower = searchQuery.toLowerCase().trim();
+      
+      // Try to parse the search term as a number
+      const searchNum = parseInt(searchLower);
+      const isSearchingNumber = !isNaN(searchNum);
+
+      // If searching for a number, try to match it against the numeric part of client_nic_name
+      if (isSearchingNumber) {
+        const nicNameMatch = client.client_nic_name?.match(/^(\d+)/);
+        if (nicNameMatch) {
+          const clientNum = parseInt(nicNameMatch[1]);
+          if (clientNum === searchNum) return true;
+        }
+      }
+
+      // Standard text search
+      return (
+        (client.client_nic_name || '').toLowerCase().includes(searchLower) ||
+        (client.client_name || '').toLowerCase().includes(searchLower) ||
+        (client.site || '').toLowerCase().includes(searchLower) ||
+        (client.primary_phone_number || '').includes(searchQuery)
+      );
+    })
+    .sort((a, b) => naturalSort(
+      a.client_nic_name || '',
+      b.client_nic_name || ''
+    ));
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
@@ -121,7 +145,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
           {filteredClients.map((client) => (
             <button
               key={client.id}
-              onClick={() => onClientSelect(client.id)}
+              onClick={() => client.id && onClientSelect(client.id)}
               className="p-3 text-left transition-all bg-white border border-gray-200 shadow-sm sm:p-4 lg:p-5 group rounded-lg sm:rounded-xl hover:shadow-md hover:border-blue-500 touch-manipulation active:scale-[0.98]"
             >
               <div className="flex items-center gap-2 mb-2 sm:gap-3 sm:mb-3">

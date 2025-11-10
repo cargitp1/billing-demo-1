@@ -13,6 +13,41 @@ import {
 
 type SortOption = 'nameAZ' | 'nameZA';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
+
+// Natural sort function for client names
+const naturalSort = (a: string, b: string): number => {
+  // Helper function to extract number and suffix
+  const parseClientName = (name: string): { num: number; suffix: string } => {
+    const match = name.match(/^(\d+)([a-zA-Z]*)$/);
+    if (match) {
+      return {
+        num: parseInt(match[1]),
+        suffix: match[2].toLowerCase()
+      };
+    }
+    return { num: 0, suffix: name.toLowerCase() };
+  };
+
+  // Parse both strings
+  const aInfo = parseClientName(a.trim());
+  const bInfo = parseClientName(b.trim());
+
+  // If both have numbers, compare numbers first
+  if (aInfo.num > 0 && bInfo.num > 0) {
+    if (aInfo.num !== bInfo.num) {
+      return aInfo.num - bInfo.num;
+    }
+    // If numbers are equal, compare suffixes
+    return aInfo.suffix.localeCompare(bInfo.suffix);
+  }
+
+  // If only one has a number, put numbered items first
+  if (aInfo.num > 0 && bInfo.num === 0) return -1;
+  if (aInfo.num === 0 && bInfo.num > 0) return 1;
+
+  // If neither has a number, do a regular string compare
+  return a.toLowerCase().localeCompare(b.toLowerCase());
+};
 import ClientList from '../components/ClientList';
 import { useLanguage } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
@@ -124,8 +159,7 @@ const ClientManagement: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('clients')
-        .select('*')
-        .order('client_nic_name', { ascending: sortOption === 'nameAZ' });
+        .select('*');
 
       if (error) {
         console.error('Error fetching clients:', error);
@@ -133,16 +167,25 @@ const ClientManagement: React.FC = () => {
         return;
       }
 
+      // Sort the data using improved natural sort
+      const sortedData = [...(data || [])].sort((a, b) => {
+        const result = naturalSort(
+          a.client_nic_name.toString(), 
+          b.client_nic_name.toString()
+        );
+        return sortOption === 'nameAZ' ? result : -result;
+      });
+
       // Store all clients
-      setAllClients(data || []);
+      setAllClients(sortedData);
       
       // Set initial batch
-      const initialBatch = (data || []).slice(0, ITEMS_PER_PAGE);
+      const initialBatch = sortedData.slice(0, ITEMS_PER_PAGE);
       setClients(initialBatch);
       
       // Reset pagination
       setCurrentPage(1);
-      setHasMore((data || []).length > ITEMS_PER_PAGE);
+      setHasMore(sortedData.length > ITEMS_PER_PAGE);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error(t('failedToLoad'));
@@ -238,21 +281,47 @@ const ClientManagement: React.FC = () => {
   };
 
   const filteredClients = useMemo(() => {
-    if (!searchQuery) return clients;
-    const searchLower = searchQuery.toLowerCase();
+    // First filter the clients
+    const filteredAllClients = !searchQuery 
+      ? allClients 
+      : allClients.filter(client => {
+          const searchLower = searchQuery.toLowerCase().trim();
+          
+          // Try to parse the search term as a number
+          const searchNum = parseInt(searchLower);
+          const isSearchingNumber = !isNaN(searchNum);
+
+          // If searching for a number, try to match it against the numeric part of client_nic_name
+          if (isSearchingNumber) {
+            const nicNameMatch = client.client_nic_name?.match(/^(\d+)/);
+            if (nicNameMatch) {
+              const clientNum = parseInt(nicNameMatch[1]);
+              if (clientNum === searchNum) return true;
+            }
+          }
+
+          // Standard text search
+          return (
+            (client.client_nic_name || '').toLowerCase().includes(searchLower) ||
+            (client.client_name || '').toLowerCase().includes(searchLower) ||
+            (client.site || '').toLowerCase().includes(searchLower)
+          );
+        });
     
-    // Search through all clients instead of just loaded ones
-    const filteredAllClients = allClients.filter(client =>
-      client.client_nic_name.toLowerCase().includes(searchLower) ||
-      client.client_name.toLowerCase().includes(searchLower) ||
-      client.site.toLowerCase().includes(searchLower)
-    );
+    // Sort using natural sort
+    const sortedClients = [...filteredAllClients].sort((a, b) => {
+      const result = naturalSort(
+        (a.client_nic_name || '').toString(), 
+        (b.client_nic_name || '').toString()
+      );
+      return sortOption === 'nameAZ' ? result : -result;
+    });
     
     // Return only the paginated portion
     const start = 0;
     const end = currentPage * ITEMS_PER_PAGE;
-    return filteredAllClients.slice(start, end);
-  }, [allClients, searchQuery, currentPage]);
+    return sortedClients.slice(start, end);
+  }, [allClients, searchQuery, currentPage, sortOption]);
 
   const statistics = useMemo(() => {
     const totalClients = clients.length;
