@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { PLATE_SIZES } from '../components/ItemsTable';
-
 import {
   Search,
   Filter,
@@ -11,17 +10,13 @@ import {
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../utils/supabase';
-import { fetchClientTransactions} from '../utils/challanFetching';
+import { fetchClientTransactions } from '../utils/challanFetching';
 import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
-import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
+import { useInfiniteScroll } from '../hooks/useInfiniteScroll'; // Not directly used
 import toast, { Toaster } from 'react-hot-toast';
 
-
 type SortOption = 'nameAZ' | 'nameZA' | 'balanceHighLow' | 'balanceLowHigh';
-
-
-
 
 interface SizeBalance {
   size_1: number;
@@ -36,12 +31,10 @@ interface SizeBalance {
   grandTotal: number;
 }
 
-
 export interface ClientBalance {
   grandTotal: number;
   sizes: { [key: string]: { main: number; borrowed: number; total: number } };
 }
-
 
 export interface Transaction {
   type: 'udhar' | 'jama';
@@ -54,7 +47,6 @@ export interface Transaction {
   driverName: string;
   items: any;
 }
-
 
 export interface ClientLedgerData {
   clientId: string;
@@ -70,8 +62,6 @@ export interface ClientLedgerData {
   transactions: Transaction[];
   transactionsLoaded?: boolean;
 }
-
-const ITEMS_PER_PAGE = 10;
 
 // Mobile Skeleton Card
 const MobileSkeletonCard = memo(() => (
@@ -159,12 +149,16 @@ const SkeletonCard = memo(() => (
 ));
 
 SkeletonCard.displayName = 'SkeletonCard';
+MobileSkeletonCard.displayName = 'MobileSkeletonCard';
+DesktopSkeletonCard.displayName = 'DesktopSkeletonCard';
+
+SkeletonCard.displayName = 'SkeletonCard';
+
+const ITEMS_PER_PAGE = 10;
 
 export default function ClientLedger() {
-
   const { language } = useLanguage();
   const t = translations[language];
-
 
   const [allClients, setAllClients] = useState<any[]>([]);
   const [ledgers, setLedgers] = useState<ClientLedgerData[]>([]);
@@ -177,26 +171,13 @@ export default function ClientLedger() {
   const [sortOption, setSortOption] = useState<SortOption>('nameAZ');
   const [showSortMenu, setShowSortMenu] = useState(false);
 
-
+  // 1. Memoized helpers
   const calculateTotalsFromChallans = useCallback((challans: any[]): SizeBalance => {
     const totals: SizeBalance = {
-      size_1: 0,
-      size_2: 0,
-      size_3: 0,
-      size_4: 0,
-      size_5: 0,
-      size_6: 0,
-      size_7: 0,
-      size_8: 0,
-      size_9: 0,
-      grandTotal: 0
+      size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0,
+      size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0
     };
-
-
-    if (!challans || challans.length === 0) return totals;
-
-
-    challans.forEach((challan: any) => {
+    challans?.forEach((challan: any) => {
       const items = challan.items;
       if (items) {
         for (let size = 1; size <= 9; size++) {
@@ -209,11 +190,8 @@ export default function ClientLedger() {
         }
       }
     });
-
-
     return totals;
   }, []);
-
 
   const transformClientToLedgerData = useCallback(async (client: any, loadTransactions = false): Promise<ClientLedgerData> => {
     let transactions: Transaction[] = [];
@@ -237,14 +215,12 @@ export default function ClientLedger() {
       transactions = rawTransactions.map((t: any) => {
         const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
         let grandTotal = 0;
-
         for (let i = 1; i <= 9; i++) {
           const qty = t.items[`size_${i}_qty`] || 0;
           const borrowed = t.items[`size_${i}_borrowed`] || 0;
           sizes[i] = { qty, borrowed };
           grandTotal += qty + borrowed;
         }
-
         return {
           type: t.type,
           challanNumber: t.challanNumber,
@@ -260,7 +236,6 @@ export default function ClientLedger() {
 
       const udharChallans = transactions.filter(t => t.type === 'udhar');
       const jamaChallans = transactions.filter(t => t.type === 'jama');
-
       udharTotals = calculateTotalsFromChallans(udharChallans);
       jamaTotals = calculateTotalsFromChallans(jamaChallans);
 
@@ -297,49 +272,33 @@ export default function ClientLedger() {
     };
   }, [calculateTotalsFromChallans]);
 
-
+  // 2. Fetch clients (keep dependency array empty)
   const fetchClients = useCallback(async () => {
-    try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('client_nic_name', { ascending: true });
-
-      if (error) throw error;
-
-      return data || [];
-    } catch (error) {
-      console.error('Error fetching clients:', error);
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from('clients')
+      .select('*')
+      .order('client_nic_name', { ascending: true });
+    if (error) throw error;
+    return data || [];
   }, []);
 
-
+  // 3. Initial & refresh loader
   const loadInitialData = useCallback(async (showRefreshToast = false) => {
-    if (showRefreshToast) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
+    setLoading(true);
+    setRefreshing(showRefreshToast);
     try {
       const clients = await fetchClients();
       setAllClients(clients);
-
       const initialBatch = clients.slice(0, ITEMS_PER_PAGE);
       const ledgerData = await Promise.all(
         initialBatch.map(client => transformClientToLedgerData(client, true))
       );
-
       setLedgers(ledgerData);
       setDisplayedLedgers(ledgerData);
       setCurrentPage(1);
-
-      if (showRefreshToast) {
-        toast.success('Ledger data refreshed successfully');
-      }
-    } catch (error) {
-      console.error('Error loading ledgers:', error);
+      if (showRefreshToast) toast.success('Ledger data refreshed successfully');
+    } catch (err) {
+      console.error('Error loading ledgers:', err);
       toast.error('Failed to load client ledgers');
     } finally {
       setLoading(false);
@@ -347,89 +306,70 @@ export default function ClientLedger() {
     }
   }, [fetchClients, transformClientToLedgerData]);
 
-
+  // 4. Lazy loading: load more on scroll
   const loadMoreLedgers = useCallback(async () => {
-    if (loadingMore || currentPage * ITEMS_PER_PAGE >= allClients.length) return;
-
+    if (loadingMore) return;
+    if ((currentPage * ITEMS_PER_PAGE) >= allClients.length) return;
     setLoadingMore(true);
-
     try {
       const start = currentPage * ITEMS_PER_PAGE;
       const end = start + ITEMS_PER_PAGE;
       const nextBatch = allClients.slice(start, end);
-
       const newLedgerData = await Promise.all(
         nextBatch.map(client => transformClientToLedgerData(client, true))
       );
-
       setLedgers(prev => [...prev, ...newLedgerData]);
       setDisplayedLedgers(prev => [...prev, ...newLedgerData]);
       setCurrentPage(prev => prev + 1);
-    } catch (error) {
-      console.error('Error loading more ledgers:', error);
+    } catch (err) {
       toast.error('Failed to load more clients');
     } finally {
       setLoadingMore(false);
     }
   }, [allClients, currentPage, loadingMore, transformClientToLedgerData]);
 
-
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
 
-
-  const filteredAndSortedLedgers = useMemo(() => {
-    let filtered = displayedLedgers;
-
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = displayedLedgers.filter(ledger =>
-        ledger.clientNicName.toLowerCase().includes(query) ||
-        ledger.clientFullName.toLowerCase().includes(query) ||
-        ledger.clientSite.toLowerCase().includes(query)
-      );
-    }
-
-
-    const sorted = [...filtered].sort((a, b) => {
-      switch (sortOption) {
-        case 'nameAZ':
-          return a.clientNicName.localeCompare(b.clientNicName);
-        case 'nameZA':
-          return b.clientNicName.localeCompare(a.clientNicName);
-        case 'balanceHighLow':
-          return b.currentBalance.grandTotal - a.currentBalance.grandTotal;
-        case 'balanceLowHigh':
-          return a.currentBalance.grandTotal - b.currentBalance.grandTotal;
-        default:
-          return 0;
-      }
-    });
-
-
-    return sorted;
-  }, [displayedLedgers, searchQuery, sortOption]);
-
-
+  // 5. Infinite scroll handler
   const hasMore = useMemo(() => {
     return currentPage * ITEMS_PER_PAGE < allClients.length;
   }, [currentPage, allClients.length]);
 
-
-  // Scroll handler for infinite loading
   const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
     const target = e.currentTarget;
-    const scrolledToBottom = 
-      target.scrollHeight - target.scrollTop <= target.clientHeight * 1.5;
-
-    if (!loadingMore && hasMore && scrolledToBottom) {
+    // Adjusted to be more responsive for short lists
+    if (!loadingMore && hasMore && (target.scrollHeight - target.scrollTop - target.clientHeight < 100)) {
       loadMoreLedgers();
     }
   }, [loadingMore, hasMore, loadMoreLedgers]);
 
+  // 6. Search and sorting
+  const filteredAndSortedLedgers = useMemo(() => {
+    let results: ClientLedgerData[] = [];
+    if (!searchQuery.trim()) {
+      results = displayedLedgers;
+    } else {
+      const query = searchQuery.toLowerCase();
+      results = displayedLedgers.filter(ledger =>
+        ledger.clientNicName.toLowerCase().includes(query)
+        || ledger.clientFullName.toLowerCase().includes(query)
+        || ledger.clientSite.toLowerCase().includes(query)
+      );
+    }
+    return [...results].sort((a, b) => {
+      switch (sortOption) {
+        case 'nameAZ': return a.clientNicName.localeCompare(b.clientNicName);
+        case 'nameZA': return b.clientNicName.localeCompare(a.clientNicName);
+        case 'balanceHighLow': return b.currentBalance.grandTotal - a.currentBalance.grandTotal;
+        case 'balanceLowHigh': return a.currentBalance.grandTotal - b.currentBalance.grandTotal;
+        default: return 0;
+      }
+    });
+  }, [displayedLedgers, searchQuery, sortOption]);
 
+  // 7. Sort labels
   const getSortLabel = (option: SortOption) => {
     switch (option) {
       case 'nameAZ': return t.nameAZ;
@@ -440,7 +380,7 @@ export default function ClientLedger() {
     }
   };
 
-  // Click outside handler to close sort menu
+  // 8. Sort menu close on outside click
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
@@ -448,46 +388,26 @@ export default function ClientLedger() {
         setShowSortMenu(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Toaster
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-            fontSize: '13px',
-            padding: '10px 14px',
-          },
-          success: {
-            iconTheme: {
-              primary: '#10b981',
-              secondary: '#fff',
-            },
-          },
-          error: {
-            iconTheme: {
-              primary: '#ef4444',
-              secondary: '#fff',
-            },
-          },
-        }}
-      />
+      <Toaster position="top-center" toastOptions={{
+        duration: 3000,
+        style: {
+          background: '#363636', color: '#fff', fontSize: '13px', padding: '10px 14px'
+        },
+        success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+        error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } }
+      }} />
       <Navbar />
-
-
-      <main 
+      <main
         className="flex-1 w-full ml-0 overflow-y-auto pt-14 sm:pt-0 lg:ml-64 h-[100dvh]"
         onScroll={handleScroll}
       >
         <div className="w-full h-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
-          {/* Header - Desktop Only */}
           <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">{t.clientLedger}</h1>
@@ -502,9 +422,7 @@ export default function ClientLedger() {
               <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-
-
-          {/* Enhanced Search Bar with Integrated Filter */}
+          {/* Search + Sort */}
           <div className="relative mb-4">
             <div className="relative flex items-center w-full">
               <Search className="absolute w-4 h-4 text-gray-400 left-3" />
@@ -532,8 +450,6 @@ export default function ClientLedger() {
                     <Filter className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
                   </button>
-                  
-                  {/* Sort Options Dropdown */}
                   {showSortMenu && (
                     <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
                       {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map((option) => (
@@ -556,9 +472,7 @@ export default function ClientLedger() {
               </div>
             </div>
           </div>
-
-
-          {/* Ledger Cards / Loading / Empty State */}
+          {/* LIST/LOADING */}
           {loading ? (
             <div className="space-y-3 sm:space-y-4">
               <SkeletonCard />
@@ -595,8 +509,6 @@ export default function ClientLedger() {
                   <ClientLedgerCard key={ledger.clientId} ledger={ledger} />
                 ))}
               </div>
-
-              {/* Loading Indicator */}
               {hasMore && loadingMore && (
                 <div className="flex justify-center py-4 sm:py-8">
                   <div className="flex items-center gap-2 text-xs text-gray-600 sm:text-sm">
@@ -605,8 +517,6 @@ export default function ClientLedger() {
                   </div>
                 </div>
               )}
-
-              {/* End of List Message */}
               {!hasMore && displayedLedgers.length > ITEMS_PER_PAGE && (
                 <div className="py-6 text-center">
                   <p className="text-sm text-gray-500">

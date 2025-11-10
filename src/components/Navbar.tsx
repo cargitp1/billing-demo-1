@@ -93,6 +93,12 @@ const Navbar: React.FC = () => {
       icon: FileText,
       colorClass: 'blue'
     },
+    {
+      path: '/bill-book',
+      label: t('billBook'),
+      icon: BookOpen,
+      colorClass: 'blue'
+    },
   ];
 
   const getActiveColor = (colorClass: string): string => {

@@ -13,6 +13,7 @@ import ChallanBook from './pages/ChallanBook';
 import ClientLedger from './pages/ClientLedger';
 import Billing from './pages/Billing';
 import CreateBill from './pages/CreateBill';
+import BillBook from './pages/BillBook';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -41,6 +42,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/bill-book"
+              element={
+                <ProtectedRoute>
+                  <BillBook />
                 </ProtectedRoute>
               }
             />

@@ -1,18 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
-import { 
-  Search, 
-  MapPin,
-  Phone,
-  User,
-  ChevronRight,
-} from 'lucide-react';
-import { useLanguage } from '../contexts/LanguageContext';
-import { supabase } from '../utils/supabase';
-import Navbar from '../components/Navbar';
-import toast, { Toaster } from 'react-hot-toast';
-import { ClientFormData } from '../components/ClientForm';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, MapPin, Phone, User, ChevronRight } from "lucide-react";
+import { useLanguage } from "../contexts/LanguageContext";
+import { supabase } from "../utils/supabase";
+import Navbar from "../components/Navbar";
+import toast, { Toaster } from "react-hot-toast";
+import { ClientFormData } from "../components/ClientForm";
 
 interface ClientCardProps {
   client: ClientFormData;
@@ -53,32 +46,48 @@ export default function Billing() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [clients, setClients] = useState<ClientFormData[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
+    // Show maintenance message
+    toast(
+        t('maintenanceMessage'),
+        {
+        duration: 5000,
+        style: {
+          background: '#363636',
+          color: '#fff',
+          fontSize: '14px',
+          padding: '16px',
+          borderRadius: '8px'
+        },
+        id: 'maintenance-message' // Unique ID prevents duplicate toasts
+      }
+    );
+    
     fetchClients();
   }, []);
 
   const fetchClients = async () => {
     try {
       const { data: clientsData, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('client_nic_name', { ascending: true });
+        .from("clients")
+        .select("*")
+        .order("client_nic_name", { ascending: true });
 
       if (error) throw error;
       setClients(clientsData || []);
     } catch (error) {
-      toast.error('Error fetching clients');
-      console.error('Error fetching clients:', error);
+      toast.error("Error fetching clients");
+      console.error("Error fetching clients:", error);
     }
   };
 
-  const handleClientSelect = async (clientId: string) => {
+  const handleClientSelect = (clientId: string) => {
     navigate(`/billing/create/${clientId}`);
   };
 
-  const filteredClients = clients.filter(client => 
+  const filteredClients = clients.filter((client) =>
     client.client_nic_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.site.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -86,77 +95,60 @@ export default function Billing() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50">
       <Navbar />
-      <div className="container max-w-6xl px-4 py-4 mx-auto mt-16 sm:px-6 lg:px-8 sm:py-6 lg:py-8">
-        {/* Page Header - Hidden on Mobile */}
-        <div className="hidden pb-5 mb-5 border-b border-gray-200 sm:block">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">
-                {t('billing')}
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                {format(new Date(), 'MMMM d, yyyy')}
-              </p>
+      <main className="flex-1 min-w-0">
+        <div className="container max-w-6xl px-4 py-4 mx-auto sm:px-6 lg:px-8 sm:py-6 lg:py-8">
+          <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+            <div className="relative">
+              <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-4 h-4 sm:w-4.5 sm:h-4.5" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={t("searchClients") || "Search clients..."}
+                className="w-full py-2 sm:py-2.5 lg:py-3 pl-8 sm:pl-10 pr-3 sm:pr-4 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm"
+              />
             </div>
-          </div>
-        </div>
 
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-          {/* Search and Client List */}
-
-          {/* Search Bar - Compact */}
-          <div className="relative">
-            <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-4 h-4 sm:w-4.5 sm:h-4.5" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={t('searchClients') || 'Search clients...'}
-              className="w-full py-2 sm:py-2.5 lg:py-3 pl-8 sm:pl-10 pr-3 sm:pr-4 bg-white border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm"
-            />
-          </div>
-
-          {/* Results Count - Compact */}
-          {searchQuery && (
-            <div className="px-3 py-1.5 sm:px-4 sm:py-2 border border-blue-200 rounded-lg bg-blue-50">
-              <p className="text-[10px] sm:text-xs lg:text-sm text-blue-700">
-                Found <span className="font-semibold">{filteredClients.length}</span> client{filteredClients.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-          )}
-
-          {/* Client Grid */}
-          {filteredClients.length === 0 ? (
-            <div className="p-8 text-center bg-white border border-gray-200 rounded-lg shadow-sm sm:p-12 lg:p-16 sm:rounded-xl">
-              <div className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-gray-100 rounded-full sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
-                <User className="w-6 h-6 text-gray-400 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
+            {searchQuery && (
+              <div className="px-3 py-1.5 sm:px-4 sm:py-2 border border-blue-200 rounded-lg bg-blue-50">
+                <p className="text-[10px] sm:text-xs lg:text-sm text-blue-700">
+                  Found <span className="font-semibold">{filteredClients.length}</span> client{filteredClients.length !== 1 ? "s" : ""}
+                </p>
               </div>
-              <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">No clients found</h3>
-              <p className="mb-3 text-[10px] sm:text-xs lg:text-sm text-gray-500 sm:mb-4">
-                Try adjusting your search
-              </p>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-blue-600 transition-colors rounded-lg hover:text-blue-700 hover:bg-blue-50 touch-manipulation active:scale-95"
-              >
-                Clear search
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4">
-              {filteredClients.map((client) => (
-                <ClientCard
-                  key={client.id}
-                  client={client}
-                  onClick={() => handleClientSelect(client.id || '')}
-                />
-              ))}
-            </div>
-          )}
+            )}
+
+            {filteredClients.length === 0 ? (
+              <div className="p-8 text-center bg-white border border-gray-200 rounded-lg shadow-sm sm:p-12 lg:p-16 sm:rounded-xl">
+                <div className="inline-flex items-center justify-center w-12 h-12 mb-3 bg-gray-100 rounded-full sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
+                  <User className="w-6 h-6 text-gray-400 sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
+                </div>
+                <h3 className="mb-2 text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">No clients found</h3>
+                <p className="mb-3 text-[10px] sm:text-xs lg:text-sm text-gray-500 sm:mb-4">
+                  Try adjusting your search
+                </p>
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-blue-600 transition-colors rounded-lg hover:text-blue-700 hover:bg-blue-50 touch-manipulation active:scale-95"
+                >
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-2 sm:gap-3 md:grid-cols-2 lg:grid-cols-3 lg:gap-4">
+                {filteredClients.map((client) => (
+                  <ClientCard
+                    key={client.id}
+                    client={client}
+                    onClick={() => handleClientSelect(client.id || "")}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      </main>
       <Toaster />
     </div>
   );

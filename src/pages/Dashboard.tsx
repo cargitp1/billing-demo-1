@@ -74,8 +74,24 @@ const Dashboard: React.FC = () => {
       icon: BookOpen,
       path: '/challan-book',
       gradient: 'from-teal-500 to-teal-700',
-      hoverGradient: 'hover:from-teal-600 hover:to-teal-800',
+      hoverGradient: 'hover:from-teal-600 hover:to-teal-800'
     },
+    {
+      title: t('createBill'),
+      description: t('underDevelopment'),
+      icon: FileText,
+      path: '/billing',
+      gradient: 'from-amber-500 to-amber-700',
+      hoverGradient: 'hover:from-amber-600 hover:to-amber-800'
+    },
+    {
+      title: t('billBook'),
+      description: t('underDevelopment'),
+      icon: BookOpen,
+      path: '/bill-book',
+      gradient: 'from-cyan-500 to-cyan-700',
+      hoverGradient: 'hover:from-cyan-600 hover:to-cyan-800'
+    }
   ];
 
   // Get dates for calendar pages

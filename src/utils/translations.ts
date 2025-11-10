@@ -1,4 +1,6 @@
 import { b } from "motion/react-client";
+import CreateBill from "../pages/CreateBill";
+import BillBook from "../pages/BillBook";
 
 export const translations = {
   gu: {
@@ -35,7 +37,11 @@ export const translations = {
     qualityPlates: "બધી પ્લેટ્સ ઉચ્ચ ગુણવત્તાની MS સ્ટીલથી બનેલી છે",
     minRentDays: "મિનિમમ ભાડા સમયગાળો: 30 દિવસ",
     bulkDiscount: "બલ્ક ઓર્ડર પર વિશેષ ડિસ્કાઉન્ટ",
-    
+    totalAvailable: "કુલ ઉપલબ્ધ",
+    createBill: "બિલ બનાવો",
+    billBook: "બિલ બુક",
+    underDevelopment: "🚧 વિકાસ હેઠળ",
+
     // Features
     highQuality: "ઉચ્ચ ગુણવત્તા",
     qualityDesc: "મજબૂત અને ટકાઉ પ્લેટ્સ",
@@ -68,6 +74,15 @@ export const translations = {
     createNewBill: "નવું બિલ બનાવો",
     billNumber: "બિલ નંબર",
     billingDate: "બિલ તારીખ",
+    searchBills: "બિલ શોધો...",
+    noBillsFound: "કોઈ બિલ મળ્યું નથી",
+    noBillsCreated: "હજુ સુધી કોઈ બિલ બનાવ્યું નથી",
+    clearSearch: "શોધ સાફ કરો",
+    billsFound: "બિલ મળ્યા",
+    unknownClient: "અજ્ઞાત ગ્રાહક",
+    noDate: "તારીખ નથી",
+    noNickname: "ટૂંકું નામ નથી",
+    maintenanceMessage: "🚧 આ પેજ હાલમાં નિર્માણાધીન છે. પૂર્ણ રિલીઝ 1/1/26 થી ઉપલબ્ધ થશે",
     tillDate: "સુધીની તારીખ",
     // Using the existing translations for fromDate and toDate
     dailyRent: "દૈનિક ભાડું",
@@ -372,9 +387,9 @@ export const translations = {
     numberHighLow: "Number (High → Low)",
     numberLowHigh: "Number (Low → High)",
     tryAdjustingSearch: "Try adjusting your search criteria",
+    underMaintenance: "🚧 Under Maintenance",
     
     // Billing Translations
-    billing: "Billing",
     billingManagement: "Billing Management",
     createNewBill: "Create New Bill",
     billNumber: "Bill Number",
@@ -383,6 +398,15 @@ export const translations = {
     // Using the existing translations for fromDate and toDate
     dailyRent: "Daily Rent",
     perPiece: "per piece",
+    searchBills: "Search bills...",
+    noBillsFound: "No bills found",
+    noBillsCreated: "No bills have been created yet",
+    clearSearch: "Clear search",
+    billsFound: "bills found",
+    unknownClient: "Unknown Client",
+    noDate: "No date",
+    noNickname: "No nickname",
+    maintenanceMessage: "🚧 This page is under maintenance. Full release will be available on 1/1/26",
     calculateBill: "Calculate Bill",
     rentalCalculation: "Rental Calculation",
     totalDays: "Total Days",
