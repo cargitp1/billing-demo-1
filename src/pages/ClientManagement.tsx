@@ -43,12 +43,22 @@ const ClientManagement: React.FC = () => {
     if (!loadingMore && hasMore && scrolledToBottom) {
       setLoadingMore(true);
       try {
+        const relevantClients = searchQuery 
+          ? allClients.filter(client => {
+              const searchLower = searchQuery.toLowerCase();
+              return client.client_nic_name.toLowerCase().includes(searchLower) ||
+                     client.client_name.toLowerCase().includes(searchLower) ||
+                     client.site.toLowerCase().includes(searchLower);
+            })
+          : allClients;
+
         const start = currentPage * ITEMS_PER_PAGE;
-        const nextBatch = allClients.slice(start, start + ITEMS_PER_PAGE);
+        const nextBatch = relevantClients.slice(start, start + ITEMS_PER_PAGE);
         
         if (nextBatch.length > 0) {
           setClients(prev => [...prev, ...nextBatch]);
           setCurrentPage(prev => prev + 1);
+          setHasMore(start + ITEMS_PER_PAGE < relevantClients.length);
         } else {
           setHasMore(false);
         }
@@ -68,6 +78,24 @@ const ClientManagement: React.FC = () => {
   useEffect(() => {
     fetchClients();
   }, [sortOption]);
+
+  // Reset pagination when search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+    if (searchQuery) {
+      const filteredResults = allClients.filter(client => {
+        const searchLower = searchQuery.toLowerCase();
+        return client.client_nic_name.toLowerCase().includes(searchLower) ||
+               client.client_name.toLowerCase().includes(searchLower) ||
+               client.site.toLowerCase().includes(searchLower);
+      });
+      setClients(filteredResults.slice(0, ITEMS_PER_PAGE));
+      setHasMore(filteredResults.length > ITEMS_PER_PAGE);
+    } else {
+      setClients(allClients.slice(0, ITEMS_PER_PAGE));
+      setHasMore(allClients.length > ITEMS_PER_PAGE);
+    }
+  }, [searchQuery, allClients]);
 
   const getSortLabel = (option: SortOption) => {
     switch (option) {
@@ -212,12 +240,19 @@ const ClientManagement: React.FC = () => {
   const filteredClients = useMemo(() => {
     if (!searchQuery) return clients;
     const searchLower = searchQuery.toLowerCase();
-    return clients.filter(client =>
+    
+    // Search through all clients instead of just loaded ones
+    const filteredAllClients = allClients.filter(client =>
       client.client_nic_name.toLowerCase().includes(searchLower) ||
       client.client_name.toLowerCase().includes(searchLower) ||
       client.site.toLowerCase().includes(searchLower)
     );
-  }, [clients, searchQuery]);
+    
+    // Return only the paginated portion
+    const start = 0;
+    const end = currentPage * ITEMS_PER_PAGE;
+    return filteredAllClients.slice(start, end);
+  }, [allClients, searchQuery, currentPage]);
 
   const statistics = useMemo(() => {
     const totalClients = clients.length;
