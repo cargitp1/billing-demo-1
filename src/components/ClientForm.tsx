@@ -75,7 +75,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
   return (
     <form onSubmit={handleSubmit} className={`space-y-4 ${isQuickAdd ? 'p-4 bg-blue-50 rounded-lg' : ''}`}>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           {t('clientNicName')} *
         </label>
         <input
@@ -86,11 +86,11 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
           minLength={2}
           maxLength={50}
         />
-        {errors.client_nic_name && <p className="text-red-600 text-sm mt-1">{errors.client_nic_name}</p>}
+        {errors.client_nic_name && <p className="mt-1 text-sm text-red-600">{errors.client_nic_name}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           {t('clientName')} *
         </label>
         <input
@@ -101,11 +101,11 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
           minLength={3}
           maxLength={100}
         />
-        {errors.client_name && <p className="text-red-600 text-sm mt-1">{errors.client_name}</p>}
+        {errors.client_name && <p className="mt-1 text-sm text-red-600">{errors.client_name}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           {t('site')} *
         </label>
         <input
@@ -116,11 +116,11 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
           minLength={2}
           maxLength={100}
         />
-        {errors.site && <p className="text-red-600 text-sm mt-1">{errors.site}</p>}
+        {errors.site && <p className="mt-1 text-sm text-red-600">{errors.site}</p>}
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block mb-1 text-sm font-medium text-gray-700">
           {t('primaryPhone')} *
         </label>
         <input
@@ -130,7 +130,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           maxLength={50}
         />
-        {errors.primary_phone_number && <p className="text-red-600 text-sm mt-1">{errors.primary_phone_number}</p>}
+        {errors.primary_phone_number && <p className="mt-1 text-sm text-red-600">{errors.primary_phone_number}</p>}
       </div>
 
       <div className="flex gap-3">

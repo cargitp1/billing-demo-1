@@ -105,16 +105,38 @@ const ClientManagement: React.FC = () => {
         return;
       }
 
+      // Sort the data with numeric-aware sorting
+      const processedData = [...(data || [])].sort((a, b) => {
+        const aMatch = a.client_nic_name.match(/^\d+/);
+        const bMatch = b.client_nic_name.match(/^\d+/);
+        
+        if (aMatch && bMatch) {
+          const aNum = parseInt(aMatch[0]);
+          const bNum = parseInt(bMatch[0]);
+          const numCompare = sortOption === 'nameAZ' ? aNum - bNum : bNum - aNum;
+          if (numCompare !== 0) return numCompare;
+        }
+        
+        // If either has a number and the other doesn't, number comes first
+        if (aMatch && !bMatch) return sortOption === 'nameAZ' ? -1 : 1;
+        if (bMatch && !aMatch) return sortOption === 'nameAZ' ? 1 : -1;
+        
+        // If no numbers or same numbers, sort alphabetically
+        return sortOption === 'nameAZ' 
+          ? a.client_nic_name.localeCompare(b.client_nic_name)
+          : b.client_nic_name.localeCompare(a.client_nic_name);
+      });
+
       // Store all clients
-      setAllClients(data || []);
+      setAllClients(processedData);
       
       // Set initial batch
-      const initialBatch = (data || []).slice(0, ITEMS_PER_PAGE);
+      const initialBatch = processedData.slice(0, ITEMS_PER_PAGE);
       setClients(initialBatch);
       
       // Reset pagination
       setCurrentPage(1);
-      setHasMore((data || []).length > ITEMS_PER_PAGE);
+      setHasMore(processedData.length > ITEMS_PER_PAGE);
     } catch (error) {
       console.error('Error fetching clients:', error);
       toast.error(t('failedToLoad'));

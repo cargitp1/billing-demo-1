@@ -63,21 +63,6 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      {/* Header Actions - Desktop Only */}
-      <div className="items-center justify-between hidden p-4 mb-4 bg-white border border-gray-200 sm:flex rounded-xl">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t('selectClient')}</h3>
-          <p className="mt-0.5 text-xs text-gray-500 lg:text-sm">Choose client for udhar challan</p>
-        </div>
-        <button
-          onClick={onAddNewClick}
-          className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
-        >
-          <UserPlus className="w-4.5 h-4.5" />
-          {t('addNewClient')}
-        </button>
-      </div>
-
       {/* Search Bar - Compact */}
       <div className="relative">
         <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-4 h-4 sm:w-4.5 sm:h-4.5" />
@@ -791,6 +776,50 @@ const UdharChallan: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
+      <Navbar />
+      <main className="flex-1 min-w-0">
+        <div className="container max-w-6xl px-4 py-4 mx-auto sm:px-6 lg:px-8 sm:py-6 lg:py-8">
+          {/* Header with client selection */}
+          <div className="flex flex-col items-start justify-between gap-4 mb-6 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">
+                {currentStep === 'client-selection' ? t('udharChallan') : (
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={handleBack}
+                      className="p-1 text-gray-400 hover:text-gray-600 touch-manipulation"
+                    >
+                      <ArrowLeft className="w-6 h-6" />
+                    </button>
+                    {selectedClient?.client_nic_name || t('udharChallan')}
+                  </div>
+                )}
+              </h1>
+              {currentStep === 'client-selection' ? (
+                <p className="mt-1 text-sm text-gray-500">
+                  {t('createNewChallan')}
+                </p>
+              ) : selectedClient && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {selectedClient.client_name} · {selectedClient.site}
+                </p>
+              )}
+            </div>
+            
+            {currentStep === 'client-selection' && (
+              <button
+                onClick={() => setShowQuickAdd(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
+              >
+                <UserPlus className="w-4.5 h-4.5" />
+                {t('addNewClient')}
+              </button>
+            )}
+          </div>
+
+          <div className="space-y-4">
+        return (
+    <div className="flex min-h-screen bg-gray-50">
       <Toaster 
         position="top-center"
         toastOptions={{
@@ -818,11 +847,74 @@ const UdharChallan: React.FC = () => {
       <Navbar />
       <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0">
         <div className="w-full px-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
+          {/* Header with client selection */}
+          <div className="flex flex-col items-start justify-between gap-4 mb-6 sm:flex-row sm:items-center">
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold text-gray-900 lg:text-3xl">
+                {currentStep === 'client-selection' ? t('udharChallan') : (
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={handleBack}
+                      className="p-1 text-gray-400 hover:text-gray-600 touch-manipulation"
+                    >
+                      <ArrowLeft className="w-6 h-6" />
+                    </button>
+                    {selectedClient?.client_nic_name || t('udharChallan')}
+                  </div>
+                )}
+              </h1>
+              {currentStep === 'client-selection' ? (
+                <p className="mt-1 text-sm text-gray-500">
+                  {t('createChallan')}
+                </p>
+              ) : selectedClient && (
+                <p className="mt-1 text-sm text-gray-500">
+                  {selectedClient.client_name} · {selectedClient.site}
+                </p>
+              )}
+            </div>
+            
+            {currentStep === 'client-selection' && (
+              <button
+                onClick={() => setShowQuickAdd(true)}
+                className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm hover:shadow-md touch-manipulation active:scale-95"
+              >
+                <UserPlus className="w-4.5 h-4.5" />
+                {t('addNewClient')}
+              </button>
+            )}
+          </div>
+          
+          {/* Content */}
+          <div className="space-y-4">
+            {currentStep === 'client-selection' ? (
+              <ClientSelectionStep
+                clients={clients}
+                onClientSelect={handleClientSelect}
+                onAddNewClick={() => setShowQuickAdd(true)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+              />
+            ) : (
+              <ChallanDetailsStep
+                selectedClientId={selectedClientId}
+                clients={clients}
+                onBack={handleBack}
+                stockData={stockData}
+              />
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+      <Navbar />
+      <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0">
+        <div className="w-full px-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
           {currentStep === 'client-selection' ? (
             <>
               <div className="hidden mb-4 sm:block sm:mb-6 lg:mb-8">
                 <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">{t('udharChallanTitle')}</h2>
-                <p className="mt-1 text-[10px] sm:text-xs lg:text-sm lg:mt-2 text-gray-600">Create new udhar challan</p>
               </div>
               {showQuickAdd && (
                 <>

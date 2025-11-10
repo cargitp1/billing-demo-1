@@ -17,6 +17,10 @@ export const translations = {
     calculateBill: "બિલ ગણો",
     generateBill: "બિલ જનરેટ કરો",
     
+    // Udhar Challan
+    udharChallan: "ઉધાર ચલણ",
+    createChallan: "નવું ચલણ બનાવો",
+    
     // Landing Page
     slogan: "મજબૂત પાયો, વિશ્વસનીય ભાડો",
     subSlogan: "તમારા બાંધકામ માટે શ્રેષ્ઠ પ્લેટ્સ",
@@ -128,7 +132,7 @@ export const translations = {
     password: 'પાસવર્ડ',
     Rental_Management: 'ભાડા વહીવટ',
 
-    clientNicName: 'ગ્રાહક ટૂંકું નામ',
+    clientNicName: 'ગ્રાહક ID',
     clientName: 'ગ્રાહક પૂરું નામ',
     site: 'સાઇટ',
     primaryPhone: 'મુખ્ય ફોન નંબર',

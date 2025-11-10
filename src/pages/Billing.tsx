@@ -49,22 +49,6 @@ export default function Billing() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    // Show maintenance message
-    toast(
-        t('maintenanceMessage'),
-        {
-        duration: 5000,
-        style: {
-          background: '#363636',
-          color: '#fff',
-          fontSize: '14px',
-          padding: '16px',
-          borderRadius: '8px'
-        },
-        id: 'maintenance-message' // Unique ID prevents duplicate toasts
-      }
-    );
-    
     fetchClients();
   }, []);
 
@@ -99,6 +83,13 @@ export default function Billing() {
       <Navbar />
       <main className="flex-1 min-w-0">
         <div className="container max-w-6xl px-4 py-4 mx-auto sm:px-6 lg:px-8 sm:py-6 lg:py-8">
+          <div className="items-center justify-between hidden p-4 mb-4 bg-white border border-gray-200 sm:flex rounded-xl">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 lg:text-xl">{t("selectClient")}</h3>
+              <p className="mt-0.5 text-xs text-gray-500 lg:text-sm">Choose client for billing</p>
+            </div>
+          </div>
+
           <div className="space-y-3 sm:space-y-4 lg:space-y-6">
             <div className="relative">
               <Search className="absolute text-gray-400 transform -translate-y-1/2 left-2.5 sm:left-3 top-1/2 w-4 h-4 sm:w-4.5 sm:h-4.5" />
