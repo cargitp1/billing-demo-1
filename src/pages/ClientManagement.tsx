@@ -404,10 +404,10 @@ const ClientManagement: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900">
-                    {editingClient ? t('edit') + ' Client' : t('addNewClient')}
+                    {editingClient ? t('editClient') : t('addNewClient')}
                   </h3>
                   <p className="text-sm text-gray-500">
-                    {editingClient ? 'Update client information' : 'Add a new client'}
+                    {editingClient ? t('editClient') : t('addNewClient')}
                   </p>
                 </div>
               </div>
@@ -510,10 +510,10 @@ const ClientManagement: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-gray-900">
-                      {editingClient ? 'Edit Client' : 'Add New Client'}
+                      {editingClient ? t('editClient') : t('addNewClient')}
                     </h3>
                     <p className="text-[10px] text-gray-500">
-                      {editingClient ? 'Update information' : 'Fill in the details'}
+                      {editingClient ? t('editClient') : t('addNewClient')}
                     </p>
                   </div>
                 </div>
