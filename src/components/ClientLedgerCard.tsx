@@ -28,7 +28,8 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
   const handleDownloadLedger = async () => {
     const loadingToast = toast.loading('Generating ledger image...');
     try {
-      await generateClientLedgerJPEG(ledger.clientNicName);
+      const elementId = `client-ledger-download-${ledger.clientId}`;
+      await generateClientLedgerJPEG(elementId, ledger.clientNicName);
       toast.dismiss(loadingToast);
       toast.success('Ledger downloaded successfully');
     } catch (error) {
@@ -128,7 +129,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 title="Create Jama Challan"
               >
                 <span className="flex items-center gap-1">
-                  <span className="w-4 h-4 flex items-center justify-center text-lg font-bold leading-none">-</span>
+                  <span className="flex items-center justify-center w-4 h-4 text-lg font-bold leading-none">-</span>
                   Jama
                 </span>
               </button>
@@ -246,6 +247,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
 
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <ClientLedgerDownload
+          elementId={`client-ledger-download-${ledger.clientId}`}
           clientNicName={ledger.clientNicName}
           clientFullName={ledger.clientFullName}
           clientSite={ledger.clientSite}

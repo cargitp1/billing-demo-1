@@ -10,6 +10,7 @@ interface ClientLedgerDownloadProps {
   clientPhone: string;
   transactions: Transaction[];
   currentBalance: ClientBalance;
+  elementId?: string;
 }
 
 export default function ClientLedgerDownload({
@@ -19,6 +20,7 @@ export default function ClientLedgerDownload({
   clientPhone,
   transactions,
   currentBalance,
+  elementId,
 }: ClientLedgerDownloadProps) {
   const { language } = useLanguage();
   const t = translations[language];
@@ -118,7 +120,7 @@ export default function ClientLedgerDownload({
 
   return (
     <div
-      id="client-ledger-download"
+      id={elementId || 'client-ledger-download'}
       style={{
         width: '1300px',
         height: `${totalHeight}px`,
