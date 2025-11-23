@@ -45,6 +45,7 @@ interface ClientSelectionStepProps {
   onAddNewClick: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  isFormOpen?: boolean;
 }
 
 const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
@@ -53,6 +54,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   onAddNewClick,
   searchQuery,
   onSearchChange,
+  isFormOpen = false,
 }) => {
   const { t } = useLanguage();
   const filteredClients = clients
@@ -176,13 +178,15 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
       )}
 
       {/* Mobile FAB for Add Client */}
-      <button
-        onClick={onAddNewClick}
-        className="fixed z-50 flex items-center justify-center transition-all shadow-lg sm:hidden bottom-6 right-4 w-14 h-14 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl hover:shadow-2xl active:scale-90 touch-manipulation"
-        aria-label="Add new client"
-      >
-        <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
-      </button>
+      {!isFormOpen && (
+        <button
+          onClick={onAddNewClick}
+          className="fixed z-50 flex items-center justify-center transition-all shadow-lg sm:hidden bottom-6 right-4 w-14 h-14 bg-gradient-to-br from-green-600 to-green-700 rounded-2xl hover:shadow-2xl active:scale-90 touch-manipulation"
+          aria-label="Add new client"
+        >
+          <Plus className="text-white w-7 h-7" strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 };
@@ -901,6 +905,7 @@ const UdharChallan: React.FC = () => {
                   onAddNewClick={() => setShowQuickAdd(true)}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
+                  isFormOpen={showQuickAdd}
                 />
             </>
           ) : (
