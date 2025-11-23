@@ -648,6 +648,19 @@ const UdharChallan: React.FC = () => {
   const handleQuickAddClient = async (clientData: ClientFormData) => {
     const loadingToast = toast.loading('Creating client...');
 
+    // Check for duplicate sort name
+    const { data: existingClient } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('client_nic_name', clientData.client_nic_name)
+      .single();
+
+    if (existingClient) {
+      toast.dismiss(loadingToast);
+      toast.error('A client with this sort name already exists');
+      return;
+    }
+
     const { data, error } = await supabase
       .from('clients')
       .insert({
