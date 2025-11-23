@@ -198,6 +198,21 @@ const ClientManagement: React.FC = () => {
     const loadingToast = toast.loading(editingClient?.id ? 'Updating client...' : 'Creating client...');
 
     if (editingClient?.id) {
+      // Check for duplicate sort name (only if name changed)
+      if (data.client_nic_name !== editingClient.client_nic_name) {
+        const { data: existingClient } = await supabase
+          .from('clients')
+          .select('id')
+          .eq('client_nic_name', data.client_nic_name)
+          .single();
+
+        if (existingClient) {
+          toast.dismiss(loadingToast);
+          toast.error('A client with this sort name already exists');
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('clients')
         .update({
@@ -221,6 +236,19 @@ const ClientManagement: React.FC = () => {
         fetchClients();
       }
     } else {
+      // Check for duplicate sort name when creating
+      const { data: existingClient } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('client_nic_name', data.client_nic_name)
+        .single();
+
+      if (existingClient) {
+        toast.dismiss(loadingToast);
+        toast.error('A client with this sort name already exists');
+        return;
+      }
+
       const { error } = await supabase
         .from('clients')
         .insert({

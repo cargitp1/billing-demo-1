@@ -180,7 +180,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
 
   const handleSave = async () => {
     if (!challan?.clientId) {
-      alert('Client ID not found');
+      alert(t('clientIdNotFound'));
       return;
     }
 
@@ -261,35 +261,35 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
       }
     } catch (error) {
       console.error('Error updating challan:', error);
-      alert('Error updating challan');
+      alert(t('errorUpdatingChallan'));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black bg-opacity-50 sm:p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2">
-          <h2 className="text-lg sm:text-2xl font-bold text-gray-900 flex-1">
+        <div className="sticky top-0 flex items-center justify-between gap-2 px-4 py-3 bg-white border-b border-gray-200 sm:px-6 sm:py-4">
+          <h2 className="flex-1 text-lg font-bold text-gray-900 sm:text-2xl">
             {t('edit')} {type === 'udhar' ? t('udharChallan') : t('jamaChallan')}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+            className="flex-shrink-0 text-gray-400 transition-colors hover:text-gray-600"
           >
             <X size={24} />
           </button>
         </div>
 
-        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">{t('challanDetails')}</h3>
+        <div className="p-4 space-y-4 sm:p-6 sm:space-y-6">
+          <div className="p-3 rounded-lg bg-gray-50 sm:p-4">
+            <h3 className="mb-3 text-base font-semibold text-gray-900 sm:text-lg">{t('challanDetails')}</h3>
             <div className="space-y-3 sm:space-y-4">
               {/* Date and Driver Name Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">
                     {t('date')}
                   </label>
                   <input
@@ -300,7 +300,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">
                     {t('driverName')}
                   </label>
                   <input
@@ -313,9 +313,9 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
               </div>
 
               {/* Phone Number and Site Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">
                     {t('secondaryPhone')}
                   </label>
                   <input
@@ -326,7 +326,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                  <label className="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">
                     {t('alternativeSite')}
                   </label>
                   <input
@@ -340,24 +340,24 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
             </div>
           </div>
 
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('itemsDetails')}</h3>
+          <div className="p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('itemsDetails')}</h3>
             
             {/* Desktop Table */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('size')}
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('quantity')}
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('borrowedStock')}
                     </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                    <th className="px-4 py-2 text-xs font-medium text-left text-gray-500 uppercase">
                       {t('note')}
                     </th>
                   </tr>
@@ -365,7 +365,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                 <tbody className="bg-white divide-y divide-gray-200">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => (
                     <tr key={size} className="hover:bg-gray-50">
-                      <td className="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-4 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">
                         {PLATE_SIZES[size - 1]}
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
@@ -403,7 +403,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
             </div>
 
             {/* Mobile Responsive Layout - Horizontal Scroll Table */}
-            <div className="md:hidden -mx-4">
+            <div className="-mx-4 md:hidden">
               <div className="overflow-x-auto">
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden">
@@ -473,7 +473,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
 
 
             <div className="mt-3 sm:mt-4">
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              <label className="block mb-1 text-xs font-medium text-gray-700 sm:text-sm">
                 {t('mainNote')}
               </label>
               <textarea
@@ -486,18 +486,18 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
           </div>
         </div>
 
-        <div className="sticky bottom-0 z-20 bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+        <div className="sticky bottom-0 z-20 flex flex-col-reverse justify-end gap-2 px-4 py-3 border-t border-gray-200 bg-gray-50 sm:px-6 sm:py-4 sm:flex-row sm:gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm text-gray-800 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300 disabled:opacity-50"
           >
             {t('cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? 'Saving...' : t('save')}
           </button>

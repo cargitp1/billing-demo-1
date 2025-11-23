@@ -433,7 +433,6 @@ const fetchJamaChallans = async () => {
     setCurrentPage(1);
   }, [searchTerm, activeTab, sortOption]);
 
-
   const SkeletonRow = () => (
     <tr className="animate-pulse">
       <td className="px-4 py-3 sm:px-6 sm:py-4"><div className="w-20 h-4 bg-gray-200 rounded sm:w-24"></div></td>
@@ -493,8 +492,6 @@ const fetchJamaChallans = async () => {
               <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-
-
 
           {/* Main Table Container */}
           <div className="bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl">
@@ -718,7 +715,7 @@ const fetchJamaChallans = async () => {
               )}
             </div>
 
-            {/* Mobile Cards */}
+            {/* Mobile Cards - MODIFIED SECTION */}
             <div className="p-3 space-y-3 sm:p-4 sm:space-y-4 lg:hidden">
               {loading ? (
                 <>
@@ -748,14 +745,11 @@ const fetchJamaChallans = async () => {
                         : 'bg-green-50 border-green-200'
                     }`}
                   >
-                    {/* Header */}
+                    {/* Header - Date removed from here */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <div className="text-xs font-bold text-gray-900 sm:text-sm">
                           {challan.challanNumber}
-                        </div>
-                        <div className="text-[10px] sm:text-xs text-gray-500">
-                          {challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}
                         </div>
                       </div>
                       <span className={`inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
@@ -774,14 +768,30 @@ const fetchJamaChallans = async () => {
                         <span className="font-semibold text-gray-900">{challan.clientNicName}</span>
                         <div className="text-[10px] sm:text-xs text-gray-600">{challan.clientFullName}</div>
                       </div>
+                      
+                      {/* Line 1: Date and Driver Name */}
                       <div className="flex flex-wrap gap-3">
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 min-w-0 flex-1">
-                          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                          <span className="truncate">{challan.site}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
+                          <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <span>{challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}</span>
                         </div>
+                        {challan.driverName && (
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
+                            <span className="font-medium">Driver:</span>
+                            <span className="truncate">{challan.driverName}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Line 2: Phone Number and Site */}
+                      <div className="flex flex-wrap gap-3">
                         <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 shrink-0">
                           <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           <span>{challan.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 min-w-0 flex-1">
+                          <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <span className="truncate">{challan.site}</span>
                         </div>
                       </div>
                     </div>
