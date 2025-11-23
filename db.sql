@@ -155,7 +155,7 @@ CREATE TABLE IF NOT EXISTS stock (
   on_rent_stock INTEGER DEFAULT 0 NOT NULL CHECK (on_rent_stock >= 0),
   borrowed_stock INTEGER DEFAULT 0 NOT NULL CHECK (borrowed_stock >= 0),
   lost_stock INTEGER DEFAULT 0 NOT NULL CHECK (lost_stock >= 0),
-  updated_at TIMESTAMP DEFAULT NOW()
+  updated_at TIMESTAMP
 );
 
 -- STEP 3: Insert initial data for all 9 sizes

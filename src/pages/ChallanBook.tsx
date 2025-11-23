@@ -143,119 +143,123 @@ const ChallanBook: React.FC = () => {
     }
   };
 
-  const fetchUdharChallans = async () => {
-    const { data, error } = await supabase
-      .from('udhar_challans')
-      .select(`
-        udhar_challan_number,
-        udhar_date,
-        driver_name,
-        alternative_site,
-        secondary_phone_number,
-        client_id,
-        client:clients!udhar_challans_client_id_fkey (
-          id,
-          client_nic_name,
-          client_name,
-          site,
-          primary_phone_number
-        ),
-        items:udhar_items!udhar_items_udhar_challan_number_fkey (
-          size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
-          size_6_qty, size_7_qty, size_8_qty, size_9_qty,
-          size_1_borrowed, size_2_borrowed, size_3_borrowed,
-          size_4_borrowed, size_5_borrowed, size_6_borrowed,
-          size_7_borrowed, size_8_borrowed, size_9_borrowed,
-          size_1_note, size_2_note, size_3_note, size_4_note,
-          size_5_note, size_6_note, size_7_note, size_8_note,
-          size_9_note, main_note
-        )
-      `)
-      .order('udhar_challan_number', { ascending: true });
+const fetchUdharChallans = async () => {
+  const { data, error } = await supabase
+    .from('udhar_challans')
+    .select(`
+      udhar_challan_number,
+      udhar_date,
+      driver_name,
+      alternative_site,
+      secondary_phone_number,
+      client_id,
+      client:clients!udhar_challans_client_id_fkey (
+        id,
+        client_nic_name,
+        client_name,
+        site,
+        primary_phone_number
+      ),
+      items:udhar_items!udhar_items_udhar_challan_number_fkey (
+        size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
+        size_6_qty, size_7_qty, size_8_qty, size_9_qty,
+        size_1_borrowed, size_2_borrowed, size_3_borrowed,
+        size_4_borrowed, size_5_borrowed, size_6_borrowed,
+        size_7_borrowed, size_8_borrowed, size_9_borrowed,
+        size_1_note, size_2_note, size_3_note, size_4_note,
+        size_5_note, size_6_note, size_7_note, size_8_note,
+        size_9_note, main_note
+      )
+    `)
+    .order('udhar_challan_number', { ascending: true });
 
-    if (error) {
-      console.error('Error fetching udhar challans:', error);
-      return;
-    }
+  if (error) {
+    console.error('Error fetching udhar challans:', error);
+    return;
+  }
 
-    const transformedData = (data || []).map((challan: any) => {
-      const rawItems = challan.items;
-      const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
-      return {
-        challanNumber: challan.udhar_challan_number,
-        date: challan.udhar_date,
-        driverName: challan.driver_name,
-        clientNicName: challan.client.client_nic_name,
-        clientFullName: challan.client.client_name,
-        clientId: challan.client_id,
-        site: challan.alternative_site || challan.client.site,
-        isAlternativeSite: !!challan.alternative_site,
-        phone: challan.secondary_phone_number || challan.client.primary_phone_number,
-        isSecondaryPhone: !!challan.secondary_phone_number,
-        items: itemRow,
-        totalItems: calculateTotalItems(itemRow),
-      };
-    });
+  const transformedData = (data || []).map((challan: any) => {
+    const rawItems = challan.items;
+    // Create a deep copy to prevent mutating the emptyItems constant
+    const emptyItemsCopy: ItemsData = JSON.parse(JSON.stringify(emptyItems));
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItemsCopy) : (rawItems || emptyItemsCopy);
+    return {
+      challanNumber: challan.udhar_challan_number,
+      date: challan.udhar_date,
+      driverName: challan.driver_name,
+      clientNicName: challan.client.client_nic_name,
+      clientFullName: challan.client.client_name,
+      clientId: challan.client_id,
+      site: challan.alternative_site || challan.client.site,
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: itemRow,
+      totalItems: calculateTotalItems(itemRow),
+    };
+  });
 
-    setUdharChallans(transformedData);
-  };
+  setUdharChallans(transformedData);
+};
 
-  const fetchJamaChallans = async () => {
-    const { data, error } = await supabase
-      .from('jama_challans')
-      .select(`
-        jama_challan_number,
-        jama_date,
-        driver_name,
-        alternative_site,
-        secondary_phone_number,
-        client_id,
-        client:clients!jama_challans_client_id_fkey (
-          id,
-          client_nic_name,
-          client_name,
-          site,
-          primary_phone_number
-        ),
-        items:jama_items!jama_items_jama_challan_number_fkey (
-          size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
-          size_6_qty, size_7_qty, size_8_qty, size_9_qty,
-          size_1_borrowed, size_2_borrowed, size_3_borrowed,
-          size_4_borrowed, size_5_borrowed, size_6_borrowed,
-          size_7_borrowed, size_8_borrowed, size_9_borrowed,
-          size_1_note, size_2_note, size_3_note, size_4_note,
-          size_5_note, size_6_note, size_7_note, size_8_note,
-          size_9_note, main_note
-        )
-      `)
-      .order('jama_challan_number', { ascending: false });
+const fetchJamaChallans = async () => {
+  const { data, error } = await supabase
+    .from('jama_challans')
+    .select(`
+      jama_challan_number,
+      jama_date,
+      driver_name,
+      alternative_site,
+      secondary_phone_number,
+      client_id,
+      client:clients!jama_challans_client_id_fkey (
+        id,
+        client_nic_name,
+        client_name,
+        site,
+        primary_phone_number
+      ),
+      items:jama_items!jama_items_jama_challan_number_fkey (
+        size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
+        size_6_qty, size_7_qty, size_8_qty, size_9_qty,
+        size_1_borrowed, size_2_borrowed, size_3_borrowed,
+        size_4_borrowed, size_5_borrowed, size_6_borrowed,
+        size_7_borrowed, size_8_borrowed, size_9_borrowed,
+        size_1_note, size_2_note, size_3_note, size_4_note,
+        size_5_note, size_6_note, size_7_note, size_8_note,
+        size_9_note, main_note
+      )
+    `)
+    .order('jama_challan_number', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching jama challans:', error);
-      return;
-    }
+  if (error) {
+    console.error('Error fetching jama challans:', error);
+    return;
+  }
 
-    const transformedData = (data || []).map((challan: any) => {
-      const rawItems = challan.items;
-      const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
-      return {
-        challanNumber: challan.jama_challan_number,
-        date: challan.jama_date,
-        driverName: challan.driver_name,
-        clientNicName: challan.client.client_nic_name,
-        clientFullName: challan.client.client_name,
-        clientId: challan.client_id,
-        site: challan.alternative_site || challan.client.site,
-        isAlternativeSite: !!challan.alternative_site,
-        phone: challan.secondary_phone_number || challan.client.primary_phone_number,
-        isSecondaryPhone: !!challan.secondary_phone_number,
-        items: itemRow,
-        totalItems: calculateTotalItems(itemRow),
-      };
-    });
+  const transformedData = (data || []).map((challan: any) => {
+    const rawItems = challan.items;
+    // Create a deep copy to prevent mutating the emptyItems constant
+    const emptyItemsCopy: ItemsData = JSON.parse(JSON.stringify(emptyItems));
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItemsCopy) : (rawItems || emptyItemsCopy);
+    return {
+      challanNumber: challan.jama_challan_number,
+      date: challan.jama_date,
+      driverName: challan.driver_name,
+      clientNicName: challan.client.client_nic_name,
+      clientFullName: challan.client.client_name,
+      clientId: challan.client_id,
+      site: challan.alternative_site || challan.client.site,
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: itemRow,
+      totalItems: calculateTotalItems(itemRow),
+    };
+  });
 
-    setJamaChallans(transformedData);
-  };
+  setJamaChallans(transformedData);
+};
 
   const handleViewDetails = (challan: ChallanData) => {
     setSelectedChallan(challan);
@@ -662,23 +666,11 @@ const ChallanBook: React.FC = () => {
                         <td className="px-6 py-4 text-sm text-center text-gray-900">
                           <div className="flex items-center justify-center gap-2">
                             {challan.site}
-                            {challan.isAlternativeSite && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                                <AlertCircle size={12} />
-                                Alt
-                              </span>
-                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
                           <div className="flex items-center justify-center gap-2">
                             {challan.phone}
-                            {challan.isSecondaryPhone && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                                <AlertCircle size={12} />
-                                Alt
-                              </span>
-                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
@@ -786,22 +778,10 @@ const ChallanBook: React.FC = () => {
                         <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 min-w-0 flex-1">
                           <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                           <span className="truncate">{challan.site}</span>
-                          {challan.isAlternativeSite && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium bg-blue-100 text-blue-800 rounded-full shrink-0">
-                              <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                              Alt
-                            </span>
-                          )}
                         </div>
                         <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 shrink-0">
                           <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                           <span>{challan.phone}</span>
-                          {challan.isSecondaryPhone && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] sm:text-[10px] font-medium bg-blue-100 text-blue-800 rounded-full">
-                              <AlertCircle className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                              Alt
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>

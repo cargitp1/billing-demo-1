@@ -36,6 +36,38 @@ interface ItemsData {
   main_note: string | null;
 }
 
+// Form state allows nulls so inputs can show empty instead of 0 by default
+interface FormItems {
+  size_1_qty: number | null;
+  size_2_qty: number | null;
+  size_3_qty: number | null;
+  size_4_qty: number | null;
+  size_5_qty: number | null;
+  size_6_qty: number | null;
+  size_7_qty: number | null;
+  size_8_qty: number | null;
+  size_9_qty: number | null;
+  size_1_borrowed: number | null;
+  size_2_borrowed: number | null;
+  size_3_borrowed: number | null;
+  size_4_borrowed: number | null;
+  size_5_borrowed: number | null;
+  size_6_borrowed: number | null;
+  size_7_borrowed: number | null;
+  size_8_borrowed: number | null;
+  size_9_borrowed: number | null;
+  size_1_note: string | null;
+  size_2_note: string | null;
+  size_3_note: string | null;
+  size_4_note: string | null;
+  size_5_note: string | null;
+  size_6_note: string | null;
+  size_7_note: string | null;
+  size_8_note: string | null;
+  size_9_note: string | null;
+  main_note: string | null;
+}
+
 interface ChallanData {
   challanNumber: string;
   date: string;
@@ -71,11 +103,11 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
   const [driverName, setDriverName] = useState('');
   const [alternativeSite, setAlternativeSite] = useState('');
   const [secondaryPhone, setSecondaryPhone] = useState('');
-  const [items, setItems] = useState<ItemsData>({
-    size_1_qty: 0, size_2_qty: 0, size_3_qty: 0, size_4_qty: 0, size_5_qty: 0,
-    size_6_qty: 0, size_7_qty: 0, size_8_qty: 0, size_9_qty: 0,
-    size_1_borrowed: 0, size_2_borrowed: 0, size_3_borrowed: 0, size_4_borrowed: 0, size_5_borrowed: 0,
-    size_6_borrowed: 0, size_7_borrowed: 0, size_8_borrowed: 0, size_9_borrowed: 0,
+  const [items, setItems] = useState<FormItems>({
+    size_1_qty: null, size_2_qty: null, size_3_qty: null, size_4_qty: null, size_5_qty: null,
+    size_6_qty: null, size_7_qty: null, size_8_qty: null, size_9_qty: null,
+    size_1_borrowed: null, size_2_borrowed: null, size_3_borrowed: null, size_4_borrowed: null, size_5_borrowed: null,
+    size_6_borrowed: null, size_7_borrowed: null, size_8_borrowed: null, size_9_borrowed: null,
     size_1_note: null, size_2_note: null, size_3_note: null, size_4_note: null, size_5_note: null,
     size_6_note: null, size_7_note: null, size_8_note: null, size_9_note: null,
     main_note: null,
@@ -95,8 +127,42 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
       setDriverName(challan.driverName || '');
       setAlternativeSite(challan.isAlternativeSite ? challan.site : '');
       setSecondaryPhone(challan.isSecondaryPhone ? challan.phone : '');
-      setItems(challan.items);
+      // originalItems should keep numeric values for stock calculations
       setOriginalItems(challan.items);
+
+      // For the form, show empty inputs instead of 0: map 0 -> null
+      const mapped: FormItems = {
+        size_1_qty: challan.items.size_1_qty === 0 ? null : challan.items.size_1_qty,
+        size_2_qty: challan.items.size_2_qty === 0 ? null : challan.items.size_2_qty,
+        size_3_qty: challan.items.size_3_qty === 0 ? null : challan.items.size_3_qty,
+        size_4_qty: challan.items.size_4_qty === 0 ? null : challan.items.size_4_qty,
+        size_5_qty: challan.items.size_5_qty === 0 ? null : challan.items.size_5_qty,
+        size_6_qty: challan.items.size_6_qty === 0 ? null : challan.items.size_6_qty,
+        size_7_qty: challan.items.size_7_qty === 0 ? null : challan.items.size_7_qty,
+        size_8_qty: challan.items.size_8_qty === 0 ? null : challan.items.size_8_qty,
+        size_9_qty: challan.items.size_9_qty === 0 ? null : challan.items.size_9_qty,
+        size_1_borrowed: challan.items.size_1_borrowed === 0 ? null : challan.items.size_1_borrowed,
+        size_2_borrowed: challan.items.size_2_borrowed === 0 ? null : challan.items.size_2_borrowed,
+        size_3_borrowed: challan.items.size_3_borrowed === 0 ? null : challan.items.size_3_borrowed,
+        size_4_borrowed: challan.items.size_4_borrowed === 0 ? null : challan.items.size_4_borrowed,
+        size_5_borrowed: challan.items.size_5_borrowed === 0 ? null : challan.items.size_5_borrowed,
+        size_6_borrowed: challan.items.size_6_borrowed === 0 ? null : challan.items.size_6_borrowed,
+        size_7_borrowed: challan.items.size_7_borrowed === 0 ? null : challan.items.size_7_borrowed,
+        size_8_borrowed: challan.items.size_8_borrowed === 0 ? null : challan.items.size_8_borrowed,
+        size_9_borrowed: challan.items.size_9_borrowed === 0 ? null : challan.items.size_9_borrowed,
+        size_1_note: challan.items.size_1_note || null,
+        size_2_note: challan.items.size_2_note || null,
+        size_3_note: challan.items.size_3_note || null,
+        size_4_note: challan.items.size_4_note || null,
+        size_5_note: challan.items.size_5_note || null,
+        size_6_note: challan.items.size_6_note || null,
+        size_7_note: challan.items.size_7_note || null,
+        size_8_note: challan.items.size_8_note || null,
+        size_9_note: challan.items.size_9_note || null,
+        main_note: challan.items.main_note || null,
+      };
+
+      setItems(mapped);
     }
   }, [challan, isOpen]);
 
@@ -105,8 +171,9 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
   const handleItemChange = (size: number, field: 'qty' | 'borrowed' | 'note', value: string | number) => {
     setItems(prev => ({
       ...prev,
-      [`size_${size}_${field}`]: field === 'note' ? (value === '' ? null : value) : Number(value) || 0,
-    }));
+      // notes stay string|null, qty/borrowed become number|null
+      [`size_${size}_${field}`]: field === 'note' ? (value === '' ? null : value) : (value === '' ? null : Number(value)),
+    } as unknown as FormItems));
   };
 
   const handleSave = async () => {
@@ -145,24 +212,24 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
         p_old_size_7_borrowed: originalItems.size_7_borrowed,
         p_old_size_8_borrowed: originalItems.size_8_borrowed,
         p_old_size_9_borrowed: originalItems.size_9_borrowed,
-        p_new_size_1_qty: items.size_1_qty,
-        p_new_size_2_qty: items.size_2_qty,
-        p_new_size_3_qty: items.size_3_qty,
-        p_new_size_4_qty: items.size_4_qty,
-        p_new_size_5_qty: items.size_5_qty,
-        p_new_size_6_qty: items.size_6_qty,
-        p_new_size_7_qty: items.size_7_qty,
-        p_new_size_8_qty: items.size_8_qty,
-        p_new_size_9_qty: items.size_9_qty,
-        p_new_size_1_borrowed: items.size_1_borrowed,
-        p_new_size_2_borrowed: items.size_2_borrowed,
-        p_new_size_3_borrowed: items.size_3_borrowed,
-        p_new_size_4_borrowed: items.size_4_borrowed,
-        p_new_size_5_borrowed: items.size_5_borrowed,
-        p_new_size_6_borrowed: items.size_6_borrowed,
-        p_new_size_7_borrowed: items.size_7_borrowed,
-        p_new_size_8_borrowed: items.size_8_borrowed,
-        p_new_size_9_borrowed: items.size_9_borrowed,
+        p_new_size_1_qty: (items as FormItems).size_1_qty ?? 0,
+        p_new_size_2_qty: (items as FormItems).size_2_qty ?? 0,
+        p_new_size_3_qty: (items as FormItems).size_3_qty ?? 0,
+        p_new_size_4_qty: (items as FormItems).size_4_qty ?? 0,
+        p_new_size_5_qty: (items as FormItems).size_5_qty ?? 0,
+        p_new_size_6_qty: (items as FormItems).size_6_qty ?? 0,
+        p_new_size_7_qty: (items as FormItems).size_7_qty ?? 0,
+        p_new_size_8_qty: (items as FormItems).size_8_qty ?? 0,
+        p_new_size_9_qty: (items as FormItems).size_9_qty ?? 0,
+        p_new_size_1_borrowed: (items as FormItems).size_1_borrowed ?? 0,
+        p_new_size_2_borrowed: (items as FormItems).size_2_borrowed ?? 0,
+        p_new_size_3_borrowed: (items as FormItems).size_3_borrowed ?? 0,
+        p_new_size_4_borrowed: (items as FormItems).size_4_borrowed ?? 0,
+        p_new_size_5_borrowed: (items as FormItems).size_5_borrowed ?? 0,
+        p_new_size_6_borrowed: (items as FormItems).size_6_borrowed ?? 0,
+        p_new_size_7_borrowed: (items as FormItems).size_7_borrowed ?? 0,
+        p_new_size_8_borrowed: (items as FormItems).size_8_borrowed ?? 0,
+        p_new_size_9_borrowed: (items as FormItems).size_9_borrowed ?? 0,
         p_new_size_1_note: items.size_1_note,
         p_new_size_2_note: items.size_2_note,
         p_new_size_3_note: items.size_3_note,
@@ -284,7 +351,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                           type="number"
                           min="0"
                           inputMode="numeric"
-                          value={items[`size_${size}_qty` as keyof ItemsData] || 0}
+                          value={(items as FormItems)[`size_${size}_qty` as keyof FormItems] ?? ''}
                           onChange={(e) => handleItemChange(size, 'qty', e.target.value)}
                           className="w-24 px-3 py-2.5 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
@@ -294,7 +361,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                           type="number"
                           min="0"
                           inputMode="numeric"
-                          value={items[`size_${size}_borrowed` as keyof ItemsData] || 0}
+                          value={(items as FormItems)[`size_${size}_borrowed` as keyof FormItems] ?? ''}
                           onChange={(e) => handleItemChange(size, 'borrowed', e.target.value)}
                           className="w-24 px-3 py-2.5 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
@@ -302,7 +369,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                       <td className="px-4 py-2">
                         <input
                           type="text"
-                          value={items[`size_${size}_note` as keyof ItemsData] || ''}
+                          value={(items as FormItems)[`size_${size}_note` as keyof FormItems] || ''}
                           onChange={(e) => handleItemChange(size, 'note', e.target.value)}
                           className="w-full px-3 py-2.5 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
                         />
@@ -318,8 +385,8 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                 {t('mainNote')}
               </label>
               <textarea
-                value={items.main_note || ''}
-                onChange={(e) => setItems(prev => ({ ...prev, main_note: e.target.value || null }))}
+                value={(items as FormItems).main_note || ''}
+                onChange={(e) => setItems(prev => ({ ...prev, main_note: e.target.value || null } as FormItems))}
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
