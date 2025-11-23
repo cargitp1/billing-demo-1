@@ -100,6 +100,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
 }) => {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
+  const [date, setDate] = useState('');
   const [driverName, setDriverName] = useState('');
   const [alternativeSite, setAlternativeSite] = useState('');
   const [secondaryPhone, setSecondaryPhone] = useState('');
@@ -124,6 +125,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
 
   useEffect(() => {
     if (challan && isOpen) {
+      setDate(challan.date || '');
       setDriverName(challan.driverName || '');
       setAlternativeSite(challan.isAlternativeSite ? challan.site : '');
       setSecondaryPhone(challan.isSecondaryPhone ? challan.phone : '');
@@ -192,7 +194,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
         p_client_id: challan.clientId,
         p_alternative_site: alternativeSite || null,
         p_secondary_phone_number: secondaryPhone || null,
-        [dateField]: challan.date,
+        [dateField]: date,
         p_driver_name: driverName || null,
         p_old_size_1_qty: originalItems.size_1_qty,
         p_old_size_2_qty: originalItems.size_2_qty,
@@ -266,63 +268,83 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center gap-2">
+          <h2 className="text-lg sm:text-2xl font-bold text-gray-900 flex-1">
             {t('edit')} {type === 'udhar' ? t('udharChallan') : t('jamaChallan')}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
           >
             <X size={24} />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('challanDetails')}</h3>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('driverName')}
-                </label>
-                <input
-                  type="text"
-                  value={driverName}
-                  onChange={(e) => setDriverName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+          <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+            <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">{t('challanDetails')}</h3>
+            <div className="space-y-3 sm:space-y-4">
+              {/* Date and Driver Name Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    {t('date')}
+                  </label>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    {t('driverName')}
+                  </label>
+                  <input
+                    type="text"
+                    value={driverName}
+                    onChange={(e) => setDriverName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('alternativeSite')}
-                </label>
-                <input
-                  type="text"
-                  value={alternativeSite}
-                  onChange={(e) => setAlternativeSite(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('secondaryPhone')}
-                </label>
-                <input
-                  type="text"
-                  value={secondaryPhone}
-                  onChange={(e) => setSecondaryPhone(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
+
+              {/* Phone Number and Site Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    {t('secondaryPhone')}
+                  </label>
+                  <input
+                    type="text"
+                    value={secondaryPhone}
+                    onChange={(e) => setSecondaryPhone(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    {t('alternativeSite')}
+                  </label>
+                  <input
+                    type="text"
+                    value={alternativeSite}
+                    onChange={(e) => setAlternativeSite(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-3">{t('itemsDetails')}</h3>
-            <div className="overflow-x-auto">
+            
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -353,7 +375,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                           inputMode="numeric"
                           value={(items as FormItems)[`size_${size}_qty` as keyof FormItems] ?? ''}
                           onChange={(e) => handleItemChange(size, 'qty', e.target.value)}
-                          className="w-24 px-3 py-2.5 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
+                          className="w-24 px-3 py-2.5 text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
                         />
                       </td>
                       <td className="px-4 py-2 whitespace-nowrap">
@@ -363,7 +385,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                           inputMode="numeric"
                           value={(items as FormItems)[`size_${size}_borrowed` as keyof FormItems] ?? ''}
                           onChange={(e) => handleItemChange(size, 'borrowed', e.target.value)}
-                          className="w-24 px-3 py-2.5 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
+                          className="w-24 px-3 py-2.5 text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
                         />
                       </td>
                       <td className="px-4 py-2">
@@ -371,7 +393,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
                           type="text"
                           value={(items as FormItems)[`size_${size}_note` as keyof FormItems] || ''}
                           onChange={(e) => handleItemChange(size, 'note', e.target.value)}
-                          className="w-full px-3 py-2.5 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px] touch-manipulation active:scale-[0.97]"
+                          className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[44px]"
                         />
                       </td>
                     </tr>
@@ -380,32 +402,102 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
               </table>
             </div>
 
-            <div className="mt-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            {/* Mobile Responsive Layout - Horizontal Scroll Table */}
+            <div className="md:hidden -mx-4">
+              <div className="overflow-x-auto">
+                <div className="inline-block min-w-full align-middle">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full border-collapse">
+                      <thead>
+                        <tr className="bg-gray-100 border-b-2 border-gray-300">
+                          <th className="sticky left-0 z-5 px-1 py-1.5 text-[10px] font-bold text-center text-gray-700 bg-gray-100 border-r-2 border-gray-300 w-12 sm:px-2 sm:text-xs">
+                            {t('size')}
+                          </th>
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                            {t('quantity')}
+                          </th>
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                            {t('borrowedStock')}
+                          </th>
+                          <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 min-w-[100px] sm:min-w-[120px]">
+                            {t('note')}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size, index) => (
+                          <tr 
+                            key={size}
+                            className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                          >
+                            <td className="sticky left-0 z-5 px-1 py-1.5 text-[10px] font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-2 sm:text-sm bg-inherit">
+                              {PLATE_SIZES[size - 1]}
+                            </td>
+                            <td className="px-1 py-1.5 border-r border-gray-200">
+                              <input
+                                type="number"
+                                min="0"
+                                inputMode="numeric"
+                                value={(items as FormItems)[`size_${size}_qty` as keyof FormItems] ?? ''}
+                                onChange={(e) => handleItemChange(size, 'qty', e.target.value)}
+                                className="w-full px-2 py-2 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
+                              />
+                            </td>
+                            <td className="px-1 py-1.5 border-r border-gray-200">
+                              <input
+                                type="number"
+                                min="0"
+                                inputMode="numeric"
+                                value={(items as FormItems)[`size_${size}_borrowed` as keyof FormItems] ?? ''}
+                                onChange={(e) => handleItemChange(size, 'borrowed', e.target.value)}
+                                className="w-full px-2 py-2 text-[13px] sm:text-sm text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
+                              />
+                            </td>
+                            <td className="px-1 py-1.5">
+                              <input
+                                type="text"
+                                value={(items as FormItems)[`size_${size}_note` as keyof FormItems] || ''}
+                                onChange={(e) => handleItemChange(size, 'note', e.target.value)}
+                                className="w-full px-2 py-2 text-[13px] sm:text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[40px] sm:min-h-[44px] touch-manipulation active:scale-[0.97]"
+                                placeholder={t('optionalNote')}
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+            <div className="mt-3 sm:mt-4">
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                 {t('mainNote')}
               </label>
               <textarea
                 value={(items as FormItems).main_note || ''}
                 onChange={(e) => setItems(prev => ({ ...prev, main_note: e.target.value || null } as FormItems))}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
         </div>
 
-        <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex justify-end gap-3">
+        <div className="sticky bottom-0 z-20 bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
           <button
             onClick={onClose}
             disabled={loading}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50"
           >
             {t('cancel')}
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
           >
             {loading ? 'Saving...' : t('save')}
           </button>
