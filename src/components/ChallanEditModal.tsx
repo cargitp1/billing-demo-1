@@ -287,7 +287,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
             <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3">{t('challanDetails')}</h3>
             <div className="space-y-3 sm:space-y-4">
               {/* Date and Driver Name Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     {t('date')}
@@ -313,7 +313,7 @@ const ChallanEditModal: React.FC<ChallanEditModalProps> = ({
               </div>
 
               {/* Phone Number and Site Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     {t('secondaryPhone')}
