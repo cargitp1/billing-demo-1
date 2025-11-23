@@ -351,6 +351,7 @@ export const translations = {
     of: 'માંથી',
     clients: 'ગ્રાહક્સ',
     noMatchingClients: 'કોઈ ગ્રાહક મેળ ખાતો નથી',
+    clientExists: "આ ગ્રાહક ID પહેલેથી જ અસ્તિત્વમાં છે",
   },
   en: {
     // Landing Page
@@ -373,6 +374,7 @@ export const translations = {
     qualityPlates: "All plates are made of high-quality MS Steel",
     minRentDays: "Minimum rental period: 30 days",
     bulkDiscount: "Special discount on bulk orders",
+    clientExists: "A client ID already exists",
     
     // Features
     highQuality: "High Quality",

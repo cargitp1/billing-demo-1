@@ -661,7 +661,7 @@ const UdharChallan: React.FC = () => {
 
     if (existingClient) {
       toast.dismiss(loadingToast);
-      toast.error('A client with this sort name already exists');
+      toast.error(t('clientExists'));
       return;
     }
 
