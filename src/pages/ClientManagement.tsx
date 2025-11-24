@@ -4,9 +4,6 @@ import {
   Users, 
   UserPlus, 
   Search,
-  TrendingUp,
-  MapPin,
-  Phone,
   Plus,
   Filter
 } from 'lucide-react';
@@ -351,16 +348,7 @@ const ClientManagement: React.FC = () => {
     return sortedClients.slice(start, end);
   }, [allClients, searchQuery, currentPage, sortOption]);
 
-  const statistics = useMemo(() => {
-    const totalClients = clients.length;
-    const uniqueSites = new Set(clients.map(c => c.site)).size;
-    const recentClients = clients.filter(c => {
-      const createdAt = new Date((c as any).created_at || '');
-      const daysSinceCreation = (Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24);
-      return daysSinceCreation <= 30;
-    }).length;
-    return { totalClients, uniqueSites, recentClients };
-  }, [clients]);
+  
 
   const SkeletonCard = () => (
     <div className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-3 lg:p-4 animate-pulse">
@@ -477,55 +465,7 @@ const ClientManagement: React.FC = () => {
             </div>
           </div>
 
-          {/* Statistics Cards - Ultra Compact Mobile */}
-          {!loading && (
-            <div className="grid grid-cols-3 gap-1.5 mb-3 sm:gap-3 sm:mb-5 lg:gap-6 lg:mb-8">
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-md shadow-sm sm:rounded-lg lg:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-full opacity-50 sm:w-12 sm:h-12 lg:w-20 lg:h-20 bg-blue-50"></div>
-                <div className="relative p-2 sm:p-3 lg:p-6">
-                  <div className="flex flex-col gap-1 sm:gap-1.5">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">{t('totalClients')}</p>
-                      <div className="p-1 sm:p-1.5 lg:p-3 bg-blue-100 rounded sm:rounded-md lg:rounded-lg">
-                        <Users className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-blue-600" />
-                      </div>
-                    </div>
-                    <p className="text-lg font-bold text-blue-600 sm:text-xl lg:text-3xl">{statistics.totalClients}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-md shadow-sm sm:rounded-lg lg:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-full opacity-50 sm:w-12 sm:h-12 lg:w-20 lg:h-20 bg-orange-50"></div>
-                <div className="relative p-2 sm:p-3 lg:p-6">
-                  <div className="flex flex-col gap-1 sm:gap-1.5">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">{t('uniqueSites')}</p>
-                      <div className="p-1 sm:p-1.5 lg:p-3 bg-orange-100 rounded sm:rounded-md lg:rounded-lg">
-                        <MapPin className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-orange-600" />
-                      </div>
-                    </div>
-                    <p className="text-lg font-bold text-orange-600 sm:text-xl lg:text-3xl">{statistics.uniqueSites}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative overflow-hidden transition-shadow bg-white border border-gray-200 rounded-md shadow-sm sm:rounded-lg lg:rounded-xl hover:shadow-md">
-                <div className="absolute top-0 right-0 w-8 h-8 rounded-bl-full opacity-50 sm:w-12 sm:h-12 lg:w-20 lg:h-20 bg-green-50"></div>
-                <div className="relative p-2 sm:p-3 lg:p-6">
-                  <div className="flex flex-col gap-1 sm:gap-1.5">
-                    <div className="flex items-center justify-between">
-                      <p className="text-[9px] sm:text-[10px] lg:text-sm font-medium text-gray-600 leading-tight">{t('newClients')}</p>
-                      <div className="p-1 sm:p-1.5 lg:p-3 bg-green-100 rounded sm:rounded-md lg:rounded-lg">
-                        <TrendingUp className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 lg:w-7 lg:h-7 text-green-600" />
-                      </div>
-                    </div>
-                    <p className="text-lg font-bold text-green-600 sm:text-xl lg:text-3xl">{statistics.recentClients}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          
 
           {/* Client Form Section - Hidden on Mobile, Show on Desktop */}
           <div className="hidden p-4 mb-6 bg-white border border-gray-200 shadow-sm lg:block lg:p-6 lg:mb-8 rounded-xl">
