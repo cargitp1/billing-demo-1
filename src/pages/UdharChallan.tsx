@@ -847,6 +847,7 @@ const UdharChallan: React.FC = () => {
   const handleClientSelect = (clientId: string) => {
     setSelectedClientId(clientId);
     setCurrentStep('challan-details');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = () => {

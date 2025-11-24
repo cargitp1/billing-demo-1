@@ -168,7 +168,7 @@ export const translations = {
     actions: 'ક્રિયાઓ',
     backToDashboard: 'ડેશબોર્ડ પર પાછા જાઓ',
     overrideDetails: 'ફોન નંબર અને સાઇટ આ ચલણ માટે બદલો',
-    basicDetails: 'મૂળભૂત વિગતો',
+    basicDetails: 'ચલણ વિગતો',
     totalUdharChallans: 'કુલ ઉધાર ચલણ',
     totalJamaChallans: 'કુલ જમા ચલણ',
 

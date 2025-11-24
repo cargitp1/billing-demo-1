@@ -661,6 +661,7 @@ const JamaChallan: React.FC = () => {
 
       setOutstandingBalances(balances);
       setBorrowedOutstanding(borrowedBal);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
