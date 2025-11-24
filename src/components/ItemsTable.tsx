@@ -214,29 +214,29 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       {t('size')}
                     </th>
                     {outstandingBalances && (
-                      <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                      <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[80px]">
                         {t('outstanding')}
                       </th>
                     )}
                     {showAvailable && (
-                      <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                      <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[80px]">
                         {t('available')}
                       </th>
                     )}
-                    <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                    <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[80px]">
                       {t('quantity')}
                     </th>
                     {outstandingBalances && !hideColumns && (
-                      <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                      <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[80px]">
                         {t('borrowedOutstanding')}
                       </th>
                     )}
                     {!hideColumns && (
                       <>
-                        <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[70px]">
+                        <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[70px] sm:min-w-[80px]">
                           {t('borrowed')}
                         </th>
-                        <th className="px-1 py-1.5 text-[8px] sm:text-[10px] font-semibold text-center text-gray-700 min-w-[100px] sm:min-w-[120px]">
+                        <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 min-w-[120px] sm:min-w-[150px]">
                           {t('notes')}
                         </th>
                       </>
@@ -254,7 +254,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       </td>
                       {outstandingBalances && (
                         <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                          <div className={`px-1 py-0.5 text-[8px] sm:text-[10px] font-semibold rounded whitespace-nowrap ${
+                          <div className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${
                             outstandingBalances[sizeIndex] > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-200 text-gray-600'
                           }`}>
                             {outstandingBalances[sizeIndex] || 0}
@@ -263,7 +263,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       )}
                       {showAvailable && (
                         <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                          <div className={`px-1 py-0.5 text-[8px] sm:text-[10px] font-semibold rounded whitespace-nowrap ${
+                          <div className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${
                             stockData.find(s => s.size === sizeIndex)?.available_stock === 0 
                               ? 'bg-red-100 text-red-700' 
                               : 'bg-emerald-100 text-emerald-700'
@@ -284,7 +284,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       </td>
                       {outstandingBalances && !hideColumns && (
                         <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                          <div className={`px-1 py-0.5 text-[8px] sm:text-[10px] font-semibold rounded whitespace-nowrap ${
+                          <div className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${
                             (borrowedOutstanding && borrowedOutstanding[sizeIndex] > 0) ? 'bg-orange-100 text-orange-700' : 'bg-gray-200 text-gray-600'
                           }`}>
                             {borrowedOutstanding ? (borrowedOutstanding[sizeIndex] || 0) : 0}
@@ -318,7 +318,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                   ))}
                   {/* Totals Summary Row */}
                   <tr className="bg-gray-100 border-t-2 border-gray-300">
-                    <td className="sticky left-0 z-10 px-1 py-3 text-[10px] sm:text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 bg-inherit">
+                    <td className="sticky left-0 z-10 px-1 py-3 text-xs sm:text-sm font-bold text-center text-gray-900 border-r-2 border-gray-300 bg-inherit">
                       કુલ
                     </td>
                     {outstandingBalances && (
@@ -331,7 +331,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                         -
                       </td>
                     )}
-                    <td className="px-1 py-3 text-[10px] sm:text-sm font-bold text-center border-r border-gray-200">
+                    <td className="px-1 py-3 text-xs sm:text-sm font-bold text-center border-r border-gray-200">
                       <div className="px-2 py-1 rounded-lg bg-blue-50">
                         {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0), 0)} સંખ્યા
                       </div>
@@ -343,12 +343,12 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                     )}
                     {!hideColumns && (
                       <>
-                        <td className="px-1 py-3 text-[10px] sm:text-sm font-bold text-center border-r border-gray-200">
+                        <td className="px-1 py-3 text-xs sm:text-sm font-bold text-center border-r border-gray-200">
                           <div className="px-2 py-1 rounded-lg bg-orange-50">
                             {sizeIndices.reduce((total, sizeIndex) => total + (items[`size_${sizeIndex}_borrowed` as keyof ItemsData] as number || 0), 0)} ઉધાર
                           </div>
                         </td>
-                        <td className="px-1 py-3 text-[10px] sm:text-sm font-extrabold text-center">
+                        <td className="px-1 py-3 text-xs sm:text-sm font-extrabold text-center">
                           <div className="px-3 py-1.5 bg-blue-100 rounded-lg text-blue-800">
                             {sizeIndices.reduce((total, sizeIndex) => 
                               total + (items[`size_${sizeIndex}_qty` as keyof ItemsData] as number || 0) + 

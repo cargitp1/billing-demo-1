@@ -145,7 +145,7 @@ export const translations = {
 
     challanNumber: 'ચલણ નંબર',
     date: 'તારીખ',
-    driverName: 'ડ્રાઇવર નામ',
+    driverName: 'વાહન ચાલક નામ',
     alternativeSite: 'સાઇટ',
     secondaryPhone: 'ફોન નંબર',
 
