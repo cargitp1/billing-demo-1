@@ -509,7 +509,7 @@ const fetchJamaChallans = async () => {
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                     <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     <span className="hidden sm:inline">{t('udharChallans')}</span>
-                    <span className="sm:hidden">Udhar</span>
+                    <span className="sm:hidden">{t('udhar')}</span>
                     <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
                       activeTab === 'udhar' 
                         ? 'bg-red-100 text-red-700' 
@@ -530,7 +530,7 @@ const fetchJamaChallans = async () => {
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                     <Package className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     <span className="hidden sm:inline">{t('jamaChallans')}</span>
-                    <span className="sm:hidden">Jama</span>
+                    <span className="sm:hidden">{t('jama')}</span>
                     <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
                       activeTab === 'jama' 
                         ? 'bg-green-100 text-green-700' 
@@ -748,8 +748,12 @@ const fetchJamaChallans = async () => {
                     {/* Header - Date removed from here */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="text-xs font-bold text-gray-900 sm:text-sm">
-                          {challan.challanNumber}
+                        <div className={`px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-white ${
+                          activeTab === 'udhar'
+                            ? 'bg-red-600'
+                            : 'bg-green-600'
+                        }`}>
+                          #{challan.challanNumber}
                         </div>
                       </div>
                       <span className={`inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${

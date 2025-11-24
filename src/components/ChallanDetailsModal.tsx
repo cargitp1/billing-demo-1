@@ -71,36 +71,52 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900">
+        <div className="sticky top-0 flex items-center justify-between px-3 md:px-6 py-2 md:py-4 bg-white border-b border-gray-200">
+          <h2 className="text-sm md:text-2xl font-bold text-gray-900">
             {type === 'udhar' ? t('udharChallan') : t('jamaChallan')}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 transition-colors hover:text-gray-600"
           >
-            <X size={24} />
+            <X size={20} className="md:w-6 md:h-6" />
           </button>
         </div>
 
-        <div className="p-6 space-y-6">
-          <div className="p-4 rounded-lg bg-gray-50">
-            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('challanInfo')}</h3>
-            <div className="grid gap-4 md:grid-cols-2">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6">
+          {/* Challan Info - Smaller for Mobile */}
+          <div className="p-3 md:p-4 rounded-lg bg-gray-50">
+            <h3 className="mb-2 text-xs md:text-lg font-semibold text-gray-900">{t('challanInfo')}</h3>
+            {/* Mobile: One Line */}
+            <div className="md:hidden flex gap-4 text-[10px]">
+              <div className="flex-1">
+                <p className="text-gray-600">{t('challanNumber')}</p>
+                <p className="font-medium text-gray-900">{challan.challanNumber}</p>
+              </div>
+              <div className="flex-1">
+                <p className="text-gray-600">{t('date')}</p>
+                <p className="font-medium text-gray-900">
+                  {format(new Date(challan.date), 'dd/MM/yyyy')}
+                </p>
+              </div>
+            </div>
+            {/* Desktop: Grid */}
+            <div className="hidden gap-2 md:gap-4 md:grid md:grid-cols-2">
               <div>
-                <p className="text-sm text-gray-600">{t('challanNumber')}</p>
-                <p className="text-base font-medium text-gray-900">{challan.challanNumber}</p>
+                <p className="text-[10px] md:text-sm text-gray-600">{t('challanNumber')}</p>
+                <p className="text-xs md:text-base font-medium text-gray-900">{challan.challanNumber}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('date')}</p>
-                <p className="text-base font-medium text-gray-900">
+                <p className="text-[10px] md:text-sm text-gray-600">{t('date')}</p>
+                <p className="text-xs md:text-base font-medium text-gray-900">
                   {format(new Date(challan.date), 'dd/MM/yyyy')}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-blue-50">
+          {/* Client Info - Hidden on Mobile */}
+          <div className="hidden p-4 rounded-lg md:block bg-blue-50">
             <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('clientInfo')}</h3>
             <div className="grid gap-4 md:grid-cols-2">
               <div>
@@ -142,8 +158,9 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
             </div>
           </div>
 
-          <div className="p-4 bg-white border border-gray-200 rounded-lg">
-            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('items')}</h3>
+          {/* Items Section */}
+          <div className="p-3 md:p-4 bg-white border border-gray-200 rounded-lg">
+            <h3 className="mb-2 md:mb-3 text-xs md:text-lg font-semibold text-gray-900">{t('items')}</h3>
             
             {/* Desktop Table View */}
             <div className="hidden overflow-x-auto md:block">
@@ -197,43 +214,56 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
               </table>
             </div>
 
-            {/* Mobile Card View */}
-            <div className="space-y-3 md:hidden">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => {
-                const qty = challan.items[`size_${size}_qty` as keyof ItemsData] || 0;
-                const borrowed = challan.items[`size_${size}_borrowed` as keyof ItemsData] || 0;
-                const note = challan.items[`size_${size}_note` as keyof ItemsData] || '';
+            {/* Mobile Table View - Compact */}
+            <div className="md:hidden overflow-x-auto -mx-4 sm:-mx-0">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 border-b border-gray-300">
+                    <th className="sticky left-0 z-10 px-2 py-1.5 text-[10px] font-semibold text-left text-gray-700 bg-gray-100 border-r border-gray-300">
+                      {t('size')}
+                    </th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold text-center text-gray-700 border-r border-gray-300">
+                      {t('quantity')}
+                    </th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold text-center text-gray-700 border-r border-gray-300">
+                      {t('borrowedStock')}
+                    </th>
+                    <th className="px-2 py-1.5 text-[10px] font-semibold text-left text-gray-700">
+                      {t('note')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => {
+                    const qty = challan.items[`size_${size}_qty` as keyof ItemsData] || 0;
+                    const borrowed = challan.items[`size_${size}_borrowed` as keyof ItemsData] || 0;
+                    const note = challan.items[`size_${size}_note` as keyof ItemsData] || '';
 
-                if (qty === 0 && borrowed === 0 && !note) return null;
+                    if (qty === 0 && borrowed === 0 && !note) return null;
 
-                return (
-                  <div key={size} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-900">{PLATE_SIZES[size - 1]}</span>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">{t('quantity')}:</span>
-                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">
-                          {qty}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs text-gray-600">{t('borrowedStock')}:</span>
-                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">
-                          {borrowed}
-                        </span>
-                      </div>
-                      {note && (
-                        <div className="flex justify-between items-start">
-                          <span className="text-xs text-gray-600">{t('note')}:</span>
-                          <span className="text-xs text-gray-700 max-w-[200px] text-right">{note}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                    return (
+                      <tr key={size} className="border-b border-gray-200">
+                        <td className="sticky left-0 z-10 px-2 py-1.5 text-[10px] font-medium text-gray-900 whitespace-nowrap bg-inherit border-r border-gray-200">
+                          {PLATE_SIZES[size - 1]}
+                        </td>
+                        <td className="px-2 py-1.5 text-[10px] text-center text-gray-900 whitespace-nowrap border-r border-gray-200">
+                          <span className="inline-block min-w-[28px] px-1.5 py-0.5 bg-blue-100 text-blue-800 rounded text-[9px] font-semibold">
+                            {qty}
+                          </span>
+                        </td>
+                        <td className="px-2 py-1.5 text-[10px] text-center text-gray-900 whitespace-nowrap border-r border-gray-200">
+                          <span className="inline-block min-w-[28px] px-1.5 py-0.5 bg-orange-100 text-orange-800 rounded text-[9px] font-semibold">
+                            {borrowed}
+                          </span>
+                        </td>
+                        <td className="px-2 py-1.5 text-[9px] text-gray-600 max-w-[100px] truncate">
+                          {note || '-'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
             {challan.items.main_note && (
@@ -243,25 +273,25 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
               </div>
             )}
 
-            <div className="mt-4 text-right">
-              <p className="text-lg font-semibold text-gray-900">
+            <div className="mt-2 md:mt-4 text-right">
+              <p className="text-xs md:text-lg font-semibold text-gray-900">
                 {t('totalItems')}: {challan.totalItems} {t('pieces')}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="sticky bottom-0 flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="sticky bottom-0 flex justify-end gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-4 border-t border-gray-200 bg-gray-50">
           <button
             onClick={() => onDownload(challan)}
-            className="flex items-center gap-2 px-4 py-2 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
+            className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1 md:py-2 text-xs md:text-sm text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
           >
-            <Download size={20} />
+            <Download size={16} className="md:w-5 md:h-5" />
             {t('downloadJPEG')}
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-800 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300"
+            className="px-2 md:px-4 py-1 md:py-2 text-xs md:text-sm text-gray-800 transition-colors bg-gray-200 rounded-lg hover:bg-gray-300"
           >
             {t('close')}
           </button>
