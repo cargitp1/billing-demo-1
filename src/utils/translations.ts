@@ -337,7 +337,7 @@ export const translations = {
     jama: 'જમા',
     grandTotal: 'કુલ',
     mainStock: 'મુખ્ય સ્ટોક',
-    transactionHistory: 'વ્યવહાર ઇતિહાસ',
+    transactionHistory: 'ચલણ ઇતિહાસ',
     noTransactions: 'હજુ સુધી કોઈ વ્યવહાર નથી',
     downloadLedger: 'ખાતાવહી ડાઉનલોડ કરો',
     expand: 'વિસ્તૃત કરો',

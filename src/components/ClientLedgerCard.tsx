@@ -72,7 +72,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
   return (
     <div className="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md">
       <div
-        className="p-4 transition-colors cursor-pointer sm:p-5 hover:bg-gray-50"
+        className="p-4 pb-2 transition-colors cursor-pointer sm:p-5 sm:pb-3 hover:bg-gray-50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {/* Desktop Layout */}
@@ -105,7 +105,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
 
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
-              <span className="text-xs text-gray-500">Balance</span>
+              <span className="text-xs text-gray-500">કુલ બહાર</span>
               <span className={`text-sm font-semibold ${ledger.currentBalance.grandTotal > 0 ? 'text-amber-600' : 'text-green-600'}`}>
                 {ledger.currentBalance.grandTotal}
               </span>
@@ -169,7 +169,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             </div>
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-end">
-                <span className="text-[10px] text-gray-500">Balance</span>
+                <span className="text-[10px] text-gray-500">કુલ બહાર</span>
                 <span className={`text-sm font-semibold ${ledger.currentBalance.grandTotal > 0 ? 'text-amber-600' : 'text-green-600'}`}>
                   {ledger.currentBalance.grandTotal}
                 </span>
@@ -178,50 +178,52 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               <div className="flex flex-shrink-0 gap-1">
                 <button
                   onClick={handleCreateUdhar}
-                  className="p-1.5 text-[10px] font-medium text-white bg-red-500 hover:bg-red-600 rounded-full transition-colors touch-manipulation active:scale-95 flex items-center"
+                  className="p-1.5 text-[10px] font-medium text-white bg-red-300 hover:bg-red-600 rounded-lg transition-colors touch-manipulation active:scale-95 flex items-center justify-center"
                   aria-label="Create Udhar"
                 >
                   <Plus className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={handleCreateJama}
-                  className="p-1.5 text-[10px] font-medium text-white bg-green-500 hover:bg-green-600 rounded-full transition-colors touch-manipulation active:scale-95 flex items-center justify-center"
+                  className="p-1.5 text-[10px] font-medium text-white bg-green-300 hover:bg-green-600 rounded-lg transition-colors touch-manipulation active:scale-95 flex items-center justify-center"
                   aria-label="Create Jama"
                 >
-                  <span className="text-lg font-bold leading-none" style={{ marginTop: '-2px' }}>-</span>
+                  <span className="text-base font-bold leading-none">−</span>
                 </button>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDownloadLedger();
                   }}
-                  className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors touch-manipulation active:scale-95"
+                  className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation active:scale-95"
                   aria-label="Download Ledger"
                 >
                   <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
-                <button
-                  className="p-1.5 sm:p-2 text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors touch-manipulation active:scale-95"
-                  aria-label={isExpanded ? "Collapse" : "Expand"}
-                >
-                  {isExpanded ? (
-                    <ChevronUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  ) : (
-                    <ChevronDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  )}
-                </button>
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 mt-2 text-[10px] sm:text-xs text-gray-600">
-            <span className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span className="truncate">{ledger.clientSite}</span>
-            </span>
-            <span className="flex items-center gap-1">
-              <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              <span>{ledger.clientPhone}</span>
-            </span>
+          <div className="flex items-center justify-between text-[10px] sm:text-xs text-gray-600">
+            <div className="flex items-center flex-1 gap-2">
+              <span className="flex items-center gap-1">
+                <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span className="truncate">{ledger.clientSite}</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                <span>{ledger.clientPhone}</span>
+              </span>
+            </div>
+            <button
+              className="flex-shrink-0 ml-1 text-gray-600"
+              aria-label={isExpanded ? "Collapse" : "Expand"}
+            >
+              {isExpanded ? (
+                <ChevronUp className="w-2.5 h-2.5" />
+              ) : (
+                <ChevronDown className="w-2.5 h-2.5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
@@ -232,7 +234,6 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             <h4 className="font-semibold text-gray-700 text-md">
               {t.transactionHistory}
             </h4>
-            <span className="text-xs text-gray-500 md:hidden">Swipe to scroll →</span>
           </div>
           <TransactionTable
             transactions={ledger.transactions || []}

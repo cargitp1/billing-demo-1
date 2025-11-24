@@ -139,7 +139,7 @@ export default function ClientLedgerDownload({
         fontWeight: '700',
         color: '#111827'
       }}>
-        Client Ledger
+        ક્લાયન્ટ લેજર
       </div>
 
       <div style={{
@@ -176,7 +176,7 @@ export default function ClientLedgerDownload({
         fontSize: '12px',
         color: '#9ca3af'
       }}>
-        Generated on: {new Date().toLocaleDateString('en-GB')} at {new Date().toLocaleTimeString('en-GB')}
+        બનાવેલ: {new Date().toLocaleDateString('en-GB')} વર્તમાન સમય {new Date().toLocaleTimeString('en-GB')}
       </div>
 
       <div style={{
@@ -195,16 +195,16 @@ export default function ClientLedgerDownload({
         textTransform: 'uppercase',
         color: '#374151'
       }}>
-        <div style={{ position: 'absolute', left: '10px', width: '100px' }}>Challan #</div>
-        <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, width: '80px' }}>Date</div>
-        <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, width: '60px', textAlign: 'center' }}>Total</div>
+        <div style={{ position: 'absolute', left: '10px', width: '100px' }}>ચલણ #</div>
+        <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, width: '80px' }}>તારીખ</div>
+        <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, width: '60px', textAlign: 'center' }}>કુલ</div>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size, idx) => (
           <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
             {PLATE_SIZES[size - 1]}
           </div>
         ))}
-        <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px`, width: '100px' }}>Site</div>
-        <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px`, width: '100px' }}>Driver</div>
+        <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px`, width: '100px' }}>સાઇટ</div>
+        <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px`, width: '100px' }}>ડ્રાઇવર</div>
       </div>
 
       <div style={{
@@ -221,7 +221,7 @@ export default function ClientLedgerDownload({
       }}>
         <div style={{ position: 'absolute', left: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{ width: '12px', height: '12px', backgroundColor: '#2563eb', borderRadius: '50%' }}></div>
-          <span>Current Balance</span>
+          <span>વર્તમાન બાલેન્સ</span>
         </div>
         <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
         <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, fontSize: '18px', textAlign: 'center', width: '60px' }}>
@@ -294,19 +294,19 @@ export default function ClientLedgerDownload({
         fontSize: '14px'
       }}>
         <div style={{ flex: 1, padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px' }}>
-          <p style={{ fontWeight: '600', color: '#b91c1c', marginBottom: '8px' }}>Udhar Challans</p>
+          <p style={{ fontWeight: '600', color: '#b91c1c', marginBottom: '8px' }}>ઉધાર ચલણ</p>
           <p style={{ fontSize: '24px', fontWeight: '700', color: '#991b1b' }}>
             {transactions.filter(t => t.type === 'udhar').length}
           </p>
         </div>
         <div style={{ flex: 1, padding: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
-          <p style={{ fontWeight: '600', color: '#15803d', marginBottom: '8px' }}>Jama Challans</p>
+          <p style={{ fontWeight: '600', color: '#15803d', marginBottom: '8px' }}>જમા ચલણ</p>
           <p style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>
             {transactions.filter(t => t.type === 'jama').length}
           </p>
         </div>
         <div style={{ flex: 1, padding: '16px', backgroundColor: '#dbeafe', border: '1px solid #bfdbfe', borderRadius: '8px' }}>
-          <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>Outstanding Balance</p>
+          <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>બાકી બાલેન્સ</p>
           <p style={{ fontSize: '24px', fontWeight: '700', color: '#1e3a8a' }}>
             {currentBalance.grandTotal}
           </p>
