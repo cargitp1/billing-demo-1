@@ -106,8 +106,8 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
           <div className="flex items-center gap-4">
             <div className="flex flex-col">
               <span className="text-xs text-gray-500">કુલ બહાર</span>
-              <span className={`text-sm font-semibold ${ledger.currentBalance.grandTotal > 0 ? 'text-amber-600' : 'text-green-600'}`}>
-                {ledger.currentBalance.grandTotal}
+              <span className={`text-sm font-semibold ${(ledger.currentBalance?.grandTotal ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                {ledger.currentBalance?.grandTotal ?? 0}
               </span>
             </div>
 
@@ -170,8 +170,8 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-end">
                 <span className="text-[10px] text-gray-500">કુલ બહાર</span>
-                <span className={`text-sm font-semibold ${ledger.currentBalance.grandTotal > 0 ? 'text-amber-600' : 'text-green-600'}`}>
-                  {ledger.currentBalance.grandTotal}
+                <span className={`text-sm font-semibold ${(ledger.currentBalance?.grandTotal ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'}`}>
+                  {ledger.currentBalance?.grandTotal ?? 0}
                 </span>
               </div>
 

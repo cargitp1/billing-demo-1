@@ -233,7 +233,7 @@ export default function ClientLedger() {
       sizes: {}
     };
 
-    // Initialize sizes
+    // Initialize sizes - do this ALWAYS, not just when loadTransactions is true
     for (let i = 1; i <= 9; i++) {
       currentBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
     }
