@@ -242,9 +242,9 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
               <User className="w-5 h-5 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold text-gray-900 truncate">{selectedClient.client_nic_name}</h4>
-              <p className="text-[10px] text-gray-700 truncate">{selectedClient.client_name}</p>
-              <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-600">
+              <h4 className="text-base font-semibold text-gray-900 truncate">{selectedClient.client_nic_name}</h4>
+              <p className="text-xs text-gray-700 truncate">{selectedClient.client_name}</p>
+              <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
                 <span className="flex items-center gap-1">
                   <MapPin className="flex-shrink-0 w-3 h-3 text-green-600" />
                   <span className="truncate">{selectedClient.site}</span>
@@ -276,13 +276,13 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
             </div>
             <div className="flex-1 min-w-0">
               <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base lg:text-lg">{selectedClient.client_nic_name}</h4>
-              <p className="text-[10px] sm:text-xs lg:text-sm text-gray-700 truncate">{selectedClient.client_name}</p>
+              <p className="text-xs sm:text-xs lg:text-sm text-gray-700 truncate">{selectedClient.client_name}</p>
               <div className="grid grid-cols-1 gap-1 mt-2 sm:grid-cols-2 sm:gap-2 lg:mt-3">
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs lg:text-sm text-gray-600">
                   <MapPin className="flex-shrink-0 w-3 h-3 text-green-600 sm:w-3.5 sm:h-3.5" />
                   <span className="truncate">{selectedClient.site}</span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-xs lg:text-sm text-gray-600">
                   <Phone className="flex-shrink-0 w-3 h-3 text-green-600 sm:w-3.5 sm:h-3.5" />
                   <span className="truncate">{selectedClient.primary_phone_number}</span>
                 </div>
@@ -304,7 +304,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
             </div>
           <div className="grid gap-2 sm:gap-3 md:grid-cols-2 lg:gap-4">
             <div>
-              <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
+              <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-xs sm:text-xs lg:text-sm font-medium text-gray-700">
                 <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {t('challanNumber')} <span className="text-red-500">*</span>
               </label>
@@ -314,13 +314,13 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   value={challanNumber}
                   onChange={(e) => setChallanNumber(e.target.value)}
                   placeholder="Challan #"
-                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm ${
+                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-sm ${
                     errors.challanNumber ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
                 <button
                   onClick={() => setHideExtraColumns(!hideExtraColumns)}
-                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-2 sm:px-3 text-[10px] sm:text-xs font-medium text-green-600 transition-colors rounded-md sm:rounded-lg bg-green-50 hover:bg-green-100 touch-manipulation active:scale-95 border border-green-100 whitespace-nowrap"
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-2 sm:px-3 text-xs sm:text-xs font-medium text-green-600 transition-colors rounded-md sm:rounded-lg bg-green-50 hover:bg-green-100 touch-manipulation active:scale-95 border border-green-100 whitespace-nowrap"
                 >
                   {hideExtraColumns ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   <span>
@@ -329,7 +329,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                 </button>
               </div>
               {errors.challanNumber && (
-                <p className="mt-1 text-[10px] sm:text-xs text-red-600 flex items-center gap-1">
+                <p className="mt-1 text-xs sm:text-xs text-red-600 flex items-center gap-1">
                   <span>•</span> {errors.challanNumber}
                 </p>
               )}
@@ -337,7 +337,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
 
             <div className="flex gap-2 sm:gap-3 lg:gap-4">
               <div className="w-1/2">
-                <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
+                <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-xs sm:text-xs lg:text-sm font-medium text-gray-700">
                   <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   {t('date')} <span className="text-red-500">*</span>
                 </label>
@@ -345,19 +345,19 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm ${
+                  className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-sm ${
                     errors.date ? 'border-red-500' : 'border-gray-300'
                   }`}
                 />
                 {errors.date && (
-                  <p className="mt-1 text-[10px] sm:text-xs text-red-600 flex items-center gap-1">
+                  <p className="mt-1 text-xs sm:text-xs text-red-600 flex items-center gap-1">
                     <span>•</span> {errors.date}
                   </p>
                 )}
               </div>
 
               <div className="w-1/2">
-                <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
+                <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-xs sm:text-xs lg:text-sm font-medium text-gray-700">
                   <User className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                   {t('driverName')}
                 </label>
@@ -412,7 +412,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
           </div>
           {errors.items && (
             <div className="p-2 mb-3 border border-red-200 rounded-lg sm:p-3 sm:mb-4 bg-red-50">
-              <p className="flex items-center gap-1.5 text-[10px] sm:text-xs text-red-600">
+              <p className="flex items-center gap-1.5 text-xs sm:text-xs text-red-600">
                 <span>⚠</span> {errors.items}
               </p>
             </div>
