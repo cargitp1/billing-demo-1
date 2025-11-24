@@ -274,15 +274,39 @@ const ClientManagement: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Show a toast-based confirmation with Cancel and Delete actions
+  const showDeleteConfirmToast = (clientName?: string): Promise<boolean> => {
+    return new Promise<boolean>((resolve) => {
+      const toastId = toast(() => (
+        <div className="max-w-sm">
+          <div className="mb-2 font-medium">{t('deleteConfirm')}</div>
+          {clientName && <div className="mb-3 text-sm truncate">"{clientName}"</div>}
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => { toast.dismiss(String(toastId)); resolve(false); }}
+              className="px-3 py-1 text-sm text-gray-700 bg-gray-100 rounded-lg"
+            >
+              {t('cancel')}
+            </button>
+            <button
+              onClick={() => { toast.dismiss(String(toastId)); resolve(true); }}
+              className="px-3 py-1 text-sm text-white bg-red-600 rounded-lg"
+            >
+              {t('delete')}
+            </button>
+          </div>
+        </div>
+      ), { duration: Infinity });
+    });
+  };
+
   const handleDelete = async (id: string) => {
     const client = clients.find(c => c.id === id);
-    const confirmed = window.confirm(
-      `${t('deleteConfirm')} "${client?.client_nic_name}"?\n\n${t('cannotUndo')}`
-    );
+    const confirmed = await showDeleteConfirmToast(client?.client_nic_name);
 
     if (!confirmed) return;
 
-    const loadingToast = toast.loading('Deleting client...');
+    const loadingToast = toast.loading(t('deletingClient') || 'Deleting client...');
 
     const { error } = await supabase
       .from('clients')
@@ -293,9 +317,9 @@ const ClientManagement: React.FC = () => {
 
     if (error) {
       console.error('Error deleting client:', error);
-        toast.error(t('failedToDelete'));
+      toast.error(t('failedToDelete'));
     } else {
-        toast.success(t('clientDeleted'));
+      toast.success(t('clientDeleted'));
       fetchClients();
     }
   };

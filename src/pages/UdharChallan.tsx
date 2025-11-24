@@ -162,14 +162,17 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
                 </div>
                 <ChevronRight className="flex-shrink-0 w-4 h-4 text-gray-400 transition-transform sm:w-5 sm:h-5 group-hover:translate-x-1" />
               </div>
-              <div className="pt-2 mt-2 space-y-1 border-t border-gray-100 sm:pt-3 sm:mt-3 sm:space-y-1.5 lg:space-y-2">
-                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm text-gray-600">
-                  <MapPin className="flex-shrink-0 w-3 h-3 text-gray-400 sm:w-3.5 sm:h-3.5" />
-                  <span className="truncate">{client.site}</span>
-                </div>
-                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs lg:text-sm text-gray-600">
-                  <Phone className="flex-shrink-0 w-3 h-3 text-gray-400 sm:w-3.5 sm:h-3.5" />
-                  <span>{client.primary_phone_number}</span>
+              <div className="pt-2 mt-2 border-t border-gray-100 sm:pt-3 sm:mt-3">
+                {/* Mobile: Location and Phone in one line | Desktop: Stacked */}
+                <div className="flex items-center gap-2 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="flex-shrink-0 w-3 h-3 text-gray-400 sm:w-3.5 sm:h-3.5" />
+                    <span className="truncate">{client.site}</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Phone className="flex-shrink-0 w-3 h-3 text-gray-400 sm:w-3.5 sm:h-3.5" />
+                    <span className="truncate">{client.primary_phone_number}</span>
+                  </span>
                 </div>
               </div>
             </button>
