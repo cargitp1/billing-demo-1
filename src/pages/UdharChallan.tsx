@@ -250,38 +250,60 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
-      {/* Header with Back Button - Mobile Compact */}
-      <div className="flex items-center gap-2 p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:gap-3 sm:p-4 lg:gap-4 lg:p-6 sm:rounded-xl">
-        <button
-          onClick={onBack}
-          className="p-1.5 sm:p-2 text-gray-600 transition-colors rounded-md sm:rounded-lg hover:text-gray-900 hover:bg-gray-100 touch-manipulation active:scale-95"
-        >
-          <ArrowLeft className="w-5 h-5 sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
-        </button>
-        <div className="flex-1">
-          <h3 className="text-base font-semibold text-gray-900 sm:text-lg lg:text-xl">{t('challanDetails')}</h3>
-          <p className="mt-0.5 text-[10px] sm:text-xs lg:text-sm text-gray-500">Complete challan info</p>
-        </div>
-      </div>
-
-      {/* Selected Client Info - Compact Mobile */}
+      {/* Selected Client Info - Compact Mobile with Back Button */}
       <div className="relative p-3 overflow-hidden border border-blue-200 rounded-lg shadow-sm sm:p-4 lg:p-6 bg-gradient-to-br from-blue-50 to-indigo-50 sm:rounded-xl">
         <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full opacity-30 sm:w-24 sm:h-24 lg:w-32 lg:h-32"></div>
-        <div className="relative flex items-start gap-2 sm:gap-3 lg:gap-4">
-          <div className="p-2 bg-blue-600 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-            <User className="w-5 h-5 text-white sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base lg:text-lg">{selectedClient.client_nic_name}</h4>
-            <p className="text-[10px] sm:text-xs lg:text-sm text-gray-700 truncate">{selectedClient.client_name}</p>
-            <div className="grid grid-cols-1 gap-1 mt-2 sm:grid-cols-2 sm:gap-2 lg:mt-3">
-              <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
-                <MapPin className="flex-shrink-0 w-3 h-3 text-blue-600 sm:w-3.5 sm:h-3.5" />
-                <span className="truncate">{selectedClient.site}</span>
+        <div className="relative">
+          {/* Mobile Layout */}
+          <div className="flex items-start gap-2 sm:hidden">
+            <div className="p-2 bg-blue-600 rounded-md">
+              <User className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900 truncate">{selectedClient.client_nic_name}</h4>
+              <p className="text-[10px] text-gray-700 truncate">{selectedClient.client_name}</p>
+              <div className="flex items-center gap-2 mt-2 text-[10px] text-gray-600">
+                <span className="flex items-center gap-1">
+                  <MapPin className="flex-shrink-0 w-3 h-3 text-blue-600" />
+                  <span className="truncate">{selectedClient.site}</span>
+                </span>
+                <span className="flex items-center gap-1">
+                  <Phone className="flex-shrink-0 w-3 h-3 text-blue-600" />
+                  <span className="truncate">{selectedClient.primary_phone_number}</span>
+                </span>
               </div>
-              <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
-                <Phone className="flex-shrink-0 w-3 h-3 text-blue-600 sm:w-3.5 sm:h-3.5" />
-                <span className="truncate">{selectedClient.primary_phone_number}</span>
+            </div>
+            <button
+              onClick={onBack}
+              className="flex-shrink-0 p-2 text-gray-600 transition-colors rounded-md hover:text-gray-900 hover:bg-gray-100 touch-manipulation active:scale-95"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="items-start hidden gap-2 sm:flex lg:gap-4">
+            <button
+              onClick={onBack}
+              className="flex-shrink-0 p-2 text-gray-600 transition-colors rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg hover:text-gray-900 hover:bg-gray-100 touch-manipulation active:scale-95"
+            >
+              <ArrowLeft className="w-5 h-5 sm:w-5 sm:h-5 lg:w-5 lg:h-5" />
+            </button>
+            <div className="p-2 bg-blue-600 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
+              <User className="w-5 h-5 text-white sm:w-6 sm:h-6 lg:w-7 lg:h-7" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-semibold text-gray-900 truncate sm:text-base lg:text-lg">{selectedClient.client_nic_name}</h4>
+              <p className="text-[10px] sm:text-xs lg:text-sm text-gray-700 truncate">{selectedClient.client_name}</p>
+              <div className="grid grid-cols-1 gap-1 mt-2 sm:grid-cols-2 sm:gap-2 lg:mt-3">
+                <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                  <MapPin className="flex-shrink-0 w-3 h-3 text-blue-600 sm:w-3.5 sm:h-3.5" />
+                  <span className="truncate">{selectedClient.site}</span>
+                </div>
+                <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                  <Phone className="flex-shrink-0 w-3 h-3 text-blue-600 sm:w-3.5 sm:h-3.5" />
+                  <span className="truncate">{selectedClient.primary_phone_number}</span>
+                </div>
               </div>
             </div>
           </div>
