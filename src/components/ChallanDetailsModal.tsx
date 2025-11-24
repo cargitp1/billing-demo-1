@@ -144,7 +144,9 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
 
           <div className="p-4 bg-white border border-gray-200 rounded-lg">
             <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('items')}</h3>
-            <div className="overflow-x-auto -mx-4 sm:mx-0">
+            
+            {/* Desktop Table View */}
+            <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -193,6 +195,45 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
                   })}
                 </tbody>
               </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="space-y-3 md:hidden">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => {
+                const qty = challan.items[`size_${size}_qty` as keyof ItemsData] || 0;
+                const borrowed = challan.items[`size_${size}_borrowed` as keyof ItemsData] || 0;
+                const note = challan.items[`size_${size}_note` as keyof ItemsData] || '';
+
+                if (qty === 0 && borrowed === 0 && !note) return null;
+
+                return (
+                  <div key={size} className="p-3 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-900">{PLATE_SIZES[size - 1]}</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-600">{t('quantity')}:</span>
+                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 rounded">
+                          {qty}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-gray-600">{t('borrowedStock')}:</span>
+                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-orange-100 text-orange-800 rounded">
+                          {borrowed}
+                        </span>
+                      </div>
+                      {note && (
+                        <div className="flex justify-between items-start">
+                          <span className="text-xs text-gray-600">{t('note')}:</span>
+                          <span className="text-xs text-gray-700 max-w-[200px] text-right">{note}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {challan.items.main_note && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, AlertCircle, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Phone, Filter } from 'lucide-react';
+import { Eye, Trash2, Edit as EditIcon, Download, Search, RefreshCw, FileText, Package, Calendar, ChevronLeft, ChevronRight, MapPin, Filter } from 'lucide-react';
 import ReceiptTemplate from '../components/ReceiptTemplate';
 
 type SortOption = 'dateNewOld' | 'dateOldNew' | 'numberHighLow' | 'numberLowHigh';
@@ -764,30 +764,24 @@ const fetchJamaChallans = async () => {
 
                     {/* Client Info */}
                     <div className="pb-3 mb-3 space-y-2 text-xs border-b border-gray-300 sm:text-sm">
-                      <div>
+                      {/* Line 1: Client Sort Name and Full Name (Mobile) */}
+                      <div className="flex gap-2 sm:hidden">
+                        <span className="font-semibold text-gray-900">{challan.clientNicName}</span>
+                        <span className="text-gray-600">-</span>
+                        <span className="text-gray-600">{challan.clientFullName}</span>
+                      </div>
+
+                      {/* Desktop View */}
+                      <div className="hidden sm:block">
                         <span className="font-semibold text-gray-900">{challan.clientNicName}</span>
                         <div className="text-[10px] sm:text-xs text-gray-600">{challan.clientFullName}</div>
                       </div>
                       
-                      {/* Line 1: Date and Driver Name */}
+                      {/* Line 2: Date and Location */}
                       <div className="flex flex-wrap gap-3">
                         <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
                           <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                           <span>{challan.date ? format(new Date(challan.date), 'dd/MM/yyyy') : 'N/A'}</span>
-                        </div>
-                        {challan.driverName && (
-                          <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
-                            <span className="font-medium">Driver:</span>
-                            <span className="truncate">{challan.driverName}</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Line 2: Phone Number and Site */}
-                      <div className="flex flex-wrap gap-3">
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 shrink-0">
-                          <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                          <span>{challan.phone}</span>
                         </div>
                         <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700 min-w-0 flex-1">
                           <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
