@@ -476,7 +476,7 @@ const fetchJamaChallans = async () => {
       />
       <Navbar />
       <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
-        <div className="w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl">
+        <div className={`w-full px-3 py-3 pb-20 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-12 lg:pb-12 max-w-7xl ${showDetailsModal || showEditModal ? 'blur-sm' : ''} transition-all duration-200`}>
           {/* Header - Desktop Only */}
           <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
             <div className="flex-1">
