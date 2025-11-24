@@ -449,7 +449,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                                 ] as number) || 0),
                               0
                             )}{" "}
-                            ઉધાર
+                            માર્કો
                           </div>
                         </td>
                       </>
