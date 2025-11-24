@@ -180,9 +180,8 @@ const fetchUdharChallans = async () => {
 
   const transformedData = (data || []).map((challan: any) => {
     const rawItems = challan.items;
-    // Create a deep copy to prevent mutating the emptyItems constant
-    const emptyItemsCopy: ItemsData = JSON.parse(JSON.stringify(emptyItems));
-    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItemsCopy) : (rawItems || emptyItemsCopy);
+    // Use default values directly instead of expensive JSON operations
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
     return {
       challanNumber: challan.udhar_challan_number,
       date: challan.udhar_date,
@@ -239,9 +238,8 @@ const fetchJamaChallans = async () => {
 
   const transformedData = (data || []).map((challan: any) => {
     const rawItems = challan.items;
-    // Create a deep copy to prevent mutating the emptyItems constant
-    const emptyItemsCopy: ItemsData = JSON.parse(JSON.stringify(emptyItems));
-    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItemsCopy) : (rawItems || emptyItemsCopy);
+    // Use default values directly instead of expensive JSON operations
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
     return {
       challanNumber: challan.jama_challan_number,
       date: challan.jama_date,

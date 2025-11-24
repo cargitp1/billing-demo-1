@@ -162,52 +162,57 @@ export default function ClientLedger() {
     
     const query = searchQuery.toLowerCase().trim();
     
-    // Try to parse the search term as a number
+    // Try to parse the search term as a number once
     const searchNum = parseInt(query);
     const isSearchingNumber = !isNaN(searchNum);
 
     return clients.filter(client => {
       // If searching for a number, try to match it against the numeric part of client_nic_name
       if (isSearchingNumber) {
-        const nicNameMatch = client.client_nic_name?.match(/^(\d+)/);
-        if (nicNameMatch) {
-          const clientNum = parseInt(nicNameMatch[1]);
-          if (clientNum === searchNum) return true;
-        }
+        const nicName = client.client_nic_name || '';
+        const nicNameMatch = nicName.match(/^(\d+)/);
+        if (nicNameMatch && parseInt(nicNameMatch[1]) === searchNum) return true;
       }
 
-      // Standard text search
-      return (
-        (client.client_nic_name || '').toLowerCase().includes(query) ||
-        (client.client_name || '').toLowerCase().includes(query) ||
-        (client.site || '').toLowerCase().includes(query)
-      );
+      // Standard text search with cached lowercase values
+      const nicLower = (client.client_nic_name || '').toLowerCase();
+      const nameLower = (client.client_name || '').toLowerCase();
+      const siteLower = (client.site || '').toLowerCase();
+      
+      return nicLower.includes(query) || nameLower.includes(query) || siteLower.includes(query);
     });
   }, [searchQuery]);
 
-  // Calculate total counts
+  // Create a ledgers map for O(1) lookup instead of O(n) find
+  const ledgersMap = useMemo(() => {
+    const map = new Map<string, ClientLedgerData>();
+    ledgers.forEach(ledger => map.set(ledger.clientId, ledger));
+    return map;
+  }, [ledgers]);
+
+  // Calculate total counts with optimized filtered clients
+  const filteredClients = useMemo(() => getFilteredClients(allClients), [allClients, getFilteredClients]);
+  
   const { filteredCount, hasMore } = useMemo(() => {
-    const filteredClients = getFilteredClients(allClients);
     return {
       filteredCount: filteredClients.length,
       hasMore: currentPage * ITEMS_PER_PAGE < filteredClients.length
     };
-  }, [allClients, currentPage, getFilteredClients]);
+  }, [filteredClients, currentPage]);
 
-  // Helper functions
+  // Optimized size calculation with single loop
   const calculateTotalsFromChallans = useCallback((challans: any[]): SizeBalance => {
-    const totals: SizeBalance = {
+    const totals = {
       size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0,
       size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0
-    };
+    } as SizeBalance;
+    
     challans?.forEach((challan: any) => {
       const items = challan.items;
       if (items) {
         for (let size = 1; size <= 9; size++) {
           const key = `size_${size}` as keyof SizeBalance;
-          const qtyKey = `size_${size}_qty`;
-          const borrowedKey = `size_${size}_borrowed`;
-          const qty = (items[qtyKey] || 0) + (items[borrowedKey] || 0);
+          const qty = (items[`size_${size}_qty`] || 0) + (items[`size_${size}_borrowed`] || 0);
           totals[key] += qty;
           totals.grandTotal += qty;
         }
@@ -228,6 +233,7 @@ export default function ClientLedger() {
       sizes: {}
     };
 
+    // Initialize sizes
     for (let i = 1; i <= 9; i++) {
       currentBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
     }
@@ -235,16 +241,23 @@ export default function ClientLedger() {
     if (loadTransactions) {
       try {
         const rawTransactions = await fetchClientTransactions(client.id);
+        
+        // Process transactions with optimized calculation
+        const udharList: any[] = [];
+        const jamaList: any[] = [];
+        
         transactions = rawTransactions.map((t: any) => {
           const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
           let grandTotal = 0;
+          
           for (let i = 1; i <= 9; i++) {
             const qty = t.items[`size_${i}_qty`] || 0;
             const borrowed = t.items[`size_${i}_borrowed`] || 0;
             sizes[i] = { qty, borrowed };
             grandTotal += qty + borrowed;
           }
-          return {
+          
+          const transaction = {
             type: t.type,
             challanNumber: t.challanNumber,
             challanId: t.challanNumber,
@@ -255,23 +268,24 @@ export default function ClientLedger() {
             driverName: t.driverName || '',
             items: t.items
           };
+          
+          // Group for balance calculation
+          if (t.type === 'udhar') udharList.push(transaction);
+          else jamaList.push(transaction);
+          
+          return transaction;
         });
 
-        const udharChallans = transactions.filter(t => t.type === 'udhar');
-        const jamaChallans = transactions.filter(t => t.type === 'jama');
-        udharTotals = calculateTotalsFromChallans(udharChallans);
-        jamaTotals = calculateTotalsFromChallans(jamaChallans);
+        udharTotals = calculateTotalsFromChallans(udharList);
+        jamaTotals = calculateTotalsFromChallans(jamaList);
 
+        // Calculate balance in single pass
         transactions.forEach(transaction => {
+          const multiplier = transaction.type === 'udhar' ? 1 : -1;
           for (let i = 1; i <= 9; i++) {
             const size = transaction.sizes[i];
-            if (transaction.type === 'udhar') {
-              currentBalance.sizes[i].main += size.qty;
-              currentBalance.sizes[i].borrowed += size.borrowed;
-            } else {
-              currentBalance.sizes[i].main -= size.qty;
-              currentBalance.sizes[i].borrowed -= size.borrowed;
-            }
+            currentBalance.sizes[i].main += size.qty * multiplier;
+            currentBalance.sizes[i].borrowed += size.borrowed * multiplier;
             currentBalance.sizes[i].total = currentBalance.sizes[i].main + currentBalance.sizes[i].borrowed;
           }
         });
@@ -330,19 +344,19 @@ export default function ClientLedger() {
     }
   }, [fetchClients, transformClientToLedgerData]);
 
-  // Load visible ledgers when needed
+  // Optimized: Load visible ledgers when needed using ledgersMap for O(1) lookups
   const loadVisibleLedgers = useCallback(async () => {
     if (loadingMore) return;
     setLoadingMore(true);
     try {
-      const filteredClients = getFilteredClients(allClients);
       const start = 0;
       const end = currentPage * ITEMS_PER_PAGE;
       const paginatedClients = filteredClients.slice(start, end);
       
-      const unloadedClients = paginatedClients.filter(client => 
-        !ledgers.some(l => l.clientId === client.id && l.transactionsLoaded)
-      );
+      const unloadedClients = paginatedClients.filter(client => {
+        const ledger = ledgersMap.get(client.id);
+        return !ledger || !ledger.transactionsLoaded;
+      });
 
       if (unloadedClients.length > 0) {
         const newLedgerData = await Promise.all(
@@ -367,48 +381,26 @@ export default function ClientLedger() {
     } finally {
       setLoadingMore(false);
     }
-  }, [allClients, currentPage, getFilteredClients, ledgers, loadingMore, transformClientToLedgerData]);
+  }, [filteredClients, currentPage, ledgersMap, transformClientToLedgerData, loadingMore]);
 
-  // Filtered and sorted ledgers for display
+  // Filtered and sorted ledgers for display - optimized with map lookup
   const filteredAndSortedLedgers = useMemo(() => {
-    const filteredClients = getFilteredClients(allClients);
-
     // Sort the filtered clients
     const sortedClients = [...filteredClients].sort((a, b) => {
       switch (sortOption) {
         case 'nameAZ': 
-          return naturalSort(
-            a.client_nic_name || '', 
-            b.client_nic_name || ''
-          );
+          return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
         case 'nameZA': 
-          return naturalSort(
-            b.client_nic_name || '', 
-            a.client_nic_name || ''
-          );
+          return naturalSort(b.client_nic_name || '', a.client_nic_name || '');
         case 'balanceHighLow': {
-          const balanceA = ledgers.find(l => l.clientId === a.id)?.currentBalance.grandTotal || 0;
-          const balanceB = ledgers.find(l => l.clientId === b.id)?.currentBalance.grandTotal || 0;
-          if (balanceA !== balanceB) {
-            return balanceB - balanceA;
-          }
-          // If balances are equal, sort by name
-          return naturalSort(
-            a.client_nic_name || '', 
-            b.client_nic_name || ''
-          );
+          const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
+          const balanceB = ledgersMap.get(b.id)?.currentBalance.grandTotal || 0;
+          return balanceB !== balanceA ? balanceB - balanceA : naturalSort(a.client_nic_name || '', b.client_nic_name || '');
         }
         case 'balanceLowHigh': {
-          const balanceA = ledgers.find(l => l.clientId === a.id)?.currentBalance.grandTotal || 0;
-          const balanceB = ledgers.find(l => l.clientId === b.id)?.currentBalance.grandTotal || 0;
-          if (balanceA !== balanceB) {
-            return balanceA - balanceB;
-          }
-          // If balances are equal, sort by name
-          return naturalSort(
-            a.client_nic_name || '', 
-            b.client_nic_name || ''
-          );
+          const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
+          const balanceB = ledgersMap.get(b.id)?.currentBalance.grandTotal || 0;
+          return balanceA !== balanceB ? balanceA - balanceB : naturalSort(a.client_nic_name || '', b.client_nic_name || '');
         }
         default: return 0;
       }
@@ -419,33 +411,37 @@ export default function ClientLedger() {
     const end = currentPage * ITEMS_PER_PAGE;
     const paginatedClients = sortedClients.slice(start, end);
 
-    // Map to ledger data
+    // Map to ledger data with optimized O(1) lookup
+    const emptyBalance: ClientBalance = { grandTotal: 0, sizes: {} };
+    for (let i = 1; i <= 9; i++) {
+      emptyBalance.sizes[i] = { main: 0, borrowed: 0, total: 0 };
+    }
+    const emptySize: SizeBalance = {
+      size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0,
+      size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0
+    };
+
     return paginatedClients.map(client => {
-      const existingLedger = ledgers.find(l => l.clientId === client.id);
-      if (existingLedger) {
-        return existingLedger;
-      }
-      // Return a placeholder ledger if we don't have the data yet
-      const initialSizes: { [key: string]: { main: number; borrowed: number; total: number } } = {};
-      for (let i = 1; i <= 9; i++) {
-        initialSizes[i] = { main: 0, borrowed: 0, total: 0 };
-      }
+      const existingLedger = ledgersMap.get(client.id);
+      if (existingLedger) return existingLedger;
+      
+      // Return placeholder if data not yet loaded
       return {
         clientId: client.id,
         clientNicName: client.client_nic_name,
         clientFullName: client.client_name,
         clientSite: client.site,
         clientPhone: client.primary_phone_number,
-        totalUdhar: { size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0, size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0 },
-        totalJama: { size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0, size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0 },
-        currentBalance: { grandTotal: 0, sizes: initialSizes },
+        totalUdhar: emptySize,
+        totalJama: emptySize,
+        currentBalance: emptyBalance,
         udharCount: 0,
         jamaCount: 0,
         transactions: [],
         transactionsLoaded: false
       };
     });
-  }, [allClients, ledgers, getFilteredClients, sortOption, currentPage]);
+  }, [filteredClients, ledgersMap, sortOption, currentPage]);
 
   // Scroll handler for infinite loading
   const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {

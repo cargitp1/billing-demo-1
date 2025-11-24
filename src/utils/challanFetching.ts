@@ -209,7 +209,17 @@ export const fetchJamaChallansForClient = async (clientId?: string) => {
   return transformedData;
 };
 
+// Cache for transactions to avoid redundant fetches
+const transactionCache = new Map<string, { data: any[]; timestamp: number }>();
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
 export const fetchClientTransactions = async (clientId: string) => {
+  // Check cache first
+  const cached = transactionCache.get(clientId);
+  if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
+    return cached.data;
+  }
+
   const [udharChallans, jamaChallans] = await Promise.all([
     fetchUdharChallansForClient(clientId),
     fetchJamaChallansForClient(clientId),
@@ -219,8 +229,13 @@ export const fetchClientTransactions = async (clientId: string) => {
     new Date(a.date).getTime() - new Date(b.date).getTime()
   );
 
+  // Cache the results
+  transactionCache.set(clientId, { data: allTransactions, timestamp: Date.now() });
+
   return allTransactions;
 };
+
+export const clearTransactionCache = () => transactionCache.clear();
 
 export const calculateTotalFromItems = (items: ItemsData): number => {
   let total = 0;
