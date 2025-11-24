@@ -147,7 +147,7 @@ const StockManagement: React.FC = () => {
   const getAvailabilityBadge = (available: number) => {
     if (available === 0) {
       return (
-        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-xs font-medium bg-red-100 text-red-800">
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium bg-red-100 text-red-800">
           <AlertCircle className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
           <span className="hidden sm:inline">{t("outOfStock")}</span>
           <span className="sm:hidden">0</span>
@@ -156,7 +156,7 @@ const StockManagement: React.FC = () => {
     }
     if (available < 10) {
       return (
-        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-xs font-medium bg-yellow-100 text-yellow-800">
+        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium bg-yellow-100 text-yellow-800">
           <TrendingDown className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
           <span className="hidden sm:inline">
             {t("lowStock")} ({available})
@@ -166,7 +166,7 @@ const StockManagement: React.FC = () => {
       );
     }
     return (
-      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[8px] sm:text-xs font-medium bg-green-100 text-green-800">
+      <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-xs sm:text-sm font-medium bg-green-100 text-green-800">
         <CheckCircle className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5" />
         <span className="hidden sm:inline">
           {t("inStock")} ({available})
