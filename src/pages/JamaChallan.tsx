@@ -296,36 +296,38 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
       <div className="space-y-3 sm:space-y-4 lg:space-y-6">
         {/* Basic Challan Details - Compact */}
         <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
                 <FileText className="w-4 h-4 text-green-600 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
               </div>
               <h3 className="text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">{t('challanDetails')}</h3>
             </div>
-            <button
-              onClick={() => setHideExtraColumns(!hideExtraColumns)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[10px] sm:text-xs font-medium text-green-600 transition-colors rounded-md sm:rounded-lg bg-green-50 hover:bg-green-100 touch-manipulation active:scale-95"
-              title={`${hideExtraColumns ? 'Show' : 'Hide'} Borrowed Outstanding + ઉધાર and નોંધો`}
-            >
-              {hideExtraColumns ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            </button>
-          </div>
           <div className="grid gap-2 sm:gap-3 md:grid-cols-2 lg:gap-4">
             <div>
               <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-[10px] sm:text-xs lg:text-sm font-medium text-gray-700">
                 <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 {t('challanNumber')} <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                value={challanNumber}
-                onChange={(e) => setChallanNumber(e.target.value)}
-                placeholder="Challan #"
-                className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm ${
-                  errors.challanNumber ? 'border-red-500' : 'border-gray-300'
-                }`}
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={challanNumber}
+                  onChange={(e) => setChallanNumber(e.target.value)}
+                  placeholder="Challan #"
+                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm ${
+                    errors.challanNumber ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                />
+                <button
+                  onClick={() => setHideExtraColumns(!hideExtraColumns)}
+                  className="inline-flex items-center gap-1 sm:gap-1.5 px-2 py-2 sm:px-3 text-[10px] sm:text-xs font-medium text-green-600 transition-colors rounded-md sm:rounded-lg bg-green-50 hover:bg-green-100 touch-manipulation active:scale-95 border border-green-100 whitespace-nowrap"
+                >
+                  {hideExtraColumns ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>
+                    {t('columns2')}
+                  </span>
+                </button>
+              </div>
               {errors.challanNumber && (
                 <p className="mt-1 text-[10px] sm:text-xs text-red-600 flex items-center gap-1">
                   <span>•</span> {errors.challanNumber}

@@ -387,8 +387,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   ) : (
                     <EyeOff className="w-3.5 h-3.5" />
                   )}
-                  <span className="hidden sm:inline">
-                    {hideExtraColumns ? 'Show' : 'Hide'} columns
+                  <span>
+                    {t('columns2')}
                   </span>
                 </button>
               </div>
