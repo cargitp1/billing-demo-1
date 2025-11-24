@@ -158,7 +158,7 @@ export const translations = {
     optionalGeneralNotes: 'વૈકલ્પિક સામાન્ય નોંધ...',
     optional: 'વૈકલ્પિક',
 
-    save: 'સેવ કરો',
+    save: 'સેવ અને ડાઉનલોડ કરો',
     cancel: 'રદ કરો',
     edit: 'સુધારો',
     delete: 'ડિલીટ કરો',
@@ -280,7 +280,7 @@ export const translations = {
     jamaChallanTitle: 'જમા ચલણ બનાવો',
     clientDetails: 'ગ્રાહક વિગતો',
     challanDetails: 'ચલણ વિગતો',
-    itemsDetails: 'વસ્તુઓની વિગતો',
+    itemsDetails: 'પ્લેટની વિગતો',
     overrideNote: 'આ ગ્રાહકની ડિફોલ્ટ કિંમતોને ફક્ત આ ચલણ માટે બદલે છે',
     generateReceipt: 'રસીદ બનાવો',
     challanSaved: 'ચલણ સફળતાપૂર્વક સેવ થયું',
@@ -293,7 +293,7 @@ export const translations = {
     client: 'ગ્રાહક',
     phone: 'ફોન',
     driver: 'ડ્રાઇવર',
-    items: 'વસ્તુઓ',
+    items: 'પ્લેટની વિગતો',
     notes: 'નોંધો',
     Outstanding: 'બાકી',
 
