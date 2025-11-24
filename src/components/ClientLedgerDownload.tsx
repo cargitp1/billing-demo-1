@@ -13,6 +13,8 @@ interface ClientLedgerDownloadProps {
   elementId?: string;
 }
 
+const SIZE_INDICES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
 export default function ClientLedgerDownload({
   clientNicName,
   clientFullName,
@@ -25,49 +27,69 @@ export default function ClientLedgerDownload({
   const { language } = useLanguage();
   const t = translations[language];
 
-  const formatSizeValue = (size: { qty: number; borrowed: number }, note?: string | null) => {
-    const total = size.qty + size.borrowed;
+  const formatSizeValue = (
+    size: { qty: number; borrowed: number },
+    note?: string | null
+  ) => {
+    const total = (size?.qty || 0) + (size?.borrowed || 0);
 
     if (total === 0 && !note) return '-';
 
-    let valueDisplay = null;
     if (total > 0) {
       if (size.borrowed === 0) {
-        valueDisplay = (
+        return (
           <span>
             <span className="font-medium">{size.qty}</span>
-            {note && <sup className="ml-1 text-xs font-bold text-red-700">({note})</sup>}
-          </span>
-        );
-      } else if (size.qty === 0) {
-        valueDisplay = (
-          <span>
-            <span className="font-bold text-red-700">{size.borrowed}</span>
-            {note && <sup className="ml-1 text-xs font-bold text-red-700">({note})</sup>}
-          </span>
-        );
-      } else {
-        valueDisplay = (
-          <span>
-            <span className="font-medium">{size.qty + size.borrowed}</span>
-            <sup className="ml-1 text-xs font-bold text-red-700">
-              {size.borrowed}
-              {note && <span>({note})</span>}
-            </sup>
+            {note && (
+              <sup className="ml-1 text-xs font-bold text-red-700">
+                ({note})
+              </sup>
+            )}
           </span>
         );
       }
+
+      if (size.qty === 0) {
+        return (
+          <span>
+            <span className="font-bold text-red-700">{size.borrowed}</span>
+            {note && (
+              <sup className="ml-1 text-xs font-bold text-red-700">
+                ({note})
+              </sup>
+            )}
+          </span>
+        );
+      }
+
+      return (
+        <span>
+          <span className="font-medium">{size.qty + size.borrowed}</span>
+          <sup className="ml-1 text-xs font-bold text-red-700">
+            {size.borrowed}
+            {note && <span>({note})</span>}
+          </sup>
+        </span>
+      );
     }
 
-    if (!valueDisplay && note) {
-      valueDisplay = <sup className="text-xs font-bold text-red-700">({note})</sup>;
+    if (note) {
+      return (
+        <sup className="text-xs font-bold text-red-700">
+          ({note})
+        </sup>
+      );
     }
 
-    return <div>{valueDisplay || '-'}</div>;
+    return '-';
   };
 
-  const formatBalanceValue = (sizeBalance: { main: number; borrowed: number; total: number }) => {
-    if (sizeBalance.total === 0) return '-';
+  const formatBalanceValue = (sizeBalance: {
+    main: number;
+    borrowed: number;
+    total: number;
+  }) => {
+    if (!sizeBalance || sizeBalance.total === 0) return '-';
 
     if (sizeBalance.borrowed === 0) {
       return <span className="font-bold">{sizeBalance.main}</span>;
@@ -83,7 +105,9 @@ export default function ClientLedgerDownload({
 
     return (
       <span>
-        <span className="font-bold">{sizeBalance.main + sizeBalance.borrowed}</span>
+        <span className="font-bold">
+          {sizeBalance.main + sizeBalance.borrowed}
+        </span>
         <sup className="ml-1 text-xs font-bold text-red-700">
           {sizeBalance.borrowed}
         </sup>
@@ -91,227 +115,452 @@ export default function ClientLedgerDownload({
     );
   };
 
-  const sortedTransactions = [...transactions].sort((a, b) => {
-    return new Date(a.date).getTime() - new Date(b.date).getTime();
-  });
+  const sortedTransactions = [...transactions].sort(
+    (a, b) =>
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 
-  const rowHeight = 50;
-  const headerY = 200;
-  const currentBalanceRowY = headerY + 45;
-  const transactionsStartY = currentBalanceRowY + rowHeight;
-  const totalHeight = transactionsStartY + (sortedTransactions.length * rowHeight) + 180;
+  const udharCount = transactions.filter(t => t.type === 'udhar').length;
+  const jamaCount = transactions.filter(t => t.type === 'jama').length;
 
-  const colPositions = {
-    challanNum: 30,
-    date: 150,
-    total: 260,
-    size1: 340,
-    size2: 420,
-    size3: 500,
-    size4: 580,
-    size5: 660,
-    size6: 740,
-    size7: 820,
-    size8: 900,
-    size9: 980,
-    site: 1060,
-    driver: 1180,
-  };
+  const now = new Date();
+  const formattedDate = now.toLocaleDateString('en-GB');
+  const formattedTime = now.toLocaleTimeString('en-GB');
 
   return (
     <div
       id={elementId || 'client-ledger-download'}
       style={{
         width: '1300px',
-        height: `${totalHeight}px`,
-        position: 'relative',
         backgroundColor: '#ffffff',
-        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif'
+        fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
+        padding: '24px',
+        boxSizing: 'border-box',
       }}
     >
-      <div style={{
-        position: 'absolute',
-        top: '40px',
-        left: '0',
-        right: '0',
-        textAlign: 'center',
-        fontSize: '32px',
-        fontWeight: '700',
-        color: '#111827'
-      }}>
-        ક્લાયન્ટ લેજર
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        top: '90px',
-        left: '0',
-        right: '0',
-        textAlign: 'center',
-        fontSize: '18px',
-        fontWeight: '600',
-        color: '#374151'
-      }}>
-        {clientNicName} - {clientFullName}
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        top: '120px',
-        left: '0',
-        right: '0',
-        textAlign: 'center',
-        fontSize: '14px',
-        color: '#6b7280'
-      }}>
-        {clientSite} | {clientPhone}
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        top: '145px',
-        left: '0',
-        right: '0',
-        textAlign: 'center',
-        fontSize: '12px',
-        color: '#9ca3af'
-      }}>
-        બનાવેલ: {new Date().toLocaleDateString('en-GB')} વર્તમાન સમય {new Date().toLocaleTimeString('en-GB')}
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        top: `${headerY}px`,
-        left: `${colPositions.challanNum}px`,
-        right: '30px',
-        height: '40px',
-        backgroundColor: '#f3f4f6',
-        borderTop: '2px solid #d1d5db',
-        borderBottom: '2px solid #d1d5db',
-        display: 'flex',
-        alignItems: 'center',
-        fontWeight: '700',
-        fontSize: '11px',
-        textTransform: 'uppercase',
-        color: '#374151'
-      }}>
-        <div style={{ position: 'absolute', left: '10px', width: '100px' }}>ચલણ #</div>
-        <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, width: '80px' }}>તારીખ</div>
-        <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, width: '60px', textAlign: 'center' }}>કુલ</div>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size, idx) => (
-          <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
-            {PLATE_SIZES[size - 1]}
-          </div>
-        ))}
-        <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px`, width: '100px' }}>સાઇટ</div>
-        <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px`, width: '100px' }}>ડ્રાઇવર</div>
-      </div>
-
-      <div style={{
-        position: 'absolute',
-        top: `${currentBalanceRowY}px`,
-        left: `${colPositions.challanNum}px`,
-        right: '30px',
-        height: `${rowHeight}px`,
-        backgroundColor: '#dbeafe',
-        borderBottom: '1px solid #d1d5db',
-        display: 'flex',
-        alignItems: 'center',
-        fontWeight: '700'
-      }}>
-        <div style={{ position: 'absolute', left: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '12px', height: '12px', backgroundColor: '#2563eb', borderRadius: '50%' }}></div>
-          <span>વર્તમાન બાલેન્સ</span>
-        </div>
-        <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
-        <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, fontSize: '18px', textAlign: 'center', width: '60px' }}>
-          {currentBalance.grandTotal}
-        </div>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => (
-          <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
-            {formatBalanceValue(currentBalance.sizes[size])}
-          </div>
-        ))}
-        <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
-        <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px`, color: '#6b7280' }}>-</div>
-      </div>
-
-      {sortedTransactions.map((transaction, index) => {
-        const yPos = transactionsStartY + (index * rowHeight);
-        const bgColor = transaction.type === 'udhar' ? '#fef2f2' : '#f0fdf4';
-        const dotColor = transaction.type === 'udhar' ? '#dc2626' : '#16a34a';
-
-        return (
+      {/* Header / title */}
+      <header
+        style={{
+          borderBottom: '1px solid #e5e7eb',
+          paddingBottom: '16px',
+          marginBottom: '16px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
+          gap: '16px',
+        }}
+      >
+        <div>
           <div
-            key={`${transaction.type}-${transaction.challanId}-${index}`}
             style={{
-              position: 'absolute',
-              top: `${yPos}px`,
-              left: `${colPositions.challanNum}px`,
-              right: '30px',
-              height: `${rowHeight}px`,
-              backgroundColor: bgColor,
-              borderBottom: '1px solid #e5e7eb',
-              display: 'flex',
-              alignItems: 'center'
+              fontSize: '28px',
+              fontWeight: 700,
+              color: '#111827',
+              marginBottom: '4px',
             }}
           >
-            <div style={{ position: 'absolute', left: '10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ width: '12px', height: '12px', backgroundColor: dotColor, borderRadius: '50%' }}></div>
-              <span>#{transaction.challanNumber}</span>
-            </div>
-            <div style={{ position: 'absolute', left: `${colPositions.date - colPositions.challanNum}px` }}>
-              {new Date(transaction.date).toLocaleDateString('en-GB')}
-            </div>
-            <div style={{ position: 'absolute', left: `${colPositions.total - colPositions.challanNum}px`, fontWeight: '500', textAlign: 'center', width: '60px' }}>
-              {transaction.grandTotal}
-            </div>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((size) => {
-              const sizeNote = transaction.items?.[`size_${size}_note`];
+            ગ્રાહક ખાતાવહી
+          </div>
+          <div
+            style={{
+              fontSize: '16px',
+              fontWeight: 600,
+              color: '#374151',
+              marginBottom: '2px',
+            }}
+          >
+            {clientNicName} - {clientFullName}
+          </div>
+          <div
+            style={{
+              fontSize: '13px',
+              color: '#6b7280',
+            }}
+          >
+            {clientSite} | {clientPhone}
+          </div>
+        </div>
+
+        <div
+          style={{
+            textAlign: 'right',
+            fontSize: '12px',
+            color: '#9ca3af',
+          }}
+        >
+          <div>
+            બનાવેલ: {formattedDate}
+          </div>
+          <div>
+            વર્તમાન સમય {formattedTime}
+          </div>
+        </div>
+      </header>
+
+      {/* Ledger table */}
+      <div
+        style={{
+          border: '1px solid #d1d5db',
+          borderRadius: '8px',
+          overflow: 'hidden',
+        }}
+      >
+        <table
+          style={{
+            width: '100%',
+            borderCollapse: 'collapse',
+            fontSize: '12px',
+          }}
+        >
+          <thead
+            style={{
+              backgroundColor: '#f3f4f6',
+              color: '#374151',
+              textTransform: 'uppercase',
+              fontWeight: 700,
+            }}
+          >
+            <tr>
+              <th
+                style={{
+                  padding: '8px 8px',
+                  textAlign: 'left',
+                  minWidth: '120px',
+                  borderBottom: '2px solid #d1d5db',
+                }}
+              >
+                ચલણ #
+              </th>
+              <th
+                style={{
+                  padding: '8px 8px',
+                  textAlign: 'left',
+                  minWidth: '90px',
+                  borderBottom: '2px solid #d1d5db',
+                }}
+              >
+                તારીખ
+              </th>
+              <th
+                style={{
+                  padding: '8px 4px',
+                  textAlign: 'center',
+                  minWidth: '70px',
+                  borderBottom: '2px solid #d1d5db',
+                }}
+              >
+                કુલ
+              </th>
+
+              {SIZE_INDICES.map((sizeIndex, idx) => (
+                <th
+                  key={sizeIndex}
+                  style={{
+                    padding: '8px 2px',
+                    textAlign: 'center',
+                    minWidth: '70px',
+                    borderBottom: '2px solid #d1d5db',
+                  }}
+                >
+                  {PLATE_SIZES[idx]}
+                </th>
+              ))}
+
+              <th
+                style={{
+                  padding: '8px 8px',
+                  textAlign: 'left',
+                  minWidth: '120px',
+                  borderBottom: '2px solid #d1d5db',
+                }}
+              >
+                સાઇટ
+              </th>
+              <th
+                style={{
+                  padding: '8px 8px',
+                  textAlign: 'left',
+                  minWidth: '120px',
+                  borderBottom: '2px solid #d1d5db',
+                }}
+              >
+                ડ્રાઇવર
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {/* Current balance row */}
+            <tr
+              style={{
+                backgroundColor: '#dbeafe',
+                fontWeight: 700,
+              }}
+            >
+              <td
+                style={{
+                  padding: '10px 8px',
+                  borderBottom: '1px solid #d1d5db',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span
+                  style={{
+                    width: '10px',
+                    height: '10px',
+                    borderRadius: '9999px',
+                    backgroundColor: '#2563eb',
+                    display: 'inline-block',
+                  }}
+                />
+                <span>વર્તમાન બાલેન્સ</span>
+              </td>
+              <td
+                style={{
+                  padding: '10px 8px',
+                  borderBottom: '1px solid #d1d5db',
+                  color: '#6b7280',
+                }}
+              >
+                -
+              </td>
+              <td
+                style={{
+                  padding: '10px 4px',
+                  borderBottom: '1px solid #d1d5db',
+                  textAlign: 'center',
+                  fontSize: '16px',
+                }}
+              >
+                {currentBalance.grandTotal}
+              </td>
+
+              {SIZE_INDICES.map(sizeIndex => (
+                <td
+                  key={sizeIndex}
+                  style={{
+                    padding: '10px 4px',
+                    borderBottom: '1px solid #d1d5db',
+                    textAlign: 'center',
+                  }}
+                >
+                  {formatBalanceValue(currentBalance.sizes[sizeIndex])}
+                </td>
+              ))}
+
+              <td
+                style={{
+                  padding: '10px 8px',
+                  borderBottom: '1px solid #d1d5db',
+                  color: '#6b7280',
+                }}
+              >
+                -
+              </td>
+              <td
+                style={{
+                  padding: '10px 8px',
+                  borderBottom: '1px solid #d1d5db',
+                  color: '#6b7280',
+                }}
+              >
+                -
+              </td>
+            </tr>
+
+            {/* Transactions */}
+            {sortedTransactions.map((transaction, index) => {
+              const isUdhar = transaction.type === 'udhar';
+              const rowBg = isUdhar ? '#fef2f2' : '#f0fdf4';
+              const dotColor = isUdhar ? '#dc2626' : '#16a34a';
+
               return (
-                <div key={size} style={{ position: 'absolute', left: `${colPositions[`size${size}` as keyof typeof colPositions] - colPositions.challanNum}px`, width: '70px', textAlign: 'center' }}>
-                  {formatSizeValue(transaction.sizes[size], sizeNote)}
-                </div>
+                <tr
+                  key={`${transaction.type}-${transaction.challanId}-${index}`}
+                  style={{
+                    backgroundColor: rowBg,
+                    borderBottom: '1px solid #e5e7eb',
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: '8px 8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '9999px',
+                        backgroundColor: dotColor,
+                        display: 'inline-block',
+                      }}
+                    />
+                    <span>#{transaction.challanNumber}</span>
+                  </td>
+
+                  <td
+                    style={{
+                      padding: '8px 8px',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {new Date(transaction.date).toLocaleDateString('en-GB')}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: '8px 4px',
+                      textAlign: 'center',
+                      fontWeight: 500,
+                    }}
+                  >
+                    {transaction.grandTotal}
+                  </td>
+
+                  {SIZE_INDICES.map(sizeIndex => {
+                    const sizeNote =
+                      transaction.items?.[`size_${sizeIndex}_note` as keyof typeof transaction.items] as
+                        | string
+                        | undefined;
+
+                    return (
+                      <td
+                        key={sizeIndex}
+                        style={{
+                          padding: '8px 4px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {formatSizeValue(transaction.sizes[sizeIndex], sizeNote)}
+                      </td>
+                    );
+                  })}
+
+                  <td
+                    style={{
+                      padding: '8px 8px',
+                    }}
+                  >
+                    {transaction.site}
+                  </td>
+
+                  <td
+                    style={{
+                      padding: '8px 8px',
+                    }}
+                  >
+                    {transaction.driverName || '-'}
+                  </td>
+                </tr>
               );
             })}
-            <div style={{ position: 'absolute', left: `${colPositions.site - colPositions.challanNum}px` }}>
-              {transaction.site}
-            </div>
-            <div style={{ position: 'absolute', left: `${colPositions.driver - colPositions.challanNum}px` }}>
-              {transaction.driverName || '-'}
-            </div>
-          </div>
-        );
-      })}
+          </tbody>
+        </table>
+      </div>
 
-      <div style={{
-        position: 'absolute',
-        top: `${transactionsStartY + sortedTransactions.length * rowHeight + 30}px`,
-        left: '30px',
-        right: '30px',
-        display: 'flex',
-        gap: '20px',
-        fontSize: '14px'
-      }}>
-        <div style={{ flex: 1, padding: '16px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px' }}>
-          <p style={{ fontWeight: '600', color: '#b91c1c', marginBottom: '8px' }}>ઉધાર ચલણ</p>
-          <p style={{ fontSize: '24px', fontWeight: '700', color: '#991b1b' }}>
-            {transactions.filter(t => t.type === 'udhar').length}
+      {/* Summary cards */}
+      <section
+        style={{
+          marginTop: '24px',
+          display: 'flex',
+          gap: '16px',
+          fontSize: '14px',
+        }}
+      >
+        <div
+          style={{
+            flex: 1,
+            padding: '16px',
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '8px',
+          }}
+        >
+          <p
+            style={{
+              fontWeight: 600,
+              color: '#b91c1c',
+              marginBottom: '8px',
+            }}
+          >
+            ઉધાર ચલણ
+          </p>
+          <p
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              color: '#991b1b',
+            }}
+          >
+            {udharCount}
           </p>
         </div>
-        <div style={{ flex: 1, padding: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px' }}>
-          <p style={{ fontWeight: '600', color: '#15803d', marginBottom: '8px' }}>જમા ચલણ</p>
-          <p style={{ fontSize: '24px', fontWeight: '700', color: '#166534' }}>
-            {transactions.filter(t => t.type === 'jama').length}
+
+        <div
+          style={{
+            flex: 1,
+            padding: '16px',
+            backgroundColor: '#f0fdf4',
+            border: '1px solid #bbf7d0',
+            borderRadius: '8px',
+          }}
+        >
+          <p
+            style={{
+              fontWeight: 600,
+              color: '#15803d',
+              marginBottom: '8px',
+            }}
+          >
+            જમા ચલણ
+          </p>
+          <p
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              color: '#166534',
+            }}
+          >
+            {jamaCount}
           </p>
         </div>
-        <div style={{ flex: 1, padding: '16px', backgroundColor: '#dbeafe', border: '1px solid #bfdbfe', borderRadius: '8px' }}>
-          <p style={{ fontWeight: '600', color: '#1e40af', marginBottom: '8px' }}>બાકી બાલેન્સ</p>
-          <p style={{ fontSize: '24px', fontWeight: '700', color: '#1e3a8a' }}>
+
+        <div
+          style={{
+            flex: 1,
+            padding: '16px',
+            backgroundColor: '#dbeafe',
+            border: '1px solid #bfdbfe',
+            borderRadius: '8px',
+          }}
+        >
+          <p
+            style={{
+              fontWeight: 600,
+              color: '#1e40af',
+              marginBottom: '8px',
+            }}
+          >
+            બાકી બાલેન્સ
+          </p>
+          <p
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              color: '#1e3a8a',
+            }}
+          >
             {currentBalance.grandTotal}
           </p>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
