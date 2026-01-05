@@ -4,13 +4,14 @@ import {
   Filter,
   RefreshCw,
   Users,
-  Loader2
+  Loader2,
+  Download
 } from 'lucide-react';
 import { naturalSort } from '../utils/sortingUtils';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
 import { supabase } from '../utils/supabase';
-import { fetchClientTransactions } from '../utils/challanFetching';
+import { fetchClientTransactions, fetchUdharChallansForClient, fetchJamaChallansForClient } from '../utils/challanFetching';
 import Navbar from '../components/Navbar';
 import ClientLedgerCard from '../components/ClientLedgerCard';
 
@@ -152,6 +153,7 @@ export default function ClientLedger() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState<SortOption>('nameAZ');
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -159,9 +161,9 @@ export default function ClientLedger() {
   // Helper function to filter clients based on search query
   const getFilteredClients = useCallback((clients: any[]) => {
     if (!searchQuery.trim()) return clients;
-    
+
     const query = searchQuery.toLowerCase().trim();
-    
+
     // Try to parse the search term as a number once
     const searchNum = parseInt(query);
     const isSearchingNumber = !isNaN(searchNum);
@@ -178,7 +180,7 @@ export default function ClientLedger() {
       const nicLower = (client.client_nic_name || '').toLowerCase();
       const nameLower = (client.client_name || '').toLowerCase();
       const siteLower = (client.site || '').toLowerCase();
-      
+
       return nicLower.includes(query) || nameLower.includes(query) || siteLower.includes(query);
     });
   }, [searchQuery]);
@@ -192,7 +194,7 @@ export default function ClientLedger() {
 
   // Calculate total counts with optimized filtered clients
   const filteredClients = useMemo(() => getFilteredClients(allClients), [allClients, getFilteredClients]);
-  
+
   const { filteredCount, hasMore } = useMemo(() => {
     return {
       filteredCount: filteredClients.length,
@@ -206,7 +208,7 @@ export default function ClientLedger() {
       size_1: 0, size_2: 0, size_3: 0, size_4: 0, size_5: 0,
       size_6: 0, size_7: 0, size_8: 0, size_9: 0, grandTotal: 0
     } as SizeBalance;
-    
+
     challans?.forEach((challan: any) => {
       const items = challan.items;
       if (items) {
@@ -241,22 +243,22 @@ export default function ClientLedger() {
     if (loadTransactions) {
       try {
         const rawTransactions = await fetchClientTransactions(client.id);
-        
+
         // Process transactions with optimized calculation
         const udharList: any[] = [];
         const jamaList: any[] = [];
-        
+
         transactions = rawTransactions.map((t: any) => {
           const sizes: { [key: string]: { qty: number; borrowed: number } } = {};
           let grandTotal = 0;
-          
+
           for (let i = 1; i <= 9; i++) {
             const qty = t.items[`size_${i}_qty`] || 0;
             const borrowed = t.items[`size_${i}_borrowed`] || 0;
             sizes[i] = { qty, borrowed };
             grandTotal += qty + borrowed;
           }
-          
+
           const transaction = {
             type: t.type,
             challanNumber: t.challanNumber,
@@ -268,11 +270,11 @@ export default function ClientLedger() {
             driverName: t.driverName || '',
             items: t.items
           };
-          
+
           // Group for balance calculation
           if (t.type === 'udhar') udharList.push(transaction);
           else jamaList.push(transaction);
-          
+
           return transaction;
         });
 
@@ -352,7 +354,7 @@ export default function ClientLedger() {
       const start = 0;
       const end = currentPage * ITEMS_PER_PAGE;
       const paginatedClients = filteredClients.slice(start, end);
-      
+
       const unloadedClients = paginatedClients.filter(client => {
         const ledger = ledgersMap.get(client.id);
         return !ledger || !ledger.transactionsLoaded;
@@ -388,9 +390,9 @@ export default function ClientLedger() {
     // Sort the filtered clients
     const sortedClients = [...filteredClients].sort((a, b) => {
       switch (sortOption) {
-        case 'nameAZ': 
+        case 'nameAZ':
           return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
-        case 'nameZA': 
+        case 'nameZA':
           return naturalSort(b.client_nic_name || '', a.client_nic_name || '');
         case 'balanceHighLow': {
           const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
@@ -424,7 +426,7 @@ export default function ClientLedger() {
     return paginatedClients.map(client => {
       const existingLedger = ledgersMap.get(client.id);
       if (existingLedger) return existingLedger;
-      
+
       // Return placeholder if data not yet loaded
       return {
         clientId: client.id,
@@ -442,6 +444,97 @@ export default function ClientLedger() {
       };
     });
   }, [filteredClients, ledgersMap, sortOption, currentPage]);
+
+  // CSV Download Handler
+  const handleDownloadBackup = async () => {
+    setDownloading(true);
+    try {
+      // 1. Fetch all clients
+      const clients = await fetchClients();
+
+      // 2. Fetch all transactions (udhar and jama)
+      const [allUdhar, allJama] = await Promise.all([
+        fetchUdharChallansForClient(),
+        fetchJamaChallansForClient()
+      ]);
+
+      // 3. Process data to calculate balances for each client
+      const csvRows = [['Client Sort Name', 'Client Name', 'Site', 'Phone', 'Grand Total', 'Size 1', 'Size 2', 'Size 3', 'Size 4', 'Size 5', 'Size 6', 'Size 7', 'Size 8', 'Size 9']];
+
+      // Create maps for quick lookup
+      const udharMap = new Map<string, any[]>();
+      const jamaMap = new Map<string, any[]>();
+
+      allUdhar.forEach((u: any) => {
+        const cid = u.clientId;
+        if (!udharMap.has(cid)) udharMap.set(cid, []);
+        udharMap.get(cid)?.push(u);
+      });
+
+      allJama.forEach((j: any) => {
+        const cid = j.clientId;
+        if (!jamaMap.has(cid)) jamaMap.set(cid, []);
+        jamaMap.get(cid)?.push(j);
+      });
+
+      // Process each client
+      clients.forEach(client => {
+        const clientUdhar = udharMap.get(client.id) || [];
+        const clientJama = jamaMap.get(client.id) || [];
+
+        // Calculate totals
+        const udharTotals = calculateTotalsFromChallans(clientUdhar);
+        const jamaTotals = calculateTotalsFromChallans(clientJama);
+
+        // Calculate current balance (Udhar - Jama)
+        const currentBalance: any = { grandTotal: 0 };
+        for (let i = 1; i <= 9; i++) {
+          const key = `size_${i}` as keyof SizeBalance;
+          const uVal = udharTotals[key];
+          const jVal = jamaTotals[key];
+          currentBalance[key] = uVal - jVal;
+        }
+        currentBalance.grandTotal = udharTotals.grandTotal - jamaTotals.grandTotal;
+
+        // Add row
+        csvRows.push([
+          `"${client.client_nic_name || ''}"`,
+          `"${client.client_name || ''}"`,
+          `"${client.site || ''}"`,
+          `"${client.primary_phone_number || ''}"`,
+          currentBalance.grandTotal.toString(),
+          currentBalance.size_1.toString(),
+          currentBalance.size_2.toString(),
+          currentBalance.size_3.toString(),
+          currentBalance.size_4.toString(),
+          currentBalance.size_5.toString(),
+          currentBalance.size_6.toString(),
+          currentBalance.size_7.toString(),
+          currentBalance.size_8.toString(),
+          currentBalance.size_9.toString()
+        ]);
+      });
+
+      // 4. Generate and download CSV
+      const csvContent = csvRows.map(e => e.join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+      link.setAttribute("href", url);
+      link.setAttribute("download", `client_ledger_backup_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast.success('Backup downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading backup:', error);
+      toast.error('Failed to download backup');
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   // Scroll handler for infinite loading
   const handleScroll = useCallback((e: React.UIEvent<HTMLElement>) => {
@@ -540,32 +633,48 @@ export default function ClientLedger() {
                     <div className="flex items-center justify-center w-4 h-4">×</div>
                   </button>
                 )}
-                <div className="relative sort-menu-container">
+
+                <div className="relative sort-menu-container flex items-center gap-2">
                   <button
-                    onClick={() => setShowSortMenu(prev => !prev)}
-                    className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 rounded-md"
+                    onClick={handleDownloadBackup}
+                    disabled={downloading}
+                    className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                    title="Download Backup (CSV)"
                   >
-                    <Filter className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
+                    {downloading ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Download className="w-3.5 h-3.5" />
+                    )}
+                    <span className="hidden sm:inline">Backup</span>
                   </button>
-                  {showSortMenu && (
-                    <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
-                      {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => {
-                            setSortOption(option);
-                            setShowSortMenu(false);
-                          }}
-                          className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${
-                            sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
-                          }`}
-                        >
-                          {getSortLabel(option)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowSortMenu(prev => !prev)}
+                      className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 rounded-md"
+                    >
+                      <Filter className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
+                    </button>
+                    {showSortMenu && (
+                      <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
+                        {(['nameAZ', 'nameZA', 'balanceHighLow', 'balanceLowHigh'] as SortOption[]).map((option) => (
+                          <button
+                            key={option}
+                            onClick={() => {
+                              setSortOption(option);
+                              setShowSortMenu(false);
+                            }}
+                            className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                              }`}
+                          >
+                            {getSortLabel(option)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
