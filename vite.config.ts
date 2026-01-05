@@ -12,21 +12,30 @@ export default defineConfig({
       manifest: {
         name: 'નીલકંઠ પ્લેટ ડેપો',
         short_name: 'પ્લેટ ડેપો',
+        description: 'નીલકંઠ પ્લેટ ડેપો બિલિંગ અને સ્ટોક મેનેજમેન્ટ એપ્લિકેશન',
         theme_color: '#2563eb',
         background_color: '#f3f4f6',
         display: 'standalone',
+        start_url: '/',
+        scope: '/',
+        orientation: 'portrait',
         icons: [
           {
             src: 'icons/icon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           },
           {
             src: 'icons/icon-512x512.png',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any maskable'
           }
         ]
+      },
+      devOptions: {
+        enabled: true
       }
     })
   ],
