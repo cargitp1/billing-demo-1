@@ -185,15 +185,6 @@ const StockManagement: React.FC = () => {
     });
   }, [stocks, sortField, sortOrder]);
 
-  const sortedSizeOptions = useMemo(() => {
-    return PLATE_SIZES.map((size, index) => ({
-      id: index + 1,
-      label: size,
-    })).sort((a, b) =>
-      a.label.localeCompare(b.label, undefined, { numeric: true })
-    );
-  }, []);
-
 
 
   const SkeletonRow = () => (
@@ -574,14 +565,15 @@ const StockManagement: React.FC = () => {
                 <select
                   value={selectedSize || ""}
                   onChange={(e) => setSelectedSize(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
                 >
                   <option value="" disabled>
                     Select Size
                   </option>
-                  {sortedSizeOptions.map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.label}
+                  {PLATE_SIZES.map((size, index) => (
+                    <option key={index} value={index + 1}>
+                      {size}
                     </option>
                   ))}
                 </select>
