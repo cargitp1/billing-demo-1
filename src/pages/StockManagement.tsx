@@ -803,9 +803,13 @@ const StockManagement: React.FC = () => {
                     : t("on_rent_stock")}{" "}
                   Distribution
                 </h3>
-                <p className="text-sm text-gray-500">
-                  Size: {PLATE_SIZES[distributionModal.size! - 1]}
-                </p>
+                <div className="flex items-center gap-2 text-sm text-gray-500">
+                  <p>Size: {PLATE_SIZES[distributionModal.size! - 1]}</p>
+                  <span>•</span>
+                  <p className="font-semibold text-gray-900">
+                    Total: {distributionModal.data.reduce((sum, item) => sum + item.quantity, 0)}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() =>

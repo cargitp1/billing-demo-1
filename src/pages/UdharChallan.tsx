@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { format } from 'date-fns';
-import { 
-  Search, 
-  ArrowLeft, 
-  UserPlus, 
-  FileText, 
+import {
+  Search,
+  ArrowLeft,
+  UserPlus,
+  FileText,
   Calendar,
   MapPin,
   Phone,
@@ -60,7 +60,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   const filteredClients = clients
     .filter(client => {
       const searchLower = searchQuery.toLowerCase().trim();
-      
+
       // Try to parse the search term as a number
       const searchNum = parseInt(searchLower);
       const isSearchingNumber = !isNaN(searchNum);
@@ -374,9 +374,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   value={challanNumber}
                   onChange={(e) => setChallanNumber(e.target.value)}
                   placeholder="Challan #"
-                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-sm ${
-                    errors.challanNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-sm ${errors.challanNumber ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 <button
                   onClick={() => setHideExtraColumns(!hideExtraColumns)}
@@ -408,9 +407,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-sm ${
-                    errors.date ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-sm ${errors.date ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 {errors.date && (
                   <p className="flex items-center gap-1 mt-1 text-xs text-red-600 sm:text-xs">
@@ -439,7 +437,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                     className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs sm:text-sm driver-suggestions"
                   />
                   {previousDriversVisible && previousDrivers.length > 0 && (
-                    <div 
+                    <div
                       className="absolute z-10 w-full mt-1 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 driver-suggestions"
                     >
                       {previousDrivers.map((driver, index) => (
@@ -478,9 +476,9 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
               </p>
             </div>
           )}
-                    <ItemsTable 
-            items={items} 
-            onChange={setItems} 
+          <ItemsTable
+            items={items}
+            onChange={setItems}
             hideColumns={hideExtraColumns}
             stockData={stockData}
             showAvailable={true}
@@ -539,10 +537,10 @@ const UdharChallan: React.FC = () => {
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showQuickAdd, setShowQuickAdd] = useState(false);
   const [selectedClientId, setSelectedClientId] = useState('');
-  
+
   // Stock management
   const [stockData, setStockData] = useState<StockData[]>([]);
-  
+
   // Challan details
   const [challanNumber, setChallanNumber] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -573,13 +571,13 @@ const UdharChallan: React.FC = () => {
         .limit(1);
 
       if (error) throw error;
-      
+
       let nextNumber = "1";
-      
+
       if (data && data.length > 0) {
         const lastChallanNumber = data[0].udhar_challan_number;
         const match = lastChallanNumber.match(/(\d+)$/);
-        
+
         if (match) {
           const currentNumber = match[0];
           const prefix = lastChallanNumber.slice(0, -currentNumber.length);
@@ -591,9 +589,9 @@ const UdharChallan: React.FC = () => {
           nextNumber = lastChallanNumber + "1";
         }
       }
-      
+
       setChallanNumber(nextNumber);
-      
+
     } catch (error) {
       console.error("Error generating challan number:", error);
       setChallanNumber("1");
@@ -751,6 +749,20 @@ const UdharChallan: React.FC = () => {
       return;
     }
 
+    // Validate against available stock
+    for (let i = 1; i <= 9; i++) {
+      const qtyVal = items[`size_${i}_qty` as keyof ItemsData];
+      const qty = typeof qtyVal === 'string' ? (parseInt(qtyVal) || 0) : (qtyVal || 0);
+
+      const stockItem = stockData.find(s => s.size === i);
+      const available = stockItem?.available_stock || 0;
+
+      if (qty > 0 && qty > available) {
+        toast.error(`Cannot issue more than available stock for Size ${i}. Available: ${available}, Entered: ${qty}`);
+        return;
+      }
+    }
+
     const { data: existingChallan } = await supabase
       .from('udhar_challans')
       .select('udhar_challan_number')
@@ -858,7 +870,7 @@ const UdharChallan: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -894,7 +906,7 @@ const UdharChallan: React.FC = () => {
               {showQuickAdd && (
                 <>
                   {/* Mobile slide-up form */}
-                  <div 
+                  <div
                     className="fixed inset-0 z-50 overflow-hidden lg:hidden"
                     onClick={(e) => {
                       if (e.target === e.currentTarget) setShowQuickAdd(false);
@@ -926,13 +938,13 @@ const UdharChallan: React.FC = () => {
                 </>
               )}
               <ClientSelectionStep
-                  clients={clients}
-                  onClientSelect={handleClientSelect}
-                  onAddNewClick={() => setShowQuickAdd(true)}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  isFormOpen={showQuickAdd}
-                />
+                clients={clients}
+                onClientSelect={handleClientSelect}
+                onAddNewClick={() => setShowQuickAdd(true)}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
+                isFormOpen={showQuickAdd}
+              />
             </>
           ) : (
             selectedClient && (
@@ -963,7 +975,7 @@ const UdharChallan: React.FC = () => {
               />
             )
           )}
-          
+
           <div style={{ position: 'absolute', left: '-9999px' }}>
             {selectedClient && (
               <div id="receipt-template">
