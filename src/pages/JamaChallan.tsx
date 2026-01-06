@@ -590,7 +590,7 @@ const JamaChallan: React.FC = () => {
     // Check if client was preselected from navigation
     const state = location.state as { preselectedClient?: { id: string; nicName: string; fullName: string; site: string; phone: string } };
     if (state?.preselectedClient && clients.length > 0) {
-      const client = clients.find(c => c.id === state.preselectedClient.id);
+      const client = clients.find(c => c.id === state.preselectedClient!.id);
       if (client) {
         handleClientSelect(client.id!);
       }
