@@ -1,6 +1,4 @@
-import { b } from "motion/react-client";
-import CreateBill from "../pages/CreateBill";
-import BillBook from "../pages/BillBook";
+
 
 export const translations = {
   gu: {
@@ -77,10 +75,10 @@ export const translations = {
     tryAdjustingSearch: "તમારા શોધ માપદંડ સમાયોજિત કરવાનો પ્રયાસ કરો",
 
     // Billing Translations
-    billing: "બિલિંગ",
+    // billing: "બિલિંગ",
     billingManagement: "બિલિંગ મેનેજમેન્ટ",
-    createNewBill: "નવું બિલ બનાવો",
-    billNumber: "બિલ નંબર",
+    // createNewBill: "નવું બિલ બનાવો",
+    // billNumber: "બિલ નંબર",
     billingDate: "બિલ તારીખ",
     searchBills: "બિલ શોધો...",
     noBillsFound: "કોઈ બિલ મળ્યું નથી",
@@ -89,8 +87,8 @@ export const translations = {
     billsFound: "બિલ મળ્યા",
     unknownClient: "અજ્ઞાત ગ્રાહક",
     noDate: "તારીખ નથી",
-    addNewClient: "નવો ગ્રાહક ઉમેરો",
-    editClient: "ગ્રાહક માહિતી સુધારો",
+    // addNewClient: "નવો ગ્રાહક ઉમેરો",
+    // editClient: "ગ્રાહક માહિતી સુધારો",
     noNickname: "ટૂંકું નામ નથી",
     maintenanceMessage: "🚧 આ પેજ હાલમાં નિર્માણાધીન છે. પૂર્ણ રિલીઝ 1/1/26 થી ઉપલબ્ધ થશે",
     tillDate: "સુધીની તારીખ",
@@ -231,7 +229,7 @@ export const translations = {
     getStartedByAdding: 'તમારા પ્રથમ ગ્રાહકને ઉમેરીને શરૂ કરો',
     updateClientInfo: 'ગ્રાહક માહિતી અપડેટ કરો',
     fillInDetails: 'વિગતો ભરો',
-    editClient: 'ગ્રાહક સુધારો',
+    // editClient: 'ગ્રાહક સુધારો',
     updatingClient: 'ગ્રાહક અપડેટ થઈ રહ્યો છે...',
     creatingClient: 'ગ્રાહક બની રહ્યો છે...',
     clientUpdated: 'ગ્રાહક સફળતાપૂર્વક અપડેટ થયો',
@@ -273,7 +271,7 @@ export const translations = {
 
     clientManagement: 'ગ્રાહક મેનેજમેન્ટ',
     clientList: 'ગ્રાહક યાદી',
-    addNewClient: 'ગ્રાહકો',
+    // addNewClient: 'ગ્રાહકો',
     noClients: 'કોઈ ગ્રાહક મળ્યા નહીં',
     Todays_Date: "આજની તારીખ",
     Welcome: ',આપનું સ્વાગત કરે છે.',
@@ -470,6 +468,10 @@ export const translations = {
     Quick_Actions: 'Quick Actions',
     add_new_clients: 'Add new clients',
     create_rental: 'Create rental',
+    addStock: 'Add Stock',
+    removeStock: 'Remove Stock',
+    confirm: 'Confirm',
+    enterQuantity: 'Enter Quantity',
     record_returns: 'Record returns',
     manage_inventory: 'Manage inventory',
     view_all_challans: 'View all challans',
@@ -626,7 +628,7 @@ export const translations = {
 
 
     //billing: "Billing",
-    billing: "Billing",
+    //billing: "Billing",
   },
 };
 

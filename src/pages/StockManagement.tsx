@@ -252,14 +252,14 @@ const StockManagement: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
             >
               <Plus className="w-4 h-4" />
-              Add Stock
+              {t("addStock")}
             </button>
             <button
               onClick={() => handleActionClick("remove")}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm"
             >
               <Minus className="w-4 h-4" />
-              Remove Stock
+              {t("removeStock")}
             </button>
             <button
               onClick={() => fetchStock(true)}
@@ -528,14 +528,14 @@ const StockManagement: React.FC = () => {
           className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold text-white bg-green-600 rounded-xl shadow-md hover:bg-green-700 active:scale-95 transition-all"
         >
           <Plus className="w-4 h-4" />
-          Add
+          {t("addStock")}
         </button>
         <button
           onClick={() => handleActionClick("remove")}
           className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold text-white bg-red-600 rounded-xl shadow-md hover:bg-red-700 active:scale-95 transition-all"
         >
           <Minus className="w-4 h-4" />
-          Remove
+          {t("removeStock")}
         </button>
         <button
           onClick={() => fetchStock(true)}
@@ -554,7 +554,7 @@ const StockManagement: React.FC = () => {
           <div className="w-full max-w-sm bg-white rounded-lg shadow-xl">
             <div className="p-3 border-b border-gray-200">
               <h3 className="text-base font-semibold text-gray-900">
-                {actionModal.type === "add" ? "Add Stock" : "Remove Stock"}
+                {actionModal.type === "add" ? t("addStock") : t("removeStock")}
               </h3>
             </div>
             <div className="p-3 space-y-3">
@@ -570,8 +570,8 @@ const StockManagement: React.FC = () => {
                         key={index}
                         onClick={() => setSelectedSize(index + 1)}
                         className={`px-1 py-2 text-xs font-semibold rounded-lg transition-all border ${isSelected
-                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                            : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-gray-50"
                           }`}
                       >
                         {size}
@@ -590,7 +590,7 @@ const StockManagement: React.FC = () => {
                   value={actionQuantity}
                   onChange={(e) => setActionQuantity(e.target.value)}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Quantity"
+                  placeholder={t("enterQuantity")}
                 />
               </div>
             </div>
@@ -610,7 +610,7 @@ const StockManagement: React.FC = () => {
                     : "bg-red-600 hover:bg-red-700"
                   }`}
               >
-                Confirm
+                {t("confirm")}
               </button>
             </div>
           </div>
