@@ -743,12 +743,12 @@ const JamaChallan: React.FC = () => {
       const currentBalance = outstandingBalances[i] || 0;
       const currentBorrowedBalance = borrowedOutstanding[i] || 0;
 
-      if (qty > currentBalance) {
+      if (qty > 0 && qty > currentBalance) {
         toast.error(`Cannot return more than available stock for Size ${i}. Available: ${currentBalance}`);
         return;
       }
 
-      if (borrowed > currentBorrowedBalance) {
+      if (borrowed > 0 && borrowed > currentBorrowedBalance) {
         toast.error(`Cannot return more than borrowed stock for Size ${i}. Available: ${currentBorrowedBalance}`);
         return;
       }
