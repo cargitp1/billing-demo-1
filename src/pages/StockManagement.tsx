@@ -4,7 +4,7 @@ import { supabase } from "../utils/supabase";
 import { PLATE_SIZES } from "../components/ItemsTable";
 import {
   Package,
-  FileText,
+
   AlertCircle,
   CheckCircle,
   RefreshCw,
@@ -103,7 +103,7 @@ const StockManagement: React.FC = () => {
     if (
       stock &&
       editValues.total_stock <
-        stock.on_rent_stock + stock.borrowed_stock + editValues.lost_stock
+      stock.on_rent_stock + stock.borrowed_stock + editValues.lost_stock
     ) {
       toast.error(t("invalidStock"));
       return;
@@ -189,18 +189,7 @@ const StockManagement: React.FC = () => {
     });
   }, [stocks, sortField, sortOrder]);
 
-  const totalAvailable = useMemo(
-    () => stocks.reduce((sum, stock) => sum + stock.available_stock, 0),
-    [stocks]
-  );
-  const totalOnRent = useMemo(
-    () => stocks.reduce((sum, stock) => sum + stock.on_rent_stock, 0),
-    [stocks]
-  );
-  const totalLost = useMemo(
-    () => stocks.reduce((sum, stock) => sum + stock.lost_stock, 0),
-    [stocks]
-  );
+
 
   const SkeletonRow = () => (
     <tr className="animate-pulse">
@@ -274,65 +263,7 @@ const StockManagement: React.FC = () => {
         </div>
 
         {/* Summary Cards */}
-        {/* Summary Cards */}
-        <div className="flex gap-2 mb-4 sm:gap-4 lg:gap-6 sm:mb-6 lg:mb-8">
-          <div className="relative flex-1 overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-            <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-green-50"></div>
-            <div className="relative p-2 sm:p-4 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[8px] sm:text-xs lg:text-sm font-medium text-gray-600">
-                    {t("totalAvailable")}
-                  </p>
-                  <p className="mt-0.5 text-lg font-bold text-green-600 sm:mt-2 sm:text-3xl">
-                    {totalAvailable}
-                  </p>
-                </div>
-                <div className="p-1.5 bg-green-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                  <Package className="w-4 h-4 text-green-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <div className="relative flex-1 overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-            <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-blue-50"></div>
-            <div className="relative p-2 sm:p-4 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[8px] sm:text-xs lg:text-sm font-medium text-gray-600">
-                    {t("onRent")}
-                  </p>
-                  <p className="mt-0.5 text-lg font-bold text-blue-600 sm:mt-2 sm:text-3xl">
-                    {totalOnRent}
-                  </p>
-                </div>
-                <div className="p-1.5 bg-blue-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                  <FileText className="w-4 h-4 text-blue-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative flex-1 overflow-hidden transition-shadow bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md">
-            <div className="absolute top-0 right-0 w-12 h-12 rounded-bl-full opacity-50 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-red-50"></div>
-            <div className="relative p-2 sm:p-4 lg:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[8px] sm:text-xs lg:text-sm font-medium text-gray-600">
-                    {t("lost")}
-                  </p>
-                  <p className="mt-0.5 text-lg font-bold text-red-600 sm:mt-2 sm:text-3xl">
-                    {totalLost}
-                  </p>
-                </div>
-                <div className="p-1.5 bg-red-100 rounded-md sm:p-2.5 lg:p-3 sm:rounded-lg">
-                  <Package className="w-4 h-4 text-red-600 sm:w-6 sm:h-6 lg:w-8 lg:h-8" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Table Container */}
         <div className="">
@@ -436,9 +367,8 @@ const StockManagement: React.FC = () => {
                   filteredAndSortedStocks.map((stock, index) => (
                     <tr
                       key={stock.size}
-                      className={`hover:bg-gray-50 transition-colors ${
-                        index % 2 === 0 ? "bg-white" : "bg-gray-25"
-                      }`}
+                      className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-25"
+                        }`}
                     >
                       <td className="px-6 py-4 text-center whitespace-nowrap">
                         <span className="text-lg font-bold text-gray-900">
