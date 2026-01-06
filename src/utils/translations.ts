@@ -7,7 +7,7 @@ export const translations = {
     // Client Management
     addNewClient: "નવો ગ્રાહક ઉમેરો",
     editClient: "ગ્રાહક માહિતી સુધારો",
-    
+
     // Billing Page
     billing: "બિલિંગ",
     billDetails: "બિલની વિગતો",
@@ -20,11 +20,11 @@ export const translations = {
     ledgerDetails: "લેજર વિગતો",
     calculateBill: "બિલ ગણો",
     generateBill: "બિલ જનરેટ કરો",
-    
+
     // Udhar Challan
     udharChallan: "ઉધાર ચલણ",
     createChallan: "નવું ચલણ બનાવો",
-    
+
     // Landing Page
     slogan: "મજબૂત પાયો, વિશ્વસનીય ભાડો",
     subSlogan: "તમારા બાંધકામ માટે શ્રેષ્ઠ પ્લેટ્સ",
@@ -68,14 +68,14 @@ export const translations = {
     workingDays: "સોમવાર - શનિવાર",
     privacyPolicy: "ગોપનીયતા",
     terms: "શરતો",
-    
+
     // Existing translations...
     dateNewOld: "તારીખ (નવું → જૂનું)",
     dateOldNew: "તારીખ (જૂનું → નવું)",
     numberHighLow: "નંબર (વધુ → ઓછું)",
     numberLowHigh: "નંબર (ઓછું → વધુ)",
     tryAdjustingSearch: "તમારા શોધ માપદંડ સમાયોજિત કરવાનો પ્રયાસ કરો",
-    
+
     // Billing Translations
     billing: "બિલિંગ",
     billingManagement: "બિલિંગ મેનેજમેન્ટ",
@@ -124,7 +124,7 @@ export const translations = {
     partiallyPaid: "આંશિક ચુકવ્યું",
     unpaid: "અચૂકવ્યું",
     days: "દિવસ",
-    
+
     // Existing Translations
     appName: 'નીલકંઠ પ્લેટ ડેપો',
     greeting: 'નમસ્તે',
@@ -171,9 +171,9 @@ export const translations = {
     basicDetails: 'ચલણ વિગતો',
     totalUdharChallans: 'કુલ ઉધાર ચલણ',
     totalJamaChallans: 'કુલ જમા ચલણ',
-    columns2 : 'બીજો ડેપો',
-    show : 'બતાવો',
-    hide : 'છુપાવો',
+    columns2: 'બીજો ડેપો',
+    show: 'બતાવો',
+    hide: 'છુપાવો',
 
     stockManagement: 'સ્ટોક',
     totalStock: 'કુલ સ્ટોક',
@@ -214,6 +214,10 @@ export const translations = {
     Quick_Actions: 'ઝડપી ક્રિયાઓ',
     add_new_clients: 'નવા ગ્રાહકો ઉમેરો',
     create_rental: 'ભાડે આપો',
+    addStock: 'સ્ટોક ઉમેરો',
+    removeStock: 'સ્ટોક બાદ કરો',
+    confirm: 'પુષ્ટિ કરો',
+    enterQuantity: 'જથ્થો દાખલ કરો',
     record_returns: 'જમા નોંધો',
     manage_inventory: 'સ્ટોક સંભાળો',
     view_all_challans: 'બધા ચલણ જુઓ',
@@ -378,7 +382,7 @@ export const translations = {
     minRentDays: "Minimum rental period: 30 days",
     bulkDiscount: "Special discount on bulk orders",
     clientExists: "A client ID already exists",
-    
+
     // Features
     highQuality: "High Quality",
     qualityDesc: "Strong and Durable Plates",
@@ -397,7 +401,7 @@ export const translations = {
     workingDays: "Monday - Saturday",
     privacyPolicy: "Privacy Policy",
     terms: "Terms",
-    
+
     // Existing translations...
     dateNewOld: "Date (New → Old)",
     dateOldNew: "Date (Old → New)",
@@ -405,7 +409,7 @@ export const translations = {
     numberLowHigh: "Number (Low → High)",
     tryAdjustingSearch: "Try adjusting your search criteria",
     underMaintenance: "🚧 Under Maintenance",
-    
+
     // Billing Translations
     billingManagement: "Billing Management",
     createNewBill: "Create New Bill",
@@ -451,7 +455,7 @@ export const translations = {
     partiallyPaid: "Partially Paid",
     unpaid: "Unpaid",
     days: "days",
-    
+
     // Existing Translations
     appName: 'Nilkanth Plat Depo',
     greeting: 'Welcome',

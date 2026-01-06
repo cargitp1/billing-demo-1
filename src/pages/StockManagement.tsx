@@ -522,25 +522,25 @@ const StockManagement: React.FC = () => {
       </main>
 
       {/* Mobile Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg lg:hidden z-40 flex gap-3">
+      <div className="fixed bottom-0 left-0 right-0 p-2 bg-white border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] lg:hidden z-40 flex gap-2">
         <button
           onClick={() => handleActionClick("add")}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-green-600 rounded-xl shadow-sm touch-manipulation active:scale-95"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold text-white bg-green-600 rounded-xl shadow-md hover:bg-green-700 active:scale-95 transition-all"
         >
-          <Plus className="w-5 h-5" />
-          Add Stock
+          <Plus className="w-4 h-4" />
+          Add
         </button>
         <button
           onClick={() => handleActionClick("remove")}
-          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-red-600 rounded-xl shadow-sm touch-manipulation active:scale-95"
+          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-bold text-white bg-red-600 rounded-xl shadow-md hover:bg-red-700 active:scale-95 transition-all"
         >
-          <Minus className="w-5 h-5" />
+          <Minus className="w-4 h-4" />
           Remove
         </button>
         <button
           onClick={() => fetchStock(true)}
           disabled={refreshing}
-          className="inline-flex items-center justify-center p-3 text-gray-700 bg-gray-100 border border-gray-200 rounded-xl shadow-sm touch-manipulation active:scale-95"
+          className="inline-flex items-center justify-center p-2 text-gray-700 bg-gray-50 border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-all"
         >
           <RefreshCw
             className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
@@ -552,34 +552,36 @@ const StockManagement: React.FC = () => {
       {actionModal.isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
           <div className="w-full max-w-sm bg-white rounded-lg shadow-xl">
-            <div className="p-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
+            <div className="p-3 border-b border-gray-200">
+              <h3 className="text-base font-semibold text-gray-900">
                 {actionModal.type === "add" ? "Add Stock" : "Remove Stock"}
               </h3>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="p-3 space-y-3">
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-1.5 text-xs font-medium text-gray-700">
                   {t("size")}
                 </label>
-                <select
-                  value={selectedSize || ""}
-                  onChange={(e) => setSelectedSize(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  autoFocus
-                >
-                  <option value="" disabled>
-                    Select Size
-                  </option>
-                  {PLATE_SIZES.map((size, index) => (
-                    <option key={index} value={index + 1}>
-                      {size}
-                    </option>
-                  ))}
-                </select>
+                <div className="grid grid-cols-3 gap-2">
+                  {PLATE_SIZES.map((size, index) => {
+                    const isSelected = selectedSize === index + 1;
+                    return (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedSize(index + 1)}
+                        className={`px-1 py-2 text-xs font-semibold rounded-lg transition-all border ${isSelected
+                            ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                            : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-gray-50"
+                          }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
               <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
+                <label className="block mb-1.5 text-xs font-medium text-gray-700">
                   {t("quantity")}
                 </label>
                 <input
@@ -587,25 +589,25 @@ const StockManagement: React.FC = () => {
                   min="1"
                   value={actionQuantity}
                   onChange={(e) => setActionQuantity(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter quantity"
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Quantity"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+            <div className="flex justify-end gap-2 p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
               <button
                 onClick={() =>
                   setActionModal({ ...actionModal, isOpen: false })
                 }
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 {t("cancel")}
               </button>
               <button
                 onClick={handleActionSubmit}
-                className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${actionModal.type === "add"
-                  ? "bg-green-600 hover:bg-green-700 focus:ring-green-500"
-                  : "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                className={`px-3 py-1.5 text-xs font-medium text-white rounded-lg ${actionModal.type === "add"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
                   }`}
               >
                 Confirm
