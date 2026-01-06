@@ -15,3 +15,4 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 VITE_SUPABASE_URL=https://hcuxmoudfsammaweazlw.supabase.co
 
 1
+2
