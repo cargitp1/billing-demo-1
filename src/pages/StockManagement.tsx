@@ -11,7 +11,11 @@ import {
   ArrowUpDown,
   Plus,
   Minus,
+  Users,
+  X,
+  Loader2,
 } from "lucide-react";
+import { fetchUdharChallansForClient, fetchJamaChallansForClient } from "../utils/challanFetching";
 import Navbar from "../components/Navbar";
 import toast, { Toaster } from "react-hot-toast";
 
@@ -48,6 +52,24 @@ const StockManagement: React.FC = () => {
     type: "add",
   });
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [distributionModal, setDistributionModal] = useState<{
+    isOpen: boolean;
+    size: number | null;
+    type: "rent" | "borrowed" | null;
+    loading: boolean;
+    data: {
+      clientName: string;
+      quantity: number;
+      site: string;
+      notes?: string[];
+    }[];
+  }>({
+    isOpen: false,
+    size: null,
+    type: null,
+    loading: false,
+    data: [],
+  });
   const [actionQuantity, setActionQuantity] = useState("");
 
   useEffect(() => {
@@ -128,6 +150,92 @@ const StockManagement: React.FC = () => {
       setActionModal({ ...actionModal, isOpen: false });
       setSelectedSize(null);
       fetchStock();
+    }
+  };
+
+  const fetchDistribution = async (size: number, type: "rent" | "borrowed") => {
+    setDistributionModal({
+      ...distributionModal,
+      isOpen: true,
+      size,
+      type,
+      loading: true,
+      data: [],
+    });
+
+    try {
+      const [allUdhar, allJama] = await Promise.all([
+        fetchUdharChallansForClient(),
+        fetchJamaChallansForClient(),
+      ]);
+
+      const clientMap = new Map<
+        string,
+        {
+          clientName: string;
+          quantity: number;
+          site: string;
+          notes: string[];
+        }
+      >();
+
+      const processItems = (items: any, multiplier: number, client: any) => {
+        const qtyKey = `size_${size}_qty`;
+        const borrowedKey = `size_${size}_borrowed`;
+        const noteKey = `size_${size}_note`;
+
+        let qty = 0;
+        let note = "";
+
+        if (type === "rent") {
+          qty = (items as any)[qtyKey] || 0;
+        } else {
+          qty = (items as any)[borrowedKey] || 0;
+          note = (items as any)[noteKey] || "";
+        }
+
+        const amount = qty * multiplier;
+
+        if (amount !== 0) {
+          const current = clientMap.get(client.clientId) || {
+            clientName: client.clientNicName || client.clientFullName,
+            quantity: 0,
+            site: client.site,
+            notes: [] as string[],
+          };
+
+          current.quantity += amount;
+
+          // Only add notes for Udhar (borrowing side) for borrowed items
+          if (type === "borrowed" && note && multiplier === 1) {
+            current.notes.push(note);
+          }
+
+          clientMap.set(client.clientId, current);
+        }
+      };
+
+      allUdhar.forEach((challan: any) => {
+        processItems(challan.items, 1, challan);
+      });
+
+      allJama.forEach((challan: any) => {
+        processItems(challan.items, -1, challan);
+      });
+
+      const data = Array.from(clientMap.values())
+        .filter((item) => item.quantity > 0)
+        .sort((a, b) => b.quantity - a.quantity);
+
+      setDistributionModal((prev) => ({
+        ...prev,
+        loading: false,
+        data,
+      }));
+    } catch (error) {
+      console.error("Error fetching distribution:", error);
+      toast.error("Failed to load distribution data");
+      setDistributionModal((prev) => ({ ...prev, loading: false }));
     }
   };
 
@@ -396,8 +504,22 @@ const StockManagement: React.FC = () => {
                         <div className="text-sm font-semibold text-gray-900">
                           {stock.on_rent_stock + stock.borrowed_stock}
                         </div>
-                        <div className="text-xs text-gray-500 mt-0.5">
-                          ({stock.on_rent_stock} + {stock.borrowed_stock})
+                        <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-center gap-1">
+                          (
+                          <button
+                            onClick={() => fetchDistribution(stock.size, "rent")}
+                            className="font-medium hover:text-blue-600 hover:underline focus:outline-none transition-colors"
+                          >
+                            {stock.on_rent_stock}
+                          </button>
+                          +
+                          <button
+                            onClick={() => fetchDistribution(stock.size, "borrowed")}
+                            className="font-medium hover:text-purple-600 hover:underline focus:outline-none transition-colors"
+                          >
+                            {stock.borrowed_stock}
+                          </button>
+                          )
                         </div>
                       </td>
                     </tr>
@@ -424,6 +546,9 @@ const StockManagement: React.FC = () => {
                   <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
                     {t("on_rent_stock")}
                   </th>
+                  <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
+                    {t("borrowed_stock")}
+                  </th>
                   {/* Lost Stock Column - Commented out
                           <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 border-r border-gray-200 min-w-[60px] sm:min-w-[80px]">
                             {t('lost_stock')}
@@ -444,6 +569,9 @@ const StockManagement: React.FC = () => {
                         </td>
                         <td className="px-2 py-2 border-r border-gray-200">
                           <div className="w-16 h-6 mx-auto bg-gray-200 rounded-full"></div>
+                        </td>
+                        <td className="px-2 py-2 border-r border-gray-200">
+                          <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
                         </td>
                         <td className="px-2 py-2">
                           <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
@@ -480,16 +608,63 @@ const StockManagement: React.FC = () => {
                       <td className="px-1 py-1.5 text-center border-r border-gray-200">
                         {getAvailabilityBadge(stock.available_stock)}
                       </td>
+                      <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                        <button
+                          onClick={() => fetchDistribution(stock.size, "rent")}
+                          className="text-orange-600 hover:underline font-bold text-xs sm:text-sm focus:outline-none"
+                        >
+                          {stock.on_rent_stock}
+                        </button>
+                      </td>
                       <td className="px-1 py-1.5 text-center">
-                        <div className="text-xs font-semibold sm:text-sm">
-                          {stock.on_rent_stock + stock.borrowed_stock}
-                        </div>
-                        <div className="text-xs text-gray-500 sm:text-sm">
-                          (<span className="text-orange-600">{stock.on_rent_stock}</span>+<span className="text-purple-600">{stock.borrowed_stock}</span>)
-                        </div>
+                        <button
+                          onClick={() => fetchDistribution(stock.size, "borrowed")}
+                          className="text-purple-600 hover:underline font-bold text-xs sm:text-sm focus:outline-none"
+                        >
+                          {stock.borrowed_stock}
+                        </button>
                       </td>
                     </tr>
                   ))
+                )}
+                {!loading && filteredAndSortedStocks.length > 0 && (
+                  <tr className="bg-gray-100 border-t-2 border-gray-300">
+                    <td className="sticky left-0 z-10 px-1 py-2 text-xs font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-2 sm:text-base bg-gray-100">
+                      {t("total") || "Total"}
+                    </td>
+                    <td className="px-1 py-2 text-center border-r border-gray-200">
+                      <span className="text-xs font-bold sm:text-sm">
+                        {filteredAndSortedStocks.reduce(
+                          (sum, stock) => sum + stock.total_stock,
+                          0
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-center border-r border-gray-200">
+                      <span className="text-xs font-bold sm:text-sm text-green-700">
+                        {filteredAndSortedStocks.reduce(
+                          (sum, stock) => sum + stock.available_stock,
+                          0
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-center border-r border-gray-200">
+                      <span className="text-xs font-bold sm:text-sm text-orange-600">
+                        {filteredAndSortedStocks.reduce(
+                          (sum, stock) => sum + stock.on_rent_stock,
+                          0
+                        )}
+                      </span>
+                    </td>
+                    <td className="px-1 py-2 text-center">
+                      <span className="text-xs font-bold sm:text-sm text-purple-600">
+                        {filteredAndSortedStocks.reduce(
+                          (sum, stock) => sum + stock.borrowed_stock,
+                          0
+                        )}
+                      </span>
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -606,12 +781,100 @@ const StockManagement: React.FC = () => {
               <button
                 onClick={handleActionSubmit}
                 className={`px-3 py-1.5 text-xs font-medium text-white rounded-lg ${actionModal.type === "add"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-red-600 hover:bg-red-700"
                   }`}
               >
                 {t("confirm")}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Distribution Modal */}
+      {distributionModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-100">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">
+                  {distributionModal.type === "borrowed"
+                    ? t("borrowed_stock")
+                    : t("on_rent_stock")}{" "}
+                  Distribution
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Size: {PLATE_SIZES[distributionModal.size! - 1]}
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setDistributionModal({ ...distributionModal, isOpen: false })
+                }
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto custom-scrollbar">
+              {distributionModal.loading ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                  <Loader2 className="w-8 h-8 mb-2 animate-spin text-blue-500" />
+                  <p className="text-sm">Loading distribution...</p>
+                </div>
+              ) : distributionModal.data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-gray-500 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+                  <Users className="w-8 h-8 mb-2 text-gray-400" />
+                  <p className="text-sm font-medium">No active rentals</p>
+                  <p className="text-xs text-gray-400">
+                    No clients currently have this size
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {distributionModal.data.map((client, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-8 h-8 bg-blue-50 text-blue-600 font-bold text-xs rounded-lg">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-gray-900">
+                            {client.clientName}
+                          </p>
+                          <p className="text-xs text-gray-500 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                            {client.site}
+                          </p>
+                          {client.notes && client.notes.length > 0 && (
+                            <div className="mt-1 flex flex-col gap-0.5">
+                              {client.notes.map((note, idx) => (
+                                <p
+                                  key={idx}
+                                  className="text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded w-fit"
+                                >
+                                  {note}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="px-3 py-1 bg-blue-50 text-blue-700 font-bold text-sm rounded-lg">
+                        {client.quantity}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="p-3 bg-gray-50 border-t border-gray-200 text-center text-xs text-gray-500">
+              Total Clients: {distributionModal.data.length}
             </div>
           </div>
         </div>
