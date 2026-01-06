@@ -99,15 +99,7 @@ const StockManagement: React.FC = () => {
       return;
     }
 
-    const stock = stocks.find((s) => s.size === size);
-    if (
-      stock &&
-      editValues.total_stock <
-      stock.on_rent_stock + stock.borrowed_stock + editValues.lost_stock
-    ) {
-      toast.error(t("invalidStock"));
-      return;
-    }
+
 
     const loadingToast = toast.loading(t("updatingStock"));
 
