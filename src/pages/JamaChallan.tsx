@@ -60,7 +60,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   const filteredClients = clients
     .filter(client => {
       const searchLower = searchQuery.toLowerCase().trim();
-      
+
       // Try to parse the search term as a number
       const searchNum = parseInt(searchLower);
       const isSearchingNumber = !isNaN(searchNum);
@@ -297,11 +297,11 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
         {/* Basic Challan Details - Compact */}
         <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
           <div className="flex items-center gap-2 mb-3 sm:mb-4">
-              <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
-                <FileText className="w-4 h-4 text-green-600 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
-              </div>
-              <h3 className="text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">{t('challanDetails')}</h3>
+            <div className="p-1.5 sm:p-2 bg-green-100 rounded-md sm:rounded-lg">
+              <FileText className="w-4 h-4 text-green-600 sm:w-4.5 sm:h-4.5 lg:w-5 lg:h-5" />
             </div>
+            <h3 className="text-sm font-semibold text-gray-900 sm:text-base lg:text-lg">{t('challanDetails')}</h3>
+          </div>
           <div className="grid gap-2 sm:gap-3 md:grid-cols-2 lg:gap-4">
             <div>
               <label className="flex items-center gap-1 sm:gap-1.5 mb-1.5 sm:mb-2 text-xs sm:text-xs lg:text-sm font-medium text-gray-700">
@@ -314,9 +314,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   value={challanNumber}
                   onChange={(e) => setChallanNumber(e.target.value)}
                   placeholder="Challan #"
-                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-sm ${
-                    errors.challanNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`flex-1 px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-sm ${errors.challanNumber ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 <button
                   onClick={() => setHideExtraColumns(!hideExtraColumns)}
@@ -345,9 +344,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-sm ${
-                    errors.date ? 'border-red-500' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-sm ${errors.date ? 'border-red-500' : 'border-gray-300'
+                    }`}
                 />
                 {errors.date && (
                   <p className="mt-1 text-xs sm:text-xs text-red-600 flex items-center gap-1">
@@ -377,7 +375,7 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
                     className="w-full px-2.5 py-2 sm:px-3 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-xs sm:text-sm"
                   />
                   {previousDriversVisible && previousDrivers.length > 0 && (
-                    <div 
+                    <div
                       className="absolute z-10 w-full mt-1 overflow-y-auto bg-white border border-gray-200 rounded-lg shadow-lg driver-suggestions max-h-40"
                     >
                       {previousDrivers.map((driver, index) => (
@@ -417,8 +415,8 @@ const ChallanDetailsStep: React.FC<ChallanDetailsStepProps> = ({
               </p>
             </div>
           )}
-          <ItemsTable 
-            items={items} 
+          <ItemsTable
+            items={items}
             onChange={setItems}
             outstandingBalances={outstandingBalances}
             borrowedOutstanding={borrowedOutstanding}
@@ -479,7 +477,7 @@ const JamaChallan: React.FC = () => {
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showAddClient, setShowAddClient] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientFormData | null>(null);
-  
+
   // Form states
   const [challanNumber, setChallanNumber] = useState('');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -488,7 +486,7 @@ const JamaChallan: React.FC = () => {
   const [previousDriversVisible, setPreviousDriversVisible] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [showSuccess, setShowSuccess] = useState(false);
-  
+
   const generateNextChallanNumber = async () => {
     try {
       const { data, error } = await supabase
@@ -499,13 +497,13 @@ const JamaChallan: React.FC = () => {
 
 
       if (error) throw error;
-      
+
       let nextNumber = "1";
-      
+
       if (data && data.length > 0) {
         const lastChallanNumber = data[0].jama_challan_number;
         const match = lastChallanNumber.match(/(\d+)$/);
-        
+
         if (match) {
           const currentNumber = match[0];
           const prefix = lastChallanNumber.slice(0, -currentNumber.length);
@@ -517,10 +515,10 @@ const JamaChallan: React.FC = () => {
           nextNumber = lastChallanNumber + "1";
         }
       }
-      
+
       console.log('Generated next jama challan number:', nextNumber);
       setChallanNumber(nextNumber);
-      
+
     } catch (error) {
       console.error("Error generating challan number:", error);
       const fallback = "1";
@@ -737,11 +735,30 @@ const JamaChallan: React.FC = () => {
       hasErrors = true;
     }
 
+    // Validate against outstanding balances
+    for (let i = 1; i <= 9; i++) {
+      const qty = items[`size_${i}_qty` as keyof ItemsData] as number || 0;
+      const borrowed = items[`size_${i}_borrowed` as keyof ItemsData] as number || 0;
+
+      const currentBalance = outstandingBalances[i] || 0;
+      const currentBorrowedBalance = borrowedOutstanding[i] || 0;
+
+      if (qty > currentBalance) {
+        toast.error(`Cannot return more than available stock for Size ${i}. Available: ${currentBalance}`);
+        return;
+      }
+
+      if (borrowed > currentBorrowedBalance) {
+        toast.error(`Cannot return more than borrowed stock for Size ${i}. Available: ${currentBorrowedBalance}`);
+        return;
+      }
+    }
+
 
     const hasQuantities = Object.entries(items)
       .filter(([key]) => key.includes('_qty'))
       .some(([_, value]) => value > 0);
-      
+
     const hasBorrowedItems = Object.entries(items)
       .filter(([key]) => key.includes('_borrowed'))
       .some(([_, value]) => value > 0);
@@ -838,7 +855,7 @@ const JamaChallan: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -884,7 +901,7 @@ const JamaChallan: React.FC = () => {
               </div>
               {showAddClient ? (
                 <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
-                  <ClientForm 
+                  <ClientForm
                     onSubmit={handleQuickAddClient}
                     onCancel={() => setShowAddClient(false)}
                   />
