@@ -4,14 +4,13 @@ import { supabase } from "../utils/supabase";
 import { PLATE_SIZES } from "../components/ItemsTable";
 import {
   Package,
-
   AlertCircle,
   CheckCircle,
   RefreshCw,
   TrendingDown,
   ArrowUpDown,
-  Edit2,
-  X,
+  Plus,
+  Minus,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import toast, { Toaster } from "react-hot-toast";
@@ -39,16 +38,17 @@ const StockManagement: React.FC = () => {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [editingSize, setEditingSize] = useState<number | null>(null);
-  const [editValues, setEditValues] = useState<{
-    total_stock: number;
-    lost_stock: number;
-  }>({
-    total_stock: 0,
-    lost_stock: 0,
-  });
   const [sortField, setSortField] = useState<SortField>("size");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+  const [actionModal, setActionModal] = useState<{
+    isOpen: boolean;
+    type: "add" | "remove";
+  }>({
+    isOpen: false,
+    type: "add",
+  });
+  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [actionQuantity, setActionQuantity] = useState("");
 
   useEffect(() => {
     fetchStock();
@@ -85,31 +85,38 @@ const StockManagement: React.FC = () => {
     setRefreshing(false);
   };
 
-  const handleEdit = (stock: StockData) => {
-    setEditingSize(stock.size);
-    setEditValues({
-      total_stock: stock.total_stock,
-      lost_stock: stock.lost_stock,
-    });
+  const handleActionClick = (type: "add" | "remove") => {
+    setActionModal({ isOpen: true, type });
+    setSelectedSize(null);
+    setActionQuantity("");
   };
 
-  const handleSave = async (size: number) => {
-    if (editValues.total_stock < 0 || editValues.lost_stock < 0) {
+  const handleActionSubmit = async () => {
+    if (!selectedSize || !actionQuantity) {
+      toast.error(t("enterValidNumber"));
+      return;
+    }
+    const qty = parseInt(actionQuantity);
+    if (isNaN(qty) || qty <= 0) {
       toast.error(t("enterValidNumber"));
       return;
     }
 
+    const stock = stocks.find((s) => s.size === selectedSize);
+    if (!stock) return;
 
+    const currentTotal = stock.total_stock;
+    const newTotal =
+      actionModal.type === "add" ? currentTotal + qty : currentTotal - qty;
 
     const loadingToast = toast.loading(t("updatingStock"));
 
     const { error } = await supabase
       .from("stock")
       .update({
-        total_stock: editValues.total_stock,
-        lost_stock: editValues.lost_stock,
+        total_stock: newTotal,
       })
-      .eq("size", size);
+      .eq("size", selectedSize);
 
     toast.dismiss(loadingToast);
 
@@ -118,13 +125,10 @@ const StockManagement: React.FC = () => {
       toast.error(t("failedToUpdate"));
     } else {
       toast.success(t("stockUpdated"));
-      setEditingSize(null);
+      setActionModal({ ...actionModal, isOpen: false });
+      setSelectedSize(null);
       fetchStock();
     }
-  };
-
-  const handleCancel = () => {
-    setEditingSize(null);
   };
 
   const handleSort = (field: SortField) => {
@@ -181,6 +185,15 @@ const StockManagement: React.FC = () => {
     });
   }, [stocks, sortField, sortOrder]);
 
+  const sortedSizeOptions = useMemo(() => {
+    return PLATE_SIZES.map((size, index) => ({
+      id: index + 1,
+      label: size,
+    })).sort((a, b) =>
+      a.label.localeCompare(b.label, undefined, { numeric: true })
+    );
+  }, []);
+
 
 
   const SkeletonRow = () => (
@@ -233,7 +246,7 @@ const StockManagement: React.FC = () => {
         }}
       />
       <Navbar />
-      <main className="flex-1 w-full ml-0 overflow-auto pt-14 sm:pt-0 lg:ml-64">
+      <main className="flex-1 w-full ml-0 overflow-auto pt-14 pb-20 sm:pt-0 sm:pb-0 lg:ml-64">
         {/* Header - Desktop Only */}
         <div className="items-center justify-between hidden mb-6 sm:flex lg:mb-8">
           <div>
@@ -242,16 +255,32 @@ const StockManagement: React.FC = () => {
             </h2>
             <p className="mt-1 text-xs text-gray-600">{t("stockOverview")}</p>
           </div>
-          <button
-            onClick={() => fetchStock(true)}
-            disabled={refreshing}
-            title={t("refreshStock")}
-            className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
-          >
-            <RefreshCw
-              className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
-            />
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleActionClick("add")}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Stock
+            </button>
+            <button
+              onClick={() => handleActionClick("remove")}
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm"
+            >
+              <Minus className="w-4 h-4" />
+              Remove Stock
+            </button>
+            <button
+              onClick={() => fetchStock(true)}
+              disabled={refreshing}
+              title={t("refreshStock")}
+              className="p-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 touch-manipulation active:scale-95"
+            >
+              <RefreshCw
+                className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -327,9 +356,6 @@ const StockManagement: React.FC = () => {
                       </div>
                     </th>
                     */}
-                  <th className="px-6 py-4 text-xs font-medium tracking-wider text-center text-gray-500 uppercase">
-                    {t("actions")}
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
@@ -368,25 +394,9 @@ const StockManagement: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
-                        {editingSize === stock.size ? (
-                          <input
-                            type="number"
-                            min="0"
-                            inputMode="numeric"
-                            value={editValues.total_stock}
-                            onChange={(e) =>
-                              setEditValues({
-                                ...editValues,
-                                total_stock: parseInt(e.target.value) || 0,
-                              })
-                            }
-                            className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                        ) : (
-                          <span className="font-medium">
-                            {stock.total_stock}
-                          </span>
-                        )}
+                        <span className="font-medium">
+                          {stock.total_stock}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-center whitespace-nowrap">
                         {getAvailabilityBadge(stock.available_stock)}
@@ -398,50 +408,6 @@ const StockManagement: React.FC = () => {
                         <div className="text-xs text-gray-500 mt-0.5">
                           ({stock.on_rent_stock} + {stock.borrowed_stock})
                         </div>
-                      </td>
-                      {/* Lost Stock Column - Commented out
-                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
-                          {editingSize === stock.size ? (
-                            <input
-                              type="number"
-                              min="0"
-                              inputMode="numeric"
-                              value={editValues.lost_stock}
-                              onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
-                              className="w-24 px-3 py-1.5 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          ) : (
-                            <span className="font-medium">{stock.lost_stock}</span>
-                          )}
-                        </td>
-                        */}
-                      <td className="px-6 py-4 text-sm text-center whitespace-nowrap">
-                        {editingSize === stock.size ? (
-                          <div className="flex justify-center gap-2">
-                            <button
-                              onClick={() => handleSave(stock.size)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors touch-manipulation active:scale-95"
-                            >
-                              <CheckCircle size={14} />
-                              {t("save")}
-                            </button>
-                            <button
-                              onClick={handleCancel}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors touch-manipulation active:scale-95"
-                            >
-                              <X size={14} />
-                              {t("cancel")}
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleEdit(stock)}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors touch-manipulation active:scale-95"
-                          >
-                            <Edit2 size={14} />
-                            {t("edit")}
-                          </button>
-                        )}
                       </td>
                     </tr>
                   ))
@@ -472,9 +438,6 @@ const StockManagement: React.FC = () => {
                             {t('lost_stock')}
                           </th>
                           */}
-                  <th className="px-1 py-1.5 text-xs sm:text-sm font-semibold text-center text-gray-700 min-w-[60px] sm:min-w-[80px]">
-                    {t("actions")}
-                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -491,14 +454,8 @@ const StockManagement: React.FC = () => {
                         <td className="px-2 py-2 border-r border-gray-200">
                           <div className="w-16 h-6 mx-auto bg-gray-200 rounded-full"></div>
                         </td>
-                        <td className="px-2 py-2 border-r border-gray-200">
-                          <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
-                        </td>
-                        <td className="px-2 py-2 border-r border-gray-200">
-                          <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
-                        </td>
                         <td className="px-2 py-2">
-                          <div className="w-12 h-6 mx-auto bg-gray-200 rounded"></div>
+                          <div className="w-12 h-4 mx-auto bg-gray-200 rounded"></div>
                         </td>
                       </tr>
                     ))}
@@ -525,77 +482,20 @@ const StockManagement: React.FC = () => {
                         {PLATE_SIZES[stock.size - 1]}
                       </td>
                       <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                        {editingSize === stock.size ? (
-                          <input
-                            type="number"
-                            min="0"
-                            inputMode="numeric"
-                            value={editValues.total_stock}
-                            onChange={(e) =>
-                              setEditValues({
-                                ...editValues,
-                                total_stock: parseInt(e.target.value) || 0,
-                              })
-                            }
-                            className="w-full px-1 py-1 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
-                          />
-                        ) : (
-                          <span className="text-xs font-semibold sm:text-sm">
-                            {stock.total_stock}
-                          </span>
-                        )}
+                        <span className="text-xs font-semibold sm:text-sm">
+                          {stock.total_stock}
+                        </span>
                       </td>
                       <td className="px-1 py-1.5 text-center border-r border-gray-200">
                         {getAvailabilityBadge(stock.available_stock)}
                       </td>
-                      <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                      <td className="px-1 py-1.5 text-center">
                         <div className="text-xs font-semibold sm:text-sm">
                           {stock.on_rent_stock + stock.borrowed_stock}
                         </div>
                         <div className="text-xs text-gray-500 sm:text-sm">
                           (<span className="text-orange-600">{stock.on_rent_stock}</span>+<span className="text-purple-600">{stock.borrowed_stock}</span>)
                         </div>
-                      </td>
-                      {/* Lost Stock Column - Commented out
-                              <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                                {editingSize === stock.size ? (
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    inputMode="numeric"
-                                    value={editValues.lost_stock}
-                                    onChange={(e) => setEditValues({ ...editValues, lost_stock: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-1 py-1 text-xs sm:text-sm text-center border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-transparent min-h-[28px] sm:min-h-[32px]"
-                                  />
-                                ) : (
-                                  <span className="text-xs font-semibold sm:text-sm">{stock.lost_stock}</span>
-                                )}
-                              </td>
-                              */}
-                      <td className="px-1 py-1.5 text-center">
-                        {editingSize === stock.size ? (
-                          <div className="flex gap-0.5">
-                            <button
-                              onClick={() => handleSave(stock.size)}
-                              className="flex-1 inline-flex items-center justify-center gap-0.5 px-1.5 py-1 text-xs sm:text-sm font-medium text-white bg-green-600 rounded hover:bg-green-700 touch-manipulation active:scale-95"
-                            >
-                              <CheckCircle className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={handleCancel}
-                              className="flex-1 inline-flex items-center justify-center gap-0.5 px-1.5 py-1 text-xs sm:text-sm font-medium text-white bg-gray-500 rounded hover:bg-gray-600 touch-manipulation active:scale-95"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => handleEdit(stock)}
-                            className="inline-flex items-center justify-center gap-0.5 px-1.5 py-1 text-xs sm:text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 touch-manipulation active:scale-95"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </button>
-                        )}
                       </td>
                     </tr>
                   ))
@@ -629,6 +529,99 @@ const StockManagement: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* Mobile Bottom Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 shadow-lg lg:hidden z-40 flex gap-3">
+        <button
+          onClick={() => handleActionClick("add")}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-green-600 rounded-xl shadow-sm touch-manipulation active:scale-95"
+        >
+          <Plus className="w-5 h-5" />
+          Add Stock
+        </button>
+        <button
+          onClick={() => handleActionClick("remove")}
+          className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white bg-red-600 rounded-xl shadow-sm touch-manipulation active:scale-95"
+        >
+          <Minus className="w-5 h-5" />
+          Remove
+        </button>
+        <button
+          onClick={() => fetchStock(true)}
+          disabled={refreshing}
+          className="inline-flex items-center justify-center p-3 text-gray-700 bg-gray-100 border border-gray-200 rounded-xl shadow-sm touch-manipulation active:scale-95"
+        >
+          <RefreshCw
+            className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`}
+          />
+        </button>
+      </div>
+
+      {/* Action Modal */}
+      {actionModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
+          <div className="w-full max-w-sm bg-white rounded-lg shadow-xl">
+            <div className="p-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">
+                {actionModal.type === "add" ? "Add Stock" : "Remove Stock"}
+              </h3>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  {t("size")}
+                </label>
+                <select
+                  value={selectedSize || ""}
+                  onChange={(e) => setSelectedSize(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 bg-white text-gray-900 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="" disabled>
+                    Select Size
+                  </option>
+                  {sortedSizeOptions.map((option) => (
+                    <option key={option.id} value={option.id}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  {t("quantity")}
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={actionQuantity}
+                  onChange={(e) => setActionQuantity(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter quantity"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-3 p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg">
+              <button
+                onClick={() =>
+                  setActionModal({ ...actionModal, isOpen: false })
+                }
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                {t("cancel")}
+              </button>
+              <button
+                onClick={handleActionSubmit}
+                className={`px-4 py-2 text-sm font-medium text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 ${actionModal.type === "add"
+                  ? "bg-green-600 hover:bg-green-700 focus:ring-green-500"
+                  : "bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                  }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
