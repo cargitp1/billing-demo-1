@@ -18,4 +18,3 @@ VITE_SUPABASE_URL=https://hcuxmoudfsammaweazlw.supabase.co
 
 56
 
-7
