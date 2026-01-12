@@ -72,9 +72,62 @@ const StockManagement: React.FC = () => {
   });
   const [actionQuantity, setActionQuantity] = useState("");
 
+  const [calculatedStocks, setCalculatedStocks] = useState<Map<number, { rent: number; borrowed: number }>>(new Map());
+
   useEffect(() => {
     fetchStock();
+    fetchCalculatedStocks();
   }, []);
+
+  const fetchCalculatedStocks = async () => {
+    try {
+      const [allUdhar, allJama] = await Promise.all([
+        fetchUdharChallansForClient(),
+        fetchJamaChallansForClient(),
+      ]);
+
+      const calculations = new Map<number, { rent: number; borrowed: number }>();
+
+      // Initialize for all sizes
+      for (const size of PLATE_SIZES) {
+        // Find index of size in PLATE_SIZES
+        const sizeIndex = PLATE_SIZES.indexOf(size) + 1;
+        calculations.set(sizeIndex, { rent: 0, borrowed: 0 });
+      }
+
+      // Process Udhar (Outgoing)
+      allUdhar.forEach(challan => {
+        for (let i = 1; i <= 9; i++) {
+          const qty = (challan.items as any)[`size_${i}_qty`] || 0;
+          const borrowed = (challan.items as any)[`size_${i}_borrowed`] || 0;
+
+          const current = calculations.get(i) || { rent: 0, borrowed: 0 };
+          calculations.set(i, {
+            rent: current.rent + qty,
+            borrowed: current.borrowed + borrowed
+          });
+        }
+      });
+
+      // Process Jama (Incoming)
+      allJama.forEach(challan => {
+        for (let i = 1; i <= 9; i++) {
+          const qty = (challan.items as any)[`size_${i}_qty`] || 0;
+          const borrowed = (challan.items as any)[`size_${i}_borrowed`] || 0;
+
+          const current = calculations.get(i) || { rent: 0, borrowed: 0 };
+          calculations.set(i, {
+            rent: current.rent - qty,
+            borrowed: current.borrowed - borrowed
+          });
+        }
+      });
+
+      setCalculatedStocks(calculations);
+    } catch (error) {
+      console.error("Error calculating stocks:", error);
+    }
+  };
 
   const fetchStock = async (showRefreshToast = false) => {
     if (showRefreshToast) setRefreshing(true);
@@ -89,17 +142,10 @@ const StockManagement: React.FC = () => {
       console.error("Error fetching stock:", error);
       toast.error(t("failedToRefresh"));
     } else {
-      const computed = (data || []).map((s: any) => ({
-        ...s,
-        available_stock: Math.max(
-          0,
-          (s.total_stock || 0) - (s.on_rent_stock || 0) - (s.lost_stock || 0)
-        ),
-      }));
-
-      setStocks(computed);
+      setStocks(data || []);
       if (showRefreshToast) {
         toast.success(t("stockRefreshed"));
+        fetchCalculatedStocks();
       }
     }
 
@@ -481,49 +527,73 @@ const StockManagement: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredAndSortedStocks.map((stock, index) => (
-                    <tr
-                      key={stock.size}
-                      className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-25"
-                        }`}
-                    >
-                      <td className="px-6 py-4 text-center whitespace-nowrap">
-                        <span className="text-lg font-bold text-gray-900">
-                          {PLATE_SIZES[stock.size - 1]}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
-                        <span className="font-medium">
-                          {stock.total_stock}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center whitespace-nowrap">
-                        {getAvailabilityBadge(stock.available_stock)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="text-sm font-semibold text-gray-900">
-                          {stock.on_rent_stock + stock.borrowed_stock}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-center gap-1">
-                          (
-                          <button
-                            onClick={() => fetchDistribution(stock.size, "rent")}
-                            className="font-medium hover:text-blue-600 hover:underline focus:outline-none transition-colors"
-                          >
-                            {stock.on_rent_stock}
-                          </button>
-                          +
-                          <button
-                            onClick={() => fetchDistribution(stock.size, "borrowed")}
-                            className="font-medium hover:text-purple-600 hover:underline focus:outline-none transition-colors"
-                          >
-                            {stock.borrowed_stock}
-                          </button>
-                          )
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  filteredAndSortedStocks.map((stock, index) => {
+                    const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
+                    // Use calculated values if available, otherwise fallback (though fetchCalculatedStocks runs on mount)
+                    const rentStock = calculated.rent;
+                    const borrowedStock = calculated.borrowed;
+                    // Recalculate available based on live rent
+                    // Available = Total - Rent - Lost. Borrowed is usually separate or part of rent depending on logic?
+                    // Standard logic: Available is what is in warehouse. 
+                    // If we gave rent, it's gone. If we gave borrowed (meaning we gave stock as borrowed), it's gone.
+                    // So Available = Total - Rent - Borrowed - Lost?
+                    // Previous logic: available_stock = total - on_rent - lost.
+                    // But if borrowed also consumes stock, it should be subtracted.
+                    // Let's assume on_rent_stock in DB included everything given out?
+                    // But now we are splitting.
+                    // If UdharChallan adds to 'rent', then Rent consumes stock.
+                    // If UdharChallan adds to 'borrowed', does it consume stock? 
+                    // Usually yes, if we gave it from our warehouse.
+                    // So Available = Total - Rent - Borrowed - Lost.
+                    const availableStock = Math.max(0, stock.total_stock - rentStock - borrowedStock - stock.lost_stock);
+
+                    // Note: We are only modifying DISPLAY here. The sorting might still use the 'stock' object values unless we update 'filteredAndSortedStocks' logic too.
+                    // For now, let's just display the correct numbers. User asked for display.
+
+                    return (
+                      <tr
+                        key={stock.size}
+                        className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? "bg-white" : "bg-gray-25"
+                          }`}
+                      >
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <span className="text-lg font-bold text-gray-900">
+                            {PLATE_SIZES[stock.size - 1]}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-sm text-center text-gray-900 whitespace-nowrap">
+                          <span className="font-medium">
+                            {stock.total_stock}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          {getAvailabilityBadge(availableStock)}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          <div className="text-sm font-semibold text-gray-900">
+                            {rentStock + borrowedStock}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5 flex items-center justify-center gap-1">
+                            (
+                            <button
+                              onClick={() => fetchDistribution(stock.size, "rent")}
+                              className="font-medium hover:text-blue-600 hover:underline focus:outline-none transition-colors"
+                            >
+                              {rentStock}
+                            </button>
+                            +
+                            <button
+                              onClick={() => fetchDistribution(stock.size, "borrowed")}
+                              className="font-medium hover:text-purple-600 hover:underline focus:outline-none transition-colors"
+                            >
+                              {borrowedStock}
+                            </button>
+                            )
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>

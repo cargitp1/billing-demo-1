@@ -140,11 +140,10 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                 {outstandingBalances && (
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     <div
-                      className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
-                        outstandingBalances[sizeIndex] > 0
+                      className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${outstandingBalances[sizeIndex] > 0
                           ? "bg-red-100 text-red-700"
                           : "bg-gray-100 text-gray-700"
-                      }`}
+                        }`}
                     >
                       {outstandingBalances[sizeIndex] || 0}
                     </div>
@@ -153,12 +152,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                 {showAvailable && (
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     <div
-                      className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
-                        stockData.find((s) => s.size === sizeIndex)
+                      className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${stockData.find((s) => s.size === sizeIndex)
                           ?.available_stock === 0
                           ? "bg-red-100 text-red-700"
                           : "bg-emerald-100 text-emerald-700"
-                      }`}
+                        }`}
                     >
                       {stockData.find((s) => s.size === sizeIndex)
                         ?.available_stock || 0}
@@ -184,12 +182,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                 {outstandingBalances && !hideColumns && (
                   <td className="px-4 py-4 text-center whitespace-nowrap">
                     <div
-                      className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${
-                        borrowedOutstanding &&
-                        borrowedOutstanding[sizeIndex] > 0
+                      className={`px-3 py-2 text-sm font-semibold rounded-lg inline-block ${borrowedOutstanding &&
+                          borrowedOutstanding[sizeIndex] > 0
                           ? "bg-orange-100 text-orange-700"
                           : "bg-gray-100 text-gray-700"
-                      }`}
+                        }`}
                     >
                       {borrowedOutstanding
                         ? borrowedOutstanding[sizeIndex] || 0
@@ -205,7 +202,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                         min="0"
                         value={
                           items[
-                            `size_${sizeIndex}_borrowed` as keyof ItemsData
+                          `size_${sizeIndex}_borrowed` as keyof ItemsData
                           ] || ""
                         }
                         onChange={(e) =>
@@ -222,7 +219,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                         type="text"
                         value={
                           items[
-                            `size_${sizeIndex}_note` as keyof ItemsData
+                          `size_${sizeIndex}_note` as keyof ItemsData
                           ] as string
                         }
                         onChange={(e) =>
@@ -295,11 +292,10 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       {outstandingBalances && (
                         <td className="px-1 py-1.5 text-center border-r border-gray-200">
                           <div
-                            className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${
-                              outstandingBalances[sizeIndex] > 0
+                            className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${outstandingBalances[sizeIndex] > 0
                                 ? "bg-red-100 text-red-700"
                                 : "bg-gray-200 text-gray-600"
-                            }`}
+                              }`}
                           >
                             {outstandingBalances[sizeIndex] || 0}
                           </div>
@@ -308,12 +304,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       {showAvailable && (
                         <td className="px-1 py-1.5 text-center border-r border-gray-200">
                           <div
-                            className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${
-                              stockData.find((s) => s.size === sizeIndex)
+                            className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${stockData.find((s) => s.size === sizeIndex)
                                 ?.available_stock === 0
                                 ? "bg-red-100 text-red-700"
                                 : "bg-emerald-100 text-emerald-700"
-                            }`}
+                              }`}
                           >
                             {stockData.find((s) => s.size === sizeIndex)
                               ?.available_stock || 0}
@@ -343,12 +338,11 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                       {outstandingBalances && !hideColumns && (
                         <td className="px-1 py-1.5 text-center border-r border-gray-200">
                           <div
-                            className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${
-                              borrowedOutstanding &&
-                              borrowedOutstanding[sizeIndex] > 0
+                            className={`px-1.5 py-1 text-xs sm:text-sm font-semibold rounded whitespace-nowrap ${borrowedOutstanding &&
+                                borrowedOutstanding[sizeIndex] > 0
                                 ? "bg-orange-100 text-orange-700"
                                 : "bg-gray-200 text-gray-600"
-                            }`}
+                              }`}
                           >
                             {borrowedOutstanding
                               ? borrowedOutstanding[sizeIndex] || 0
@@ -365,7 +359,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                               inputMode="numeric"
                               value={
                                 items[
-                                  `size_${sizeIndex}_borrowed` as keyof ItemsData
+                                `size_${sizeIndex}_borrowed` as keyof ItemsData
                                 ] || ""
                               }
                               onChange={(e) =>
@@ -384,7 +378,7 @@ const ItemsTable: React.FC<ItemsTableProps> = ({
                               type="text"
                               value={
                                 items[
-                                  `size_${sizeIndex}_note` as keyof ItemsData
+                                `size_${sizeIndex}_note` as keyof ItemsData
                                 ] as string
                               }
                               onChange={(e) =>
