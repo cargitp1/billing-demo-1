@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { ArrowUpDown, Download, Eye, X, Printer, RotateCw } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowUpDown, Download } from 'lucide-react';
 import { Transaction, ClientBalance } from '../utils/ledgerCalculations';
 import { useLanguage } from '../contexts/LanguageContext';
 import { translations } from '../utils/translations';
@@ -17,6 +17,8 @@ interface TransactionTableProps {
   clientPhone: string;
 }
 
+
+
 export default function TransactionTable({
   transactions,
   currentBalance,
@@ -28,28 +30,6 @@ export default function TransactionTable({
   const { language } = useLanguage();
   const t = translations[language];
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [previewTransaction, setPreviewTransaction] = useState<Transaction | null>(null);
-  const [scale, setScale] = useState(1);
-  const [isRotated, setIsRotated] = useState(false);
-
-  useEffect(() => {
-    const calculateScale = () => {
-      // Base width is double receipt + gap: 1200 + 1200 + 40 = 2440
-      // If rotated, the visual width we need to fit is the HEIGHT (1697)
-      const baseWidth = isRotated ? 1697 : 2440;
-
-      const targetWidth = window.innerWidth < 1000
-        ? window.innerWidth - 48
-        : Math.min(window.innerWidth * 0.9, 1200);
-
-      const newScale = Math.min(targetWidth / baseWidth, 1);
-      setScale(newScale);
-    };
-
-    calculateScale();
-    window.addEventListener('resize', calculateScale);
-    return () => window.removeEventListener('resize', calculateScale);
-  }, [isRotated]);
 
   const handleDownloadChallan = async (transaction: Transaction) => {
     try {
@@ -131,14 +111,6 @@ export default function TransactionTable({
 
   const toggleSort = () => {
     setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-  };
-
-  const toggleRotation = () => {
-    setIsRotated(!isRotated);
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   const formatSizeValue = (size: { qty: number; borrowed: number }, note?: string | null) => {
@@ -311,13 +283,7 @@ export default function TransactionTable({
                   </td>
                   <td className="px-2 py-2 text-center whitespace-nowrap">
                     <div className="flex items-center justify-center gap-1">
-                      <button
-                        onClick={() => setPreviewTransaction(transaction)}
-                        className="inline-flex items-center justify-center p-1 text-gray-600 rounded hover:text-gray-800 hover:bg-gray-100"
-                        title={t.preview || 'Preview'}
-                      >
-                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </button>
+                      {/* Preview button removed */}
                       <button
                         onClick={() => handleDownloadChallan(transaction)}
                         className="inline-flex items-center justify-center p-1 text-blue-600 rounded hover:text-blue-800 hover:bg-blue-100"
@@ -333,131 +299,7 @@ export default function TransactionTable({
           </table>
         </div>
       </div>
-
-      {/* Preview Modal */}
-      {previewTransaction && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 print:p-0 print:bg-white print:static">
-          <style>
-            {`
-              @media print {
-                @page {
-                  size: landscape;
-                  margin: 0;
-                }
-                body {
-                  visibility: hidden;
-                }
-                #printable-receipt-container, #printable-receipt-container * {
-                  visibility: visible;
-                }
-                #printable-receipt-container {
-                  position: fixed !important;
-                  left: 0 !important;
-                  top: 0 !important;
-                  z-index: 9999 !important;
-                  
-                  /* Scale to fit A4 Landscape (approx 1100px wide printable area / 2440px actual width) */
-                  transform: scale(0.46) !important; 
-                  transform-origin: top left !important;
-                  
-                  width: 2440px !important;
-                  height: 1697px !important;
-                  margin: 0 !important;
-                  padding: 0 !important;
-                  
-                  background-color: white !important;
-                  print-color-adjust: exact !important;
-                  -webkit-print-color-adjust: exact !important;
-                  
-                  display: flex !important;
-                  flex-direction: row !important;
-                  overflow: visible !important;
-                }
-                .no-print {
-                  display: none !important;
-                }
-              }
-            `}
-          </style>
-          <div className="relative w-full max-w-6xl bg-white rounded-lg shadow-xl max-h-[90vh] flex flex-col print:shadow-none print:max-w-none print:max-h-none print:w-full print:h-full">
-            <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-white border-b rounded-t-lg shrink-0 no-print">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {t.preview || 'Preview'} - #{previewTransaction.challanNumber}
-              </h3>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={toggleRotation}
-                  className="p-2 text-gray-600 rounded-full hover:bg-gray-100"
-                  title="Rotate"
-                >
-                  <RotateCw className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="p-2 text-blue-600 rounded-full hover:bg-blue-50"
-                  title="Print"
-                >
-                  <Printer className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => previewTransaction && handleDownloadChallan(previewTransaction)}
-                  className="p-2 text-blue-600 rounded-full hover:bg-blue-50"
-                  title={t.downloadJPEG}
-                >
-                  <Download className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setPreviewTransaction(null)}
-                  className="p-1 text-gray-500 rounded-full hover:bg-gray-100"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="flex-1 p-4 overflow-auto bg-gray-100 no-scrollbar print:p-0 print:overflow-visible print:bg-white">
-              <div
-                id="printable-receipt-container"
-                className="origin-top-left bg-white transition-transform duration-200 flex gap-[40px] print:transform-none"
-                style={{
-                  transform: `scale(${scale}) ${isRotated ? 'rotate(90deg)' : ''}`,
-                  width: '2440px',
-                  height: '1697px',
-                  marginBottom: isRotated ? '0' : `-${1697 * (1 - scale)}px`,
-                  marginRight: isRotated ? '0' : `-${2440 * (1 - scale)}px`,
-                  marginLeft: isRotated ? `${1697 * scale}px` : '0',
-                }}
-              >
-                <div className="relative" style={{ width: '1200px', height: '1697px' }}>
-                  <ReceiptTemplate
-                    challanType={previewTransaction.type}
-                    challanNumber={previewTransaction.challanNumber}
-                    date={new Date(previewTransaction.date).toLocaleDateString('en-GB')}
-                    clientName={clientFullName}
-                    clientSortName={clientNicName}
-                    site={previewTransaction.site || clientSite}
-                    phone={clientPhone}
-                    driverName={previewTransaction.driverName}
-                    items={previewTransaction.items}
-                  />
-                </div>
-                <div className="relative" style={{ width: '1200px', height: '1697px' }}>
-                  <ReceiptTemplate
-                    challanType={previewTransaction.type}
-                    challanNumber={previewTransaction.challanNumber}
-                    date={new Date(previewTransaction.date).toLocaleDateString('en-GB')}
-                    clientName={clientFullName}
-                    clientSortName={clientNicName}
-                    site={previewTransaction.site || clientSite}
-                    phone={clientPhone}
-                    driverName={previewTransaction.driverName}
-                    items={previewTransaction.items}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Preview Modal removed */}
     </div>
   );
 }
