@@ -839,7 +839,7 @@ const UdharChallan: React.FC = () => {
 
     setTimeout(async () => {
       try {
-        await generateJPEG('udhar', challanNumber, date);
+        await generateJPEG('udhar', challanNumber, date, 2440, 1697);
         toast.success('JPEG generated successfully');
         // Add a delay before refreshing to ensure user sees the success message
         setTimeout(() => {
@@ -976,24 +976,51 @@ const UdharChallan: React.FC = () => {
             )
           )}
 
-          <div style={{ position: 'absolute', left: '-9999px' }}>
+          <div style={{ position: 'absolute', left: '-9999px', width: '2450px' }}>
             {selectedClient && (
-              <div id="receipt-template">
-                <ReceiptTemplate
-                  challanType="udhar"
-                  challanNumber={challanNumber}
-                  date={new Date(date).toLocaleDateString('en-GB', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                  })}
-                  clientName={selectedClient.client_name}
-                  clientSortName={selectedClient.client_nic_name}
-                  site={alternativeSite || selectedClient.site}
-                  phone={secondaryPhone || selectedClient.primary_phone_number}
-                  driverName={driverName}
-                  items={items}
-                />
+              <div
+                id="receipt-template"
+                style={{
+                  display: 'flex',
+                  gap: '40px',
+                  backgroundColor: 'white',
+                  padding: 0
+                }}
+              >
+                <div style={{ position: 'relative', width: '1200px', height: '1697px' }}>
+                  <ReceiptTemplate
+                    challanType="udhar"
+                    challanNumber={challanNumber}
+                    date={new Date(date).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })}
+                    clientName={selectedClient.client_name}
+                    clientSortName={selectedClient.client_nic_name}
+                    site={alternativeSite || selectedClient.site}
+                    phone={secondaryPhone || selectedClient.primary_phone_number}
+                    driverName={driverName}
+                    items={items}
+                  />
+                </div>
+                <div style={{ position: 'relative', width: '1200px', height: '1697px' }}>
+                  <ReceiptTemplate
+                    challanType="udhar"
+                    challanNumber={challanNumber}
+                    date={new Date(date).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })}
+                    clientName={selectedClient.client_name}
+                    clientSortName={selectedClient.client_nic_name}
+                    site={alternativeSite || selectedClient.site}
+                    phone={secondaryPhone || selectedClient.primary_phone_number}
+                    driverName={driverName}
+                    items={items}
+                  />
+                </div>
               </div>
             )}
           </div>

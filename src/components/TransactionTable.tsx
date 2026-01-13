@@ -400,6 +400,13 @@ export default function TransactionTable({
                   <Printer className="w-5 h-5" />
                 </button>
                 <button
+                  onClick={() => previewTransaction && handleDownloadChallan(previewTransaction)}
+                  className="p-2 text-blue-600 rounded-full hover:bg-blue-50"
+                  title={t.downloadJPEG}
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+                <button
                   onClick={() => setPreviewTransaction(null)}
                   className="p-1 text-gray-500 rounded-full hover:bg-gray-100"
                 >
