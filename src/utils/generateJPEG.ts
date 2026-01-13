@@ -3,7 +3,9 @@ import { toJpeg } from 'html-to-image';
 export const generateJPEG = async (
   challanType: 'udhar' | 'jama',
   challanNumber: string,
-  date: string
+  date: string,
+  width: number = 1200,
+  height: number = 1697
 ): Promise<void> => {
   // Add delay to ensure template and background image are fully loaded
   await new Promise(resolve => setTimeout(resolve, 500));
@@ -16,8 +18,8 @@ export const generateJPEG = async (
   try {
     const dataUrl = await toJpeg(node, {
       quality: 0.98,
-      width: 1200,
-      height: 1697,
+      width: width,
+      height: height,
       style: {
         transform: 'scale(1)',
         transformOrigin: 'top left'

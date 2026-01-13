@@ -290,6 +290,7 @@ export const translations = {
     challanDownloadSuccess: 'ચલણ સફળતાપૂર્વક ડાઉનલોડ થયું',
     challanDownloadError: 'ચલણ ડાઉનલોડ કરવામાં ભૂલ આવી',
     downloadJPEG: 'ચલણ ડાઉનલોડ કરો',
+    preview: 'પૂર્વાવલોકન',
 
     receiptTitle: 'રસીદ',
     generatedOn: 'બનાવ્યું',
@@ -599,6 +600,9 @@ export const translations = {
     alternative: 'Alternative',
     clientInfo: 'Client Information',
     downloadJPEG: 'Download JPEG',
+    preview: 'Preview',
+    challanDownloadSuccess: 'Challan downloaded successfully',
+    challanDownloadError: 'Error downloading challan',
     close: 'Close',
     challanInfo: 'Challan Information',
     clientLedger: 'Client Ledger',
