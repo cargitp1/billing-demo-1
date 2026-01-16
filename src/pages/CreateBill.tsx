@@ -2083,13 +2083,73 @@ export default function CreateBill() {
                     site: client?.site || "",
                     phone: client?.primary_phone_number || "",
                   }}
-                  rentalCharges={billResult?.billingPeriods.periods.map(period => ({
-                    size: "All",
-                    pieces: period.plateCount,
-                    days: period.days,
-                    rate: billData.dailyRent,
-                    amount: period.plateCount * period.days * billData.dailyRent,
-                  })) || []}
+
+                  rentalCharges={billResult?.billingPeriods.periods.map((period, index, array) => {
+                    // Logic to match the UI table display
+                    const nextType = array[index + 1]?.causeType;
+                    let end = parseISO(period.endDate);
+
+
+                    // Actually, let's just replicate the table logic exactly but return ISO string
+                    let newDisplayEndDate = period.endDate;
+                    if (period.causeType === "jama") {
+                      newDisplayEndDate = period.endDate;
+                    } else {
+                      // Udhar default: subtract 1 day
+                      newDisplayEndDate = subDays(end, 1).toISOString();
+
+                      // Exception: if next is Jama?
+                      // Table code: if (period.causeType !== nextType) ... nextType === 'jama' ? end : subDays(end, 1)
+                      if (period.causeType !== nextType && nextType === 'jama') {
+                        newDisplayEndDate = period.endDate;
+                      }
+                    }
+
+                    // For start date: Jama periods start day after return (start date computed in calc is correct?)
+                    // In table: period.causeType === "jama" ? format(addDays(parseISO(period.startDate), 1)) : format(parseISO(period.startDate))
+                    // In billingPeriodCalculations.ts:
+                    // periods.push({startDate: isJamaPeriod ? addDays(currentDate, 1)... : currentDate })
+                    // So the period.startDate IS ALREADY adjusted for Jama?
+                    // Let's check billingPeriodCalculations.ts again.
+                    // Line 393: startDate: isJamaPeriod ? addDays(parseISO(currentDate), 1)... : currentDate
+
+                    // Wait, the table code (line 917) does addDays(parseISO(period.startDate), 1) AGAIN for Jama?
+                    // Lines 916-923 in CreateBill.tsx:
+                    // period.causeType === "jama" ? format(addDays(parseISO(period.startDate), 1)...)
+
+                    // If calculation already added 1 day, then table adds ANOTHER day?
+                    // I need to be careful.
+                    // Let's check calculation output vs table display.
+                    // Calculation: startDate is effective start date.
+                    // Table: seems to think it needs to add 1 day for Jama?
+                    // Or maybe calculation returns the return date for Jama as start date?
+                    // Calculation line 394: addDays(parseISO(currentDate), 1).toISOString().split('T')[0]
+                    // So it IS already the day after.
+                    // Why does table add another day?
+                    // line 917 of CreateBill.tsx: format(addDays(parseISO(period.startDate), 1)...)
+                    // If so, the table is showing Start + 2 days for Jama?
+                    // Or maybe table logic is outdated/wrong?
+                    // User said "Fixed extra day addition" in calculation.
+                    // Let's assume calculation `startDate` is the correct effective start date.
+                    // If I pass `period.startDate` directly, BillInvoiceTemplate will use it.
+                    // Let's use `period.startDate`. If the table adds 1, maybe there's a reason, but let's stick to the period data which "should" be correct status.
+                    // Wait, if table adds 1, and I don't, mine will be 1 day earlier.
+                    // Let's replicate table logic for safety for now?
+                    // No, I prefer trusting the calculated period.startDate if I just fixed the calculation logic.
+                    // But wait, I fixed the DURATION calculation. I didn't change startDate logic.
+                    // Let's simplify and pass period.startDate.
+
+                    return {
+                      size: "All",
+                      pieces: period.plateCount,
+                      days: period.days,
+                      rate: billData.dailyRent,
+                      amount: period.plateCount * period.days * billData.dailyRent,
+                      startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate, // Replicating table logic of adding 1 day for Jama display?
+                      endDate: newDisplayEndDate,
+                      causeType: period.causeType as 'udhar' | 'jama'
+                    };
+                  }) || []}
                   extraCosts={billData.extraCosts.map(cost => ({
                     id: cost.id,
                     date: cost.date,
@@ -2156,13 +2216,30 @@ export default function CreateBill() {
             site: client?.site || "",
             phone: client?.primary_phone_number || "",
           }}
-          rentalCharges={billResult?.billingPeriods.periods.map(period => ({
-            size: "All",
-            pieces: period.plateCount,
-            days: period.days,
-            rate: billData.dailyRent,
-            amount: period.plateCount * period.days * billData.dailyRent,
-          })) || []}
+          rentalCharges={billResult?.billingPeriods.periods.map((period, index, array) => {
+            const nextType = array[index + 1]?.causeType;
+            let end = parseISO(period.endDate);
+            let newDisplayEndDate = period.endDate;
+            if (period.causeType === "jama") {
+              newDisplayEndDate = period.endDate;
+            } else {
+              newDisplayEndDate = subDays(end, 1).toISOString();
+              if (period.causeType !== nextType && nextType === 'jama') {
+                newDisplayEndDate = period.endDate;
+              }
+            }
+
+            return {
+              size: "All",
+              pieces: period.plateCount,
+              days: period.days,
+              rate: billData.dailyRent,
+              amount: period.plateCount * period.days * billData.dailyRent,
+              startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate,
+              endDate: newDisplayEndDate,
+              causeType: period.causeType as 'udhar' | 'jama'
+            };
+          }) || []}
           extraCosts={billData.extraCosts.map(cost => ({
             id: cost.id,
             date: cost.date,

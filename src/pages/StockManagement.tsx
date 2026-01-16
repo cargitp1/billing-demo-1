@@ -662,40 +662,47 @@ const StockManagement: React.FC = () => {
                     </td>
                   </tr>
                 ) : (
-                  filteredAndSortedStocks.map((stock, index) => (
-                    <tr
-                      key={stock.size}
-                      className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                    >
-                      <td className="sticky left-0 z-10 px-1 py-1.5 text-xs font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-2 sm:text-base bg-inherit">
-                        {PLATE_SIZES[stock.size - 1]}
-                      </td>
-                      <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                        <span className="text-xs font-semibold sm:text-sm">
-                          {stock.total_stock}
-                        </span>
-                      </td>
-                      <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                        {getAvailabilityBadge(stock.available_stock)}
-                      </td>
-                      <td className="px-1 py-1.5 text-center border-r border-gray-200">
-                        <button
-                          onClick={() => fetchDistribution(stock.size, "rent")}
-                          className="text-orange-600 hover:underline font-bold text-xs sm:text-sm focus:outline-none"
-                        >
-                          {stock.on_rent_stock}
-                        </button>
-                      </td>
-                      <td className="px-1 py-1.5 text-center">
-                        <button
-                          onClick={() => fetchDistribution(stock.size, "borrowed")}
-                          className="text-purple-600 hover:underline font-bold text-xs sm:text-sm focus:outline-none"
-                        >
-                          {stock.borrowed_stock}
-                        </button>
-                      </td>
-                    </tr>
-                  ))
+                  filteredAndSortedStocks.map((stock, index) => {
+                    const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
+                    const rentStock = calculated.rent;
+                    const borrowedStock = calculated.borrowed;
+                    const availableStock = Math.max(0, stock.total_stock - rentStock - borrowedStock - stock.lost_stock);
+
+                    return (
+                      <tr
+                        key={stock.size}
+                        className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                      >
+                        <td className="sticky left-0 z-10 px-1 py-1.5 text-xs font-bold text-center text-gray-900 border-r-2 border-gray-300 sm:px-2 sm:text-base bg-inherit">
+                          {PLATE_SIZES[stock.size - 1]}
+                        </td>
+                        <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                          <span className="text-xs font-semibold sm:text-sm">
+                            {stock.total_stock}
+                          </span>
+                        </td>
+                        <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                          {getAvailabilityBadge(availableStock)}
+                        </td>
+                        <td className="px-1 py-1.5 text-center border-r border-gray-200">
+                          <button
+                            onClick={() => fetchDistribution(stock.size, "rent")}
+                            className="text-orange-600 hover:underline font-bold text-xs sm:text-sm focus:outline-none"
+                          >
+                            {rentStock}
+                          </button>
+                        </td>
+                        <td className="px-1 py-1.5 text-center">
+                          <button
+                            onClick={() => fetchDistribution(stock.size, "borrowed")}
+                            className="text-purple-600 hover:underline font-bold text-xs sm:text-sm focus:outline-none"
+                          >
+                            {borrowedStock}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
                 {!loading && filteredAndSortedStocks.length > 0 && (
                   <tr className="bg-gray-100 border-t-2 border-gray-300">
@@ -712,26 +719,27 @@ const StockManagement: React.FC = () => {
                     </td>
                     <td className="px-1 py-2 text-center border-r border-gray-200">
                       <span className="text-xs font-bold sm:text-sm text-green-700">
-                        {filteredAndSortedStocks.reduce(
-                          (sum, stock) => sum + stock.available_stock,
-                          0
-                        )}
+                        {filteredAndSortedStocks.reduce((sum, stock) => {
+                          const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
+                          const available = Math.max(0, stock.total_stock - calculated.rent - calculated.borrowed - stock.lost_stock);
+                          return sum + available;
+                        }, 0)}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-center border-r border-gray-200">
                       <span className="text-xs font-bold sm:text-sm text-orange-600">
-                        {filteredAndSortedStocks.reduce(
-                          (sum, stock) => sum + stock.on_rent_stock,
-                          0
-                        )}
+                        {filteredAndSortedStocks.reduce((sum, stock) => {
+                          const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
+                          return sum + calculated.rent;
+                        }, 0)}
                       </span>
                     </td>
                     <td className="px-1 py-2 text-center">
                       <span className="text-xs font-bold sm:text-sm text-purple-600">
-                        {filteredAndSortedStocks.reduce(
-                          (sum, stock) => sum + stock.borrowed_stock,
-                          0
-                        )}
+                        {filteredAndSortedStocks.reduce((sum, stock) => {
+                          const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
+                          return sum + calculated.borrowed;
+                        }, 0)}
                       </span>
                     </td>
                   </tr>

@@ -29,6 +29,9 @@ interface BillInvoiceProps {
     days: number;
     rate: number;
     amount: number;
+    startDate?: string;
+    endDate?: string;
+    causeType?: 'udhar' | 'jama';
   }[];
   extraCosts: {
     id: string;
@@ -66,386 +69,152 @@ interface BillInvoiceProps {
 }
 
 const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
-  companyDetails,
+  companyDetails, // Now used
   billDetails,
   clientDetails,
   rentalCharges,
-  extraCosts,
-  discounts,
-  payments,
+  extraCosts: _extraCosts, // Keep unused
+  discounts: _discounts, // Keep unused
+  payments: _payments, // Keep unused
   summary,
-  mainNote,
+  mainNote: _mainNote, // Keep unused
 }) => {
   return (
-    <div className="invoice-container">
-      {/* Company Header */}
-      <div className="invoice-header">
-        <h1>{companyDetails.name}</h1>
-        <h2>નીલકંઠ પ્લેટ ડેપો</h2>
-        <div className="company-info">
-          <p>Address: {companyDetails.address}</p>
-          <p>Phone: {companyDetails.phone}</p>
-          {companyDetails.gst && <p>GST: {companyDetails.gst}</p>}
-        </div>
-      </div>
+    <div className="invoice-container" style={{
+      padding: '30px',
+      maxWidth: '800px',
+      margin: '0 auto',
+      fontFamily: '"Arya", "Noto Sans Gujarati", sans-serif',
+      backgroundColor: '#fff',
+      color: '#000'
+    }}>
+      <div style={{ border: '2px solid #000', padding: '0', position: 'relative', minHeight: '900px', display: 'flex', flexDirection: 'column' }}>
 
-      {/* Invoice Title */}
-      <div className="invoice-title">
-        <h2>TAX INVOICE / કર ભરતિયું</h2>
-      </div>
-
-      {/* Bill and Client Details */}
-      <div className="invoice-meta">
-        <div>
-          <p><strong>Bill No:</strong> {billDetails.billNumber}</p>
-          <p><strong>Bill Date:</strong> {format(new Date(billDetails.billDate), 'dd/MM/yyyy')}</p>
-          <p><strong>From Date:</strong> {format(new Date(billDetails.fromDate), 'dd/MM/yyyy')}</p>
-          <p><strong>To Date:</strong> {format(new Date(billDetails.toDate), 'dd/MM/yyyy')}</p>
-        </div>
-        <div>
-          <p><strong>Client Name:</strong> {clientDetails.name}</p>
-          <p><strong>Site:</strong> {clientDetails.site}</p>
-          <p><strong>Phone:</strong> {clientDetails.phone}</p>
-        </div>
-      </div>
-
-      {/* Rental Charges */}
-      <div className="rental-section">
-        <h3 className="section-title">RENTAL CHARGES / ભાડા શુલ્ક</h3>
-        <table className="invoice-table">
-          <thead>
-            <tr>
-              <th>Size</th>
-              <th>Pieces</th>
-              <th>Days</th>
-              <th>Rate</th>
-              <th>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rentalCharges.map((charge, index) => (
-              <tr key={index}>
-                <td>{charge.size}</td>
-                <td>{charge.pieces}</td>
-                <td>{charge.days}</td>
-                <td>{formatIndianCurrency(charge.rate)}</td>
-                <td>{formatIndianCurrency(charge.amount)}</td>
-              </tr>
-            ))}
-              <tr className="table-footer">
-              <td colSpan={4}>Total Rental Charges / કુલ ભાડા શુલ્ક:</td>
-              <td>{formatIndianCurrency(summary.totalRent)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Extra Costs */}
-      {extraCosts.length > 0 && (
-        <div className="extra-costs-section">
-          <h3 className="section-title">EXTRA COSTS / વધારાનો ખર્ચ</h3>
-          <table className="invoice-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {extraCosts.map((cost) => (
-                <tr key={cost.id}>
-                  <td>{format(new Date(cost.date), 'dd/MM/yyyy')}</td>
-                  <td>{cost.description}</td>
-                  <td>{formatIndianCurrency(cost.amount)}</td>
-                </tr>
-              ))}
-              <tr className="table-footer">
-                <td colSpan={2}>Total Extra Costs:</td>
-                <td>{formatIndianCurrency(summary.totalExtraCosts)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Discounts */}
-      {discounts.length > 0 && (
-        <div className="discounts-section">
-          <h3 className="section-title">DISCOUNTS / છૂટ</h3>
-          <table className="invoice-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Description</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {discounts.map((discount) => (
-                <tr key={discount.id}>
-                  <td>{format(new Date(discount.date), 'dd/MM/yyyy')}</td>
-                  <td>{discount.description}</td>
-                  <td>{formatIndianCurrency(discount.amount)}</td>
-                </tr>
-              ))}
-              <tr className="table-footer">
-                <td colSpan={2}>Total Discounts:</td>
-                <td>{formatIndianCurrency(summary.discounts)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Bill Summary */}
-      <div className="summary-section">
-        <h3 className="section-title">BILL SUMMARY / બિલ સારાંશ</h3>
-        <table className="summary-table">
-          <tbody>
-            <tr className="summary-row">
-              <td>Total Rent:</td>
-              <td>{formatIndianCurrency(summary.totalRent)}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Total Plates (Udhar):</td>
-              <td>{summary.totalUdharPlates}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Total Plates (Jama):</td>
-              <td>{summary.totalJamaPlates}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Net Plates:</td>
-              <td>{summary.netPlates}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Service Charge:</td>
-              <td>{formatIndianCurrency(summary.serviceCharge)}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Extra Costs:</td>
-              <td>{formatIndianCurrency(summary.totalExtraCosts)}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Discounts:</td>
-              <td>{formatIndianCurrency(summary.discounts)}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Advance Paid:</td>
-              <td>{formatIndianCurrency(summary.advancePaid)}</td>
-            </tr>
-            <tr className="summary-row">
-              <td>Total Paid:</td>
-              <td>{formatIndianCurrency(summary.totalPaid)}</td>
-            </tr>
-            <tr className="summary-row grand-total-row">
-              <td>GRAND TOTAL:</td>
-              <td>{formatIndianCurrency(summary.grandTotal)}</td>
-            </tr>
-            <tr className="summary-row due-payment-row">
-              <td>DUE PAYMENT:</td>
-              <td>{formatIndianCurrency(summary.duePayment)}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      {/* Payment Details */}
-      {payments.length > 0 && (
-        <div className="payments-section">
-          <h3 className="section-title">PAYMENT DETAILS / ચુકવણી વિગતો</h3>
-          <table className="invoice-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Method</th>
-                <th>Note</th>
-                <th>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((payment) => (
-                <tr key={payment.id}>
-                  <td>{format(new Date(payment.date), 'dd/MM/yyyy')}</td>
-                  <td>{payment.method}</td>
-                  <td>{payment.note}</td>
-                  <td>{formatIndianCurrency(payment.amount)}</td>
-                </tr>
-              ))}
-              <tr className="table-footer">
-                <td colSpan={3}>Total Paid:</td>
-                <td>{formatIndianCurrency(summary.totalPaid)}</td>
-              </tr>
-              <tr className="table-footer due-payment-row">
-                <td colSpan={3}>DUE PAYMENT:</td>
-                <td>{formatIndianCurrency(summary.duePayment)}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Footer */}
-      <div className="terms-section">
-        {mainNote && (
-          <div className="main-note">
-            <h4 className="section-title">NOTES / નોંધ</h4>
-            <p>{mainNote}</p>
+        {/* Header Section */}
+        <div style={{ textAlign: 'center', borderBottom: '2px solid #000', padding: '15px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>|| શ્રી ગણેશાય નમઃ ||</div>
+          <h1 style={{ fontSize: '42px', fontWeight: '800', margin: '5px 0', lineHeight: '1.2' }}>નીલકંઠ પ્લેટ ડેપો</h1>
+          <div style={{ fontSize: '16px', fontWeight: '600', marginTop: '5px' }}>
+            {/* Add company address/phone if available in props, otherwise hardcode layout placeholders */}
+            {companyDetails.address && <span>{companyDetails.address}</span>}
+            {companyDetails.phone && <span style={{ marginLeft: '15px' }}>મો. {companyDetails.phone}</span>}
           </div>
-        )}
-        
-        <h4 className="section-title">Terms & Conditions:</h4>
-        <ul className="terms-list">
-          <li>Payment due within 7 days</li>
-          <li>Late payment charges applicable</li>
-        </ul>
-      </div>
-
-      <div className="footer-section">
-        <p>Generated on: {format(new Date(), 'dd/MM/yyyy hh:mm a')}</p>
-        <div>
-          <p>Authorized Signature</p>
-          <div className="signature-line"></div>
         </div>
-      </div>
 
-      {/* Extra Costs */}
-      {extraCosts.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ borderBottom: '1px solid #000', paddingBottom: '5px' }}>
-            EXTRA COSTS / વધારાનો ખર્ચ
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f3f4f6' }}>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Date</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Description</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {extraCosts.map((cost, index) => (
-                <tr key={index}>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{format(new Date(cost.date), 'dd/MM/yyyy')}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{cost.description}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>₹{cost.amount.toLocaleString('en-IN')}</td>
-                </tr>
-              ))}
-              <tr style={{ backgroundColor: '#f3f4f6' }}>
-                <td colSpan={2} style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>
-                  <strong>Total Extra Costs:</strong>
-                </td>
-                <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>
-                  <strong>₹{summary.totalExtraCosts.toLocaleString('en-IN')}</strong>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Discounts */}
-      {discounts.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ borderBottom: '1px solid #000', paddingBottom: '5px' }}>
-            DISCOUNTS / છૂટ
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f3f4f6' }}>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Date</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Description</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {discounts.map((discount, index) => (
-                <tr key={index}>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{format(new Date(discount.date), 'dd/MM/yyyy')}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{discount.description}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>₹{discount.amount.toLocaleString('en-IN')}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-
-
-      {/* Payment Details */}
-      {payments.length > 0 && (
-        <div style={{ marginBottom: '20px' }}>
-          <h3 style={{ borderBottom: '1px solid #000', paddingBottom: '5px' }}>
-            PAYMENT DETAILS / ચુકવણી વિગતો
-          </h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f3f4f6' }}>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Date</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Method</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Note</th>
-                <th style={{ border: '1px solid #000', padding: '8px' }}>Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payments.map((payment, index) => (
-                <tr key={index}>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{format(new Date(payment.date), 'dd/MM/yyyy')}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{payment.method}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px' }}>{payment.note}</td>
-                  <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>₹{payment.amount.toLocaleString('en-IN')}</td>
-                </tr>
-              ))}
-              <tr style={{ backgroundColor: '#f3f4f6' }}>
-                <td colSpan={3} style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>
-                  <strong>Total Paid:</strong>
-                </td>
-                <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>
-                  <strong>₹{summary.totalPaid.toLocaleString('en-IN')}</strong>
-                </td>
-              </tr>
-              <tr>
-                <td colSpan={3} style={{ border: '1px solid #000', padding: '8px', textAlign: 'right' }}>
-                  <strong>DUE PAYMENT:</strong>
-                </td>
-                <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'right', color: summary.duePayment > 0 ? '#dc2626' : '#059669' }}>
-                  <strong>₹{summary.duePayment.toLocaleString('en-IN')}</strong>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Notes and Terms */}
-      <div style={{ marginTop: '20px' }}>
-        {mainNote && (
-          <div style={{ marginBottom: '20px' }}>
-            <h3 style={{ borderBottom: '1px solid #000', paddingBottom: '5px' }}>NOTES / નોંધ</h3>
-            <p style={{ marginTop: '10px' }}>{mainNote}</p>
+        {/* Bill Meta Data */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', borderBottom: '1px solid #000', backgroundColor: '#f9fafb' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '60%' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 'bold', width: '90px', fontSize: '16px' }}>ગ્રાહક નામ:</span>
+              <span style={{ borderBottom: '1px dotted #000', flex: 1, fontWeight: '700', fontSize: '18px', paddingLeft: '5px' }}>{clientDetails.name}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 'bold', width: '90px', fontSize: '16px' }}>સાઈટ:</span>
+              <span style={{ borderBottom: '1px dotted #000', flex: 1, fontSize: '16px', paddingLeft: '5px' }}>{clientDetails.site}</span>
+            </div>
           </div>
-        )}
-
-        <div>
-          <h3 style={{ borderBottom: '1px solid #000', paddingBottom: '5px' }}>Terms & Conditions:</h3>
-          <ol style={{ marginTop: '10px', paddingLeft: '20px' }}>
-            <li>Payment due within 7 days</li>
-            <li>Late payment charges applicable</li>
-          </ol>
-        </div>
-
-        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <p>Generated on: {format(new Date(), 'dd/MM/yyyy hh:mm a')}</p>
-          </div>
-          <div>
-            <div style={{ borderTop: '1px solid #000', paddingTop: '5px', width: '200px', textAlign: 'center' }}>
-              Authorized Signature
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '35%' }}>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 'bold', width: '80px', fontSize: '16px' }}>બિલ નં.:</span>
+              <span style={{ borderBottom: '1px dotted #000', flex: 1, color: '#dc2626', fontWeight: '800', fontSize: '18px', paddingLeft: '5px' }}>{billDetails.billNumber}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'baseline' }}>
+              <span style={{ fontWeight: 'bold', width: '80px', fontSize: '16px' }}>તારીખ:</span>
+              <span style={{ borderBottom: '1px dotted #000', flex: 1, fontWeight: '600', fontSize: '16px', paddingLeft: '5px' }}>{format(new Date(billDetails.billDate), 'dd/MM/yyyy')}</span>
             </div>
           </div>
         </div>
+
+        {/* Main Table */}
+        <div className="rental-section" style={{ padding: '0', flex: 1 }}>
+          <table className="invoice-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#e5e7eb', borderBottom: '1px solid #000' }}>
+                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'left', width: '45%' }}>સમયગાળો (તારીખ)</th>
+                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'center' }}>સ્ટોક</th>
+                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'center' }}>દિવસ</th>
+                <th style={{ padding: '12px', textAlign: 'right' }}>રકમ (₹)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rentalCharges.map((charge, index) => {
+                const rowStartDate = charge.startDate ? new Date(charge.startDate) : new Date(billDetails.fromDate);
+                const rowEndDate = charge.endDate ? new Date(charge.endDate) : new Date(billDetails.toDate);
+                const statusColor = charge.causeType === 'jama' ? '#16a34a' : '#dc2626';
+
+                return (
+                  <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '8px',
+                          height: '8px',
+                          borderRadius: '50%',
+                          backgroundColor: statusColor,
+                          flexShrink: 0
+                        }}></div>
+                        <span style={{ fontWeight: '600', fontSize: '15px' }}>
+                          {format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}
+                        </span>
+                      </div>
+                    </td>
+                    <td style={{ borderRight: '1px solid #000', padding: '10px 12px', textAlign: 'center', fontWeight: '600', fontSize: '16px' }}>{charge.pieces}</td>
+                    <td style={{ borderRight: '1px solid #000', padding: '10px 12px', textAlign: 'center', fontSize: '16px' }}>{charge.days}</td>
+                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', fontSize: '16px' }}>{formatIndianCurrency(charge.amount)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer / Summary Area */}
+        <div style={{ borderTop: '2px solid #000', display: 'flex' }}>
+          {/* Left Side: Terms / Signature */}
+          <div style={{ width: '60%', padding: '15px', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '12px', fontWeight: '600', color: '#4b5563' }}>
+              <span style={{ textDecoration: 'underline', fontWeight: 'bold', color: '#000' }}>શરતો:</span><br />
+              1. વ્યાજ ૧૮% લેખે ગણવામાં આવશે.<br />
+              2. માલની જવાબદારી ગ્રાહકની રહેશે.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px', alignItems: 'flex-end' }}>
+              <div style={{ textAlign: 'center', width: '45%' }}>
+                <div style={{ borderTop: '1px dashed #9ca3af', padding: '5px', fontSize: '14px' }}>ગ્રાહક સહી</div>
+              </div>
+              <div style={{ textAlign: 'center', width: '45%' }}>
+                <div style={{ borderTop: '1px dashed #9ca3af', padding: '5px', fontSize: '14px', fontWeight: 'bold' }}>નીલકંઠ પ્લેટ ડેપો વતી</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side: Totals */}
+          <div style={{ width: '40%' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <tbody>
+                <tr>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>કુલ રકમ:</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600', fontSize: '16px' }}>{formatIndianCurrency(summary.grandTotal)}</td>
+                </tr>
+                <tr>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#16a34a' }}>ચુકવેલ:</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '700', color: '#16a34a', fontSize: '16px' }}>{formatIndianCurrency(summary.totalPaid)}</td>
+                </tr>
+                {summary.discounts > 0 && (
+                  <tr>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>ડિસ્કાઉન્ટ:</td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right' }}>{formatIndianCurrency(summary.discounts)}</td>
+                  </tr>
+                )}
+                <tr style={{ backgroundColor: '#fee2e2' }}>
+                  <td style={{ padding: '15px 12px', borderTop: '2px solid #000', fontWeight: '800', fontSize: '18px', color: '#dc2626' }}>બાકી રકમ:</td>
+                  <td style={{ padding: '15px 12px', borderTop: '2px solid #000', textAlign: 'right', fontWeight: '800', fontSize: '20px', color: '#dc2626' }}>{formatIndianCurrency(summary.duePayment)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
     </div>
   );
