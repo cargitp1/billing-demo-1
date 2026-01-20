@@ -359,11 +359,9 @@ export default function CreateBill() {
   // UI-friendly map of labels -> amounts (used in Bill Summary section)
   const summaryMap = {
     "કુલ ભાડું": fullSummary.totalRent,
-    "સેવા ચાર્જ": fullSummary.serviceCharge,
     "વધારાના ચાર્જ": fullSummary.totalExtraCosts,
     "પેટા કુલ":
       fullSummary.totalRent +
-      fullSummary.serviceCharge +
       fullSummary.totalExtraCosts,
     "છૂટ": fullSummary.discounts,
     "કુલ રકમ": fullSummary.grandTotal,
@@ -786,7 +784,7 @@ export default function CreateBill() {
               }
               className="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
             >
-              {isLoading ? "Calculating..." : `${t("calculateBill")}`}
+              {isLoading ? "ગણતરી થય રહી છે..." : `${t("calculateBill")}`}
             </button>
           </div>
 
@@ -1144,7 +1142,7 @@ export default function CreateBill() {
                                 <td className="px-4 py-2">
                                   <input
                                     type="number"
-                                    value={cost.pieces}
+                                    value={cost.pieces === 0 ? '' : cost.pieces}
                                     onChange={(e) => {
                                       const pieces = parseInt(e.target.value) || 0;
                                       const newCosts = [...billData.extraCosts];
@@ -1165,7 +1163,7 @@ export default function CreateBill() {
                                 <td className="px-4 py-2">
                                   <input
                                     type="number"
-                                    value={cost.pricePerPiece}
+                                    value={cost.pricePerPiece === 0 ? '' : cost.pricePerPiece}
                                     onChange={(e) => {
                                       const price = parseFloat(e.target.value) || 0;
                                       const newCosts = [...billData.extraCosts];
@@ -1288,7 +1286,7 @@ export default function CreateBill() {
                                 <label className="block mb-1 text-xs font-medium text-gray-600">સંખ્યા</label>
                                 <input
                                   type="number"
-                                  value={cost.pieces}
+                                  value={cost.pieces === 0 ? '' : cost.pieces}
                                   onChange={(e) => {
                                     const pieces = parseInt(e.target.value) || 0;
                                     const newCosts = [...billData.extraCosts];
@@ -1310,7 +1308,7 @@ export default function CreateBill() {
                                 <label className="block mb-1 text-xs font-medium text-gray-600">નંગ</label>
                                 <input
                                   type="number"
-                                  value={cost.pricePerPiece}
+                                  value={cost.pricePerPiece === 0 ? '' : cost.pricePerPiece}
                                   onChange={(e) => {
                                     const price = parseFloat(e.target.value) || 0;
                                     const newCosts = [...billData.extraCosts];
@@ -1458,7 +1456,7 @@ export default function CreateBill() {
                                 <td className="px-4 py-2">
                                   <input
                                     type="number"
-                                    value={discount.pieces}
+                                    value={discount.pieces === 0 ? '' : discount.pieces}
                                     onChange={(e) => {
                                       const pieces = parseInt(e.target.value) || 0;
                                       const newDiscounts = [...billData.discounts];
@@ -1479,7 +1477,7 @@ export default function CreateBill() {
                                 <td className="px-4 py-2">
                                   <input
                                     type="number"
-                                    value={discount.discountPerPiece}
+                                    value={discount.discountPerPiece === 0 ? '' : discount.discountPerPiece}
                                     onChange={(e) => {
                                       const discountPerPiece = parseFloat(e.target.value) || 0;
                                       const newDiscounts = [...billData.discounts];
@@ -1601,7 +1599,7 @@ export default function CreateBill() {
                                 <label className="block mb-1 text-xs font-medium text-gray-600">સંખ્યા</label>
                                 <input
                                   type="number"
-                                  value={discount.pieces}
+                                  value={discount.pieces === 0 ? '' : discount.pieces}
                                   onChange={(e) => {
                                     const pieces = parseInt(e.target.value) || 0;
                                     const newDiscounts = [...billData.discounts];
@@ -1623,7 +1621,7 @@ export default function CreateBill() {
                                 <label className="block mb-1 text-xs font-medium text-gray-600">નંગ</label>
                                 <input
                                   type="number"
-                                  value={discount.discountPerPiece}
+                                  value={discount.discountPerPiece === 0 ? '' : discount.discountPerPiece}
                                   onChange={(e) => {
                                     const discountPerPiece = parseFloat(e.target.value) || 0;
                                     const newDiscounts = [...billData.discounts];
@@ -1793,7 +1791,7 @@ export default function CreateBill() {
                                 <td className="px-4 py-2">
                                   <input
                                     type="number"
-                                    value={payment.amount}
+                                    value={payment.amount === 0 ? '' : payment.amount}
                                     onChange={(e) => {
                                       const amount = parseFloat(e.target.value) || 0;
                                       const newPayments = [...billData.payments];
@@ -1936,7 +1934,7 @@ export default function CreateBill() {
                                 <label className="block mb-1 text-xs font-medium text-gray-600">પેમેન્ટ</label>
                                 <input
                                   type="number"
-                                  value={payment.amount}
+                                  value={payment.amount === 0 ? '' : payment.amount}
                                   onChange={(e) => {
                                     const amount = parseFloat(e.target.value) || 0;
                                     const newPayments = [...billData.payments];

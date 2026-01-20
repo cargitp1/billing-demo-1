@@ -91,49 +91,104 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
       <div style={{ border: '2px solid #000', padding: '0', position: 'relative', minHeight: '900px', display: 'flex', flexDirection: 'column' }}>
 
         {/* Header Section */}
-        <div style={{ textAlign: 'center', borderBottom: '2px solid #000', padding: '15px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>|| શ્રી ગણેશાય નમઃ ||</div>
-          <h1 style={{ fontSize: '42px', fontWeight: '800', margin: '5px 0', lineHeight: '1.2' }}>નીલકંઠ પ્લેટ ડેપો</h1>
-          <div style={{ fontSize: '16px', fontWeight: '600', marginTop: '5px' }}>
-            {/* Add company address/phone if available in props, otherwise hardcode layout placeholders */}
-            {companyDetails.address && <span>{companyDetails.address}</span>}
-            {companyDetails.phone && <span style={{ marginLeft: '15px' }}>મો. {companyDetails.phone}</span>}
+        {/* Header Section */}
+        <div style={{ borderBottom: '2px solid #000', padding: '15px' }}>
+          {/* Top Row: Contact Info & Religious Text */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+            {/* Left */}
+            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>
+              પરષોત્તમભાઈ પોલરા<br />
+              (રૂપાવટીવાળા)
+            </div>
+
+            {/* Center */}
+            <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>
+              શ્રી ૧ા<br />
+              શ્રી ગણેશાય નમઃ
+            </div>
+
+            {/* Right */}
+            <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '14px' }}>
+              સુરેશભાઈ પોલરા - ૯૩૨૮૭ ૨૮૨૨૮<br />
+              હરેશભાઈ કુંભર - ૯૭૩૭૯ ૧૨૫૧૬<br />
+              હરેશભાઈ પોલરા - ૯૦૯૯૨ ૬૪૪૩૬
+            </div>
+          </div>
+
+          {/* Main Title Row */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderTop: '2px solid #000',
+            borderBottom: '2px solid #000',
+            borderRadius: '20px',
+            padding: '5px 40px',
+            margin: '10px 0',
+            gap: '50px'
+          }}>
+            <h1 style={{ fontSize: '64px', fontWeight: 'bold', margin: '0', lineHeight: '1' }}>નિલકંઠ</h1>
+            <h2 style={{ fontSize: '42px', fontWeight: 'bold', margin: '0', lineHeight: '1' }}>પ્લેટ ડેપો</h2>
+          </div>
+
+          {/* Bottom Address/Info Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
+              ૧૦, અજમલધામ સોસાયટી, સીમાડા ગામ, સુરત.
+            </div>
+            <div style={{ border: '2px solid #000', borderRadius: '15px', padding: '2px 15px', fontWeight: 'bold', fontSize: '14px' }}>
+              બિલ નંબર : {billDetails.billNumber}
+            </div>
           </div>
         </div>
 
-        {/* Bill Meta Data */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px', borderBottom: '1px solid #000', backgroundColor: '#f9fafb' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '60%' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 'bold', width: '90px', fontSize: '16px' }}>ગ્રાહક નામ:</span>
-              <span style={{ borderBottom: '1px dotted #000', flex: 1, fontWeight: '700', fontSize: '18px', paddingLeft: '5px' }}>{clientDetails.name}</span>
+        {/* Client Details Section */}
+        <div style={{ padding: '5px 15px' }}>
+          <div style={{ border: '2px solid #000', padding: '8px', borderRadius: '20px' }}>
+            {/* Row 1: Name & ID */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '5px' }}>
+              <div style={{ display: 'flex', width: '70%', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '16px', whiteSpace: 'nowrap' }}>નામ:</span>
+                <span style={{ borderBottom: '1px dotted #000', flex: 1, marginLeft: '5px', fontWeight: 'bold', fontSize: '16px', paddingLeft: '5px' }}>
+                  {clientDetails.name}
+                </span>
+              </div>
+              <div style={{ display: 'flex', width: '25%', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '16px', whiteSpace: 'nowrap' }}>ID:</span>
+                <span style={{ borderBottom: '1px dotted #000', flex: 1, marginLeft: '5px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
+                  {clientDetails.nicName}
+                </span>
+              </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 'bold', width: '90px', fontSize: '16px' }}>સાઈટ:</span>
-              <span style={{ borderBottom: '1px dotted #000', flex: 1, fontSize: '16px', paddingLeft: '5px' }}>{clientDetails.site}</span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '35%' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 'bold', width: '80px', fontSize: '16px' }}>બિલ નં.:</span>
-              <span style={{ borderBottom: '1px dotted #000', flex: 1, color: '#dc2626', fontWeight: '800', fontSize: '18px', paddingLeft: '5px' }}>{billDetails.billNumber}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'baseline' }}>
-              <span style={{ fontWeight: 'bold', width: '80px', fontSize: '16px' }}>તારીખ:</span>
-              <span style={{ borderBottom: '1px dotted #000', flex: 1, fontWeight: '600', fontSize: '16px', paddingLeft: '5px' }}>{format(new Date(billDetails.billDate), 'dd/MM/yyyy')}</span>
+
+            {/* Row 2: Site & Date */}
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', width: '70%', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '16px', whiteSpace: 'nowrap' }}>સાઈટ:</span>
+                <span style={{ borderBottom: '1px dotted #000', flex: 1, marginLeft: '5px', fontWeight: 'bold', fontSize: '16px', paddingLeft: '5px' }}>
+                  {clientDetails.site}
+                </span>
+              </div>
+              <div style={{ display: 'flex', width: '25%', alignItems: 'baseline' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '16px', whiteSpace: 'nowrap' }}>તારીખ:</span>
+                <span style={{ borderBottom: '1px dotted #000', flex: 1, marginLeft: '5px', textAlign: 'center', fontWeight: 'bold', fontSize: '16px' }}>
+                  {format(new Date(billDetails.billDate), 'dd/MM/yyyy')}
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Main Table */}
         <div className="rental-section" style={{ padding: '0', flex: 1 }}>
-          <table className="invoice-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <table className="invoice-table" style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
             <thead>
-              <tr style={{ backgroundColor: '#e5e7eb', borderBottom: '1px solid #000' }}>
-                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'left', width: '45%' }}>વિગત / સમયગાળો</th>
-                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'center' }}>સ્ટોક</th>
-                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'center' }}>દિવસ</th>
-                <th style={{ padding: '12px', textAlign: 'right' }}>રકમ (₹)</th>
+              <tr style={{ backgroundColor: '#000', color: '#fff' }}>
+                <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>આ. તારીખ થી જમા તારીખ</th>
+                <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>જમા/ઉધાર</th>
+                <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>સ્ટોક</th>
+                <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>દિવસ</th>
+                <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>રકમ</th>
               </tr>
             </thead>
             <tbody>
@@ -141,27 +196,25 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               {rentalCharges.map((charge, index) => {
                 const rowStartDate = charge.startDate ? new Date(charge.startDate) : new Date(billDetails.fromDate);
                 const rowEndDate = charge.endDate ? new Date(charge.endDate) : new Date(billDetails.toDate);
-                const statusColor = charge.causeType === 'jama' ? '#16a34a' : '#dc2626';
+                const isJama = charge.causeType === 'jama';
 
                 return (
-                  <tr key={`rent-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{
-                          width: '8px',
-                          height: '8px',
-                          borderRadius: '50%',
-                          backgroundColor: statusColor,
-                          flexShrink: 0
-                        }}></div>
-                        <span style={{ fontWeight: '600', fontSize: '15px' }}>
-                          {format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}
-                        </span>
-                      </div>
+                  <tr key={`rent-${index}`}>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                      {format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}
                     </td>
-                    <td style={{ borderRight: '1px solid #000', padding: '10px 12px', textAlign: 'center', fontWeight: '600', fontSize: '16px' }}>{charge.pieces}</td>
-                    <td style={{ borderRight: '1px solid #000', padding: '10px 12px', textAlign: 'center', fontSize: '16px' }}>{charge.days}</td>
-                    <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', fontSize: '16px' }}>{formatIndianCurrency(charge.amount)}</td>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600', color: isJama ? '#16a34a' : '#dc2626' }}>
+                      {isJama ? 'જમા' : 'ઉધાર'}
+                    </td>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                      {charge.pieces}
+                    </td>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                      {charge.days}
+                    </td>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                      {formatIndianCurrency(charge.amount)}
+                    </td>
                   </tr>
                 );
               })}
@@ -169,16 +222,16 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               {/* Extra Costs */}
               {extraCosts.length > 0 && (
                 <>
-                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <td colSpan={4} style={{ padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>અન્ય ખર્ચ</td>
+                  <tr style={{ backgroundColor: '#f9fafb' }}>
+                    <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>અન્ય ખર્ચ</td>
                   </tr>
                   {extraCosts.map((cost, index) => (
-                    <tr key={`extra-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td colSpan={3} style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
+                    <tr key={`extra-${index}`}>
+                      <td colSpan={4} style={{ border: '1px solid #000', padding: '8px 12px' }}>
                         <span style={{ fontWeight: '600' }}>{cost.description}</span>
                         <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(cost.date), 'dd/MM/yyyy')})</span>
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', fontSize: '16px' }}>{formatIndianCurrency(cost.amount)}</td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>{formatIndianCurrency(cost.amount)}</td>
                     </tr>
                   ))}
                 </>
@@ -187,16 +240,16 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               {/* Discounts */}
               {discounts.length > 0 && (
                 <>
-                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
-                    <td colSpan={4} style={{ padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>ડિસ્કાઉન્ટ</td>
+                  <tr style={{ backgroundColor: '#f9fafb' }}>
+                    <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>ડિસ્કાઉન્ટ</td>
                   </tr>
                   {discounts.map((discount, index) => (
-                    <tr key={`disc-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td colSpan={3} style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
+                    <tr key={`disc-${index}`}>
+                      <td colSpan={4} style={{ border: '1px solid #000', padding: '8px 12px' }}>
                         <span style={{ fontWeight: '600' }}>{discount.description}</span>
                         <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(discount.date), 'dd/MM/yyyy')})</span>
                       </td>
-                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', fontSize: '16px', color: '#dc2626' }}>-{formatIndianCurrency(discount.amount)}</td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600', color: '#dc2626' }}>-{formatIndianCurrency(discount.amount)}</td>
                     </tr>
                   ))}
                 </>
@@ -234,25 +287,24 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
         {/* Footer / Summary Area */}
         <div style={{ borderTop: '2px solid #000', display: 'flex', marginTop: 'auto' }}>
           {/* Left Side: Terms / Signature */}
-          <div style={{ width: '60%', padding: '15px', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            <div style={{ fontSize: '12px', fontWeight: '600', color: '#4b5563' }}>
-              <span style={{ textDecoration: 'underline', fontWeight: 'bold', color: '#000' }}>શરતો:</span><br />
-              1. વ્યાજ ૧૮% લેખે ગણવામાં આવશે.<br />
-              2. માલની જવાબદારી ગ્રાહકની રહેશે.
+          <div style={{ width: '65%', padding: '10px', borderRight: '2px solid #000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', fontFamily: 'Arial, sans-serif' }}>
+            <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '20px' }}>
+              નોંધ : આ બીલ મળ્યા પછી તરત જ બીલ ચુકવવાનું રહેશે.
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '40px', alignItems: 'flex-end' }}>
-              <div style={{ textAlign: 'center', width: '45%' }}>
-                <div style={{ borderTop: '1px dashed #9ca3af', padding: '5px', fontSize: '14px' }}>ગ્રાહક સહી</div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '10px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                લેનારની સહી .....................
               </div>
-              <div style={{ textAlign: 'center', width: '45%' }}>
-                <div style={{ borderTop: '1px dashed #9ca3af', padding: '5px', fontSize: '14px', fontWeight: 'bold' }}>નીલકંઠ પ્લેટ ડેપો વતી</div>
+              <div style={{ fontSize: '14px', fontWeight: 'bold' }}>
+                આપનારની સહી .....................
               </div>
             </div>
+
           </div>
 
           {/* Right Side: Totals */}
-          <div style={{ width: '40%' }}>
+          <div style={{ width: '35%' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
                 <tr>
