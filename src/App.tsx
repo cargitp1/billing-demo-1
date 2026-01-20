@@ -29,13 +29,34 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
 };
 
+const RootRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-12 h-12 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <Navigate to="/dashboard" /> : <>{children}</>;
+};
+
 function App() {
   return (
     <AuthProvider>
       <LanguageProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route
+              path="/"
+              element={
+                <RootRoute>
+                  <Landing />
+                </RootRoute>
+              }
+            />
             <Route path="/login" element={<Login />} />
             <Route
               path="/dashboard"
