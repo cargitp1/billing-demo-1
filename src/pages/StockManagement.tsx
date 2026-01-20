@@ -59,6 +59,7 @@ const StockManagement: React.FC = () => {
     loading: boolean;
     data: {
       clientName: string;
+      clientFullName?: string;
       quantity: number;
       site: string;
       notes?: string[];
@@ -219,6 +220,7 @@ const StockManagement: React.FC = () => {
         string,
         {
           clientName: string;
+          clientFullName?: string;
           quantity: number;
           site: string;
           notes: string[];
@@ -245,6 +247,7 @@ const StockManagement: React.FC = () => {
         if (amount !== 0) {
           const current = clientMap.get(client.clientId) || {
             clientName: client.clientNicName || client.clientFullName,
+            clientFullName: client.clientFullName,
             quantity: 0,
             site: client.site,
             notes: [] as string[],
@@ -270,7 +273,7 @@ const StockManagement: React.FC = () => {
       });
 
       const data = Array.from(clientMap.values())
-        .filter((item) => item.quantity > 0)
+        .filter((item) => item.quantity !== 0)
         .sort((a, b) => b.quantity - a.quantity);
 
       setDistributionModal((prev) => ({
@@ -532,23 +535,7 @@ const StockManagement: React.FC = () => {
                     // Use calculated values if available, otherwise fallback (though fetchCalculatedStocks runs on mount)
                     const rentStock = calculated.rent;
                     const borrowedStock = calculated.borrowed;
-                    // Recalculate available based on live rent
-                    // Available = Total - Rent - Lost. Borrowed is usually separate or part of rent depending on logic?
-                    // Standard logic: Available is what is in warehouse. 
-                    // If we gave rent, it's gone. If we gave borrowed (meaning we gave stock as borrowed), it's gone.
-                    // So Available = Total - Rent - Borrowed - Lost?
-                    // Previous logic: available_stock = total - on_rent - lost.
-                    // But if borrowed also consumes stock, it should be subtracted.
-                    // Let's assume on_rent_stock in DB included everything given out?
-                    // But now we are splitting.
-                    // If UdharChallan adds to 'rent', then Rent consumes stock.
-                    // If UdharChallan adds to 'borrowed', does it consume stock? 
-                    // Usually yes, if we gave it from our warehouse.
-                    // So Available = Total - Rent - Borrowed - Lost.
-                    const availableStock = Math.max(0, stock.total_stock - rentStock - borrowedStock - stock.lost_stock);
-
-                    // Note: We are only modifying DISPLAY here. The sorting might still use the 'stock' object values unless we update 'filteredAndSortedStocks' logic too.
-                    // For now, let's just display the correct numbers. User asked for display.
+                    const availableStock = Math.max(0, stock.total_stock - rentStock - stock.lost_stock);
 
                     return (
                       <tr
@@ -666,7 +653,7 @@ const StockManagement: React.FC = () => {
                     const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
                     const rentStock = calculated.rent;
                     const borrowedStock = calculated.borrowed;
-                    const availableStock = Math.max(0, stock.total_stock - rentStock - borrowedStock - stock.lost_stock);
+                    const availableStock = Math.max(0, stock.total_stock - rentStock - stock.lost_stock);
 
                     return (
                       <tr
@@ -721,7 +708,7 @@ const StockManagement: React.FC = () => {
                       <span className="text-xs font-bold sm:text-sm text-green-700">
                         {filteredAndSortedStocks.reduce((sum, stock) => {
                           const calculated = calculatedStocks.get(stock.size) || { rent: 0, borrowed: 0 };
-                          const available = Math.max(0, stock.total_stock - calculated.rent - calculated.borrowed - stock.lost_stock);
+                          const available = Math.max(0, stock.total_stock - calculated.rent - stock.lost_stock);
                           return sum + available;
                         }, 0)}
                       </span>
@@ -755,17 +742,17 @@ const StockManagement: React.FC = () => {
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-4">
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-orange-500 flex-shrink-0"></div>
-                    <span className="text-xs text-gray-600">મુખ્ય સ્ટોક</span>
+                    <span className="text-xs text-orange-600">ભાડે ગયેલા નંગ</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-purple-500 flex-shrink-0"></div>
-                    <span className="text-xs text-gray-600">
-                      બીજા ડેપા નો સ્ટોક
+                    <span className="text-xs text-purple-600">
+                      બીજા ડેપો ના નંગ 
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></div>
-                    <span className="text-xs text-gray-600">ઉપલબ્ધ સ્ટોક</span>
+                    <span className="text-xs text-green-600">ઉપલબ્ધ સ્ટોક</span>
                   </div>
                 </div>
               </div>
@@ -879,13 +866,13 @@ const StockManagement: React.FC = () => {
                   {distributionModal.type === "borrowed"
                     ? t("borrowed_stock")
                     : t("on_rent_stock")}{" "}
-                  Distribution
+                  ગ્રાહક પ્રમાણે
                 </h3>
                 <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <p>Size: {PLATE_SIZES[distributionModal.size! - 1]}</p>
+                  <p>પ્લેટ: {PLATE_SIZES[distributionModal.size! - 1]}</p>
                   <span>•</span>
                   <p className="font-semibold text-gray-900">
-                    Total: {distributionModal.data.reduce((sum, item) => sum + item.quantity, 0)}
+                    કુલ: {distributionModal.data.reduce((sum, item) => sum + item.quantity, 0)}
                   </p>
                 </div>
               </div>
@@ -928,6 +915,11 @@ const StockManagement: React.FC = () => {
                           <p className="text-sm font-semibold text-gray-900">
                             {client.clientName}
                           </p>
+                          {client.clientFullName && client.clientFullName !== client.clientName && (
+                            <p className="text-[11px] text-gray-500 truncate max-w-[180px]">
+                              {client.clientFullName}
+                            </p>
+                          )}
                           <p className="text-xs text-gray-500 flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
                             {client.site}
@@ -956,7 +948,7 @@ const StockManagement: React.FC = () => {
             </div>
 
             <div className="p-3 bg-gray-50 border-t border-gray-200 text-center text-xs text-gray-500">
-              Total Clients: {distributionModal.data.length}
+              ગ્રાહકોની સંખ્યા: {distributionModal.data.length}
             </div>
           </div>
         </div>

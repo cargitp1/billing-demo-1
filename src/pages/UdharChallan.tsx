@@ -17,6 +17,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { fetchUdharChallansForClient, fetchJamaChallansForClient } from '../utils/challanFetching';
 import { naturalSort } from '../utils/sortingUtils';
 import ClientForm, { ClientFormData } from '../components/ClientForm';
 import ItemsTable, { ItemsData } from '../components/ItemsTable';
@@ -621,17 +622,43 @@ const UdharChallan: React.FC = () => {
 
   const fetchStock = async () => {
     try {
-      const { data, error } = await supabase
-        .from('stock')
-        .select('*')
-        .order('size');
+      const [stockResponse, allUdhar, allJama] = await Promise.all([
+        supabase.from('stock').select('*').order('size'),
+        fetchUdharChallansForClient(),
+        fetchJamaChallansForClient(),
+      ]);
 
-      if (error) throw error;
+      if (stockResponse.error) throw stockResponse.error;
 
-      const computed = (data || []).map((s: any) => ({
-        ...s,
-        available_stock: Math.max(0, (s.total_stock || 0) - (s.on_rent_stock || 0) - (s.lost_stock || 0))
-      }));
+      // Calculate rent stock dynamically
+      const calculations = new Map<number, number>();
+      for (let i = 1; i <= 9; i++) {
+        calculations.set(i, 0);
+      }
+
+      // Process Udhar
+      allUdhar.forEach(challan => {
+        for (let i = 1; i <= 9; i++) {
+          const qty = (challan.items as any)[`size_${i}_qty`] || 0;
+          calculations.set(i, (calculations.get(i) || 0) + qty);
+        }
+      });
+
+      // Process Jama
+      allJama.forEach(challan => {
+        for (let i = 1; i <= 9; i++) {
+          const qty = (challan.items as any)[`size_${i}_qty`] || 0;
+          calculations.set(i, (calculations.get(i) || 0) - qty);
+        }
+      });
+
+      const computed = (stockResponse.data || []).map((s: any) => {
+        const rentStock = calculations.get(s.size) || 0;
+        return {
+          ...s,
+          available_stock: Math.max(0, (s.total_stock || 0) - rentStock - (s.lost_stock || 0))
+        };
+      });
 
       setStockData(computed);
     } catch (error) {

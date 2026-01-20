@@ -661,6 +661,13 @@ const JamaChallan: React.FC = () => {
 
       setOutstandingBalances(balances);
       setBorrowedOutstanding(borrowedBal);
+
+      // Auto-show borrowed column if there are borrowed items
+      const hasBorrowedItems = Object.values(borrowedBal).some(val => val > 0);
+      if (hasBorrowedItems) {
+        setHideExtraColumns(false);
+      }
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };

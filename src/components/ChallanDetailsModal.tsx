@@ -116,43 +116,44 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
           </div>
 
           {/* Client Info - Hidden on Mobile */}
-          <div className="hidden p-4 rounded-lg md:block bg-blue-50">
-            <h3 className="mb-3 text-lg font-semibold text-gray-900">{t('clientInfo')}</h3>
-            <div className="grid gap-4 md:grid-cols-2">
+          {/* Client Info */}
+          <div className="p-3 md:p-4 rounded-lg bg-blue-50">
+            <h3 className="mb-2 text-xs md:text-lg font-semibold text-gray-900">{t('clientInfo')}</h3>
+            <div className="grid grid-cols-2 gap-2 md:gap-4">
               <div>
-                <p className="text-sm text-gray-600">{t('clientNicName')}</p>
-                <p className="text-base font-medium text-gray-900">{challan.clientNicName}</p>
+                <p className="text-[10px] md:text-sm text-gray-600">{t('clientNicName')}</p>
+                <p className="text-xs md:text-base font-medium text-gray-900">{challan.clientNicName}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('clientName')}</p>
-                <p className="text-base font-medium text-gray-900">{challan.clientFullName}</p>
+                <p className="text-[10px] md:text-sm text-gray-600">{t('clientName')}</p>
+                <p className="text-xs md:text-base font-medium text-gray-900">{challan.clientFullName}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('site')}</p>
-                <p className="text-base font-medium text-gray-900">
+                <p className="text-[10px] md:text-sm text-gray-600">{t('site')}</p>
+                <p className="text-xs md:text-base font-medium text-gray-900">
                   {challan.site}
                   {challan.isAlternativeSite && (
-                    <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-200 rounded">
+                    <span className="px-1.5 py-0.5 ml-1 text-[9px] md:text-xs text-blue-800 bg-blue-200 rounded">
                       {t('alternative')}
                     </span>
                   )}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">{t('phone')}</p>
-                <p className="text-base font-medium text-gray-900">
+                <p className="text-[10px] md:text-sm text-gray-600">{t('phone')}</p>
+                <p className="text-xs md:text-base font-medium text-gray-900">
                   {challan.phone}
                   {challan.isSecondaryPhone && (
-                    <span className="px-2 py-1 ml-2 text-xs text-blue-800 bg-blue-200 rounded">
+                    <span className="px-1.5 py-0.5 ml-1 text-[9px] md:text-xs text-blue-800 bg-blue-200 rounded">
                       {t('alternative')}
                     </span>
                   )}
                 </p>
               </div>
               {challan.driverName && (
-                <div>
-                  <p className="text-sm text-gray-600">{t('driver')}</p>
-                  <p className="text-base font-medium text-gray-900">{challan.driverName}</p>
+                <div className="col-span-2 md:col-span-1">
+                  <p className="text-[10px] md:text-sm text-gray-600">{t('driver')}</p>
+                  <p className="text-xs md:text-base font-medium text-gray-900">{challan.driverName}</p>
                 </div>
               )}
             </div>
@@ -161,7 +162,7 @@ const ChallanDetailsModal: React.FC<ChallanDetailsModalProps> = ({
           {/* Items Section */}
           <div className="p-3 md:p-4 bg-white border border-gray-200 rounded-lg">
             <h3 className="mb-2 md:mb-3 text-xs md:text-lg font-semibold text-gray-900">{t('items')}</h3>
-            
+
             {/* Desktop Table View */}
             <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full divide-y divide-gray-200">

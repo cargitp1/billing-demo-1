@@ -1,7 +1,8 @@
 import React from 'react';
-import { Edit, Trash2, Phone, MapPin } from 'lucide-react';
+import { Edit, Trash2, Phone, MapPin, Plus } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { ClientFormData } from './ClientForm';
+import { useNavigate } from 'react-router-dom';
 
 interface ClientListProps {
   clients: ClientFormData[];
@@ -11,12 +12,41 @@ interface ClientListProps {
 
 const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   const handleDelete = React.useCallback((id: string, name: string) => {
     if (window.confirm(`Delete "${name}"?`)) {
       onDelete(id);
     }
   }, [onDelete]);
+
+  const handleCreateUdhar = (client: ClientFormData) => {
+    navigate('/udhar-challan', {
+      state: {
+        preselectedClient: {
+          id: client.id,
+          nicName: client.client_nic_name,
+          fullName: client.client_name,
+          site: client.site,
+          phone: client.primary_phone_number
+        }
+      }
+    });
+  };
+
+  const handleCreateJama = (client: ClientFormData) => {
+    navigate('/jama-challan', {
+      state: {
+        preselectedClient: {
+          id: client.id,
+          nicName: client.client_nic_name,
+          fullName: client.client_name,
+          site: client.site,
+          phone: client.primary_phone_number
+        }
+      }
+    });
+  };
 
   return (
     <div className="space-y-3 sm:space-y-4">
@@ -46,6 +76,23 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button
+                          onClick={() => handleCreateUdhar(client)}
+                          className="px-2 py-1.5 text-xs font-medium text-white transition-colors bg-red-500 rounded hover:bg-red-600 flex items-center gap-1"
+                          title="Create Udhar"
+                        >
+                          <Plus size={14} />
+                          Udhar
+                        </button>
+                        <button
+                          onClick={() => handleCreateJama(client)}
+                          className="px-2 py-1.5 text-xs font-medium text-white transition-colors bg-green-500 rounded hover:bg-green-600 flex items-center gap-1"
+                          title="Create Jama"
+                        >
+                          <span className="flex items-center justify-center w-3.5 h-3.5 text-lg font-bold leading-none">-</span>
+                          Jama
+                        </button>
+                        <div className="w-px h-6 bg-gray-300 mx-1"></div>
+                        <button
                           onClick={() => onEdit(client)}
                           className="p-2 text-blue-600 transition-colors rounded hover:bg-blue-50 touch-manipulation active:scale-95"
                           title={t('edit')}
@@ -70,8 +117,8 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
           {/* Mobile Card View - Ultra Compact */}
           <div className="space-y-2 lg:hidden">
             {clients.map((client: ClientFormData) => (
-              <div 
-                key={client.id} 
+              <div
+                key={client.id}
                 className="p-2.5 sm:p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:rounded-xl hover:shadow-md transition-shadow"
               >
                 {/* Header Row - Name and Actions */}
@@ -85,6 +132,21 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
                     </p>
                   </div>
                   <div className="flex flex-shrink-0 gap-1">
+                    <button
+                      onClick={() => handleCreateUdhar(client)}
+                      className="p-1.5 text-[10px] font-medium text-white bg-red-300 hover:bg-red-600 rounded-md transition-colors touch-manipulation active:scale-95 flex items-center justify-center w-7 h-7"
+                      aria-label="Create Udhar"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleCreateJama(client)}
+                      className="p-1.5 text-[10px] font-medium text-white bg-green-300 hover:bg-green-600 rounded-md transition-colors touch-manipulation active:scale-95 flex items-center justify-center w-7 h-7"
+                      aria-label="Create Jama"
+                    >
+                      <span className="text-base font-bold leading-none">−</span>
+                    </button>
+                    <div className="w-px h-6 bg-gray-200 mx-0.5"></div>
                     <button
                       onClick={() => onEdit(client)}
                       className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors touch-manipulation active:scale-95"
@@ -108,7 +170,7 @@ const ClientList: React.FC<ClientListProps> = ({ clients, onEdit, onDelete }) =>
                     <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0 text-gray-400" />
                     <span className="truncate">{client.site}</span>
                   </div>
-                  <a 
+                  <a
                     href={`tel:${client.primary_phone_number}`}
                     className="flex items-center flex-shrink-0 gap-1 text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95"
                   >

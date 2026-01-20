@@ -73,11 +73,11 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
   billDetails,
   clientDetails,
   rentalCharges,
-  extraCosts: _extraCosts, // Keep unused
-  discounts: _discounts, // Keep unused
-  payments: _payments, // Keep unused
+  extraCosts, // Now used
+  discounts, // Now used
+  payments, // Now used
   summary,
-  mainNote: _mainNote, // Keep unused
+  mainNote, // Now used
 }) => {
   return (
     <div className="invoice-container" style={{
@@ -130,20 +130,21 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
           <table className="invoice-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ backgroundColor: '#e5e7eb', borderBottom: '1px solid #000' }}>
-                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'left', width: '45%' }}>સમયગાળો (તારીખ)</th>
+                <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'left', width: '45%' }}>વિગત / સમયગાળો</th>
                 <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'center' }}>સ્ટોક</th>
                 <th style={{ borderRight: '1px solid #000', padding: '12px', textAlign: 'center' }}>દિવસ</th>
                 <th style={{ padding: '12px', textAlign: 'right' }}>રકમ (₹)</th>
               </tr>
             </thead>
             <tbody>
+              {/* Rental Charges */}
               {rentalCharges.map((charge, index) => {
                 const rowStartDate = charge.startDate ? new Date(charge.startDate) : new Date(billDetails.fromDate);
                 const rowEndDate = charge.endDate ? new Date(charge.endDate) : new Date(billDetails.toDate);
                 const statusColor = charge.causeType === 'jama' ? '#16a34a' : '#dc2626';
 
                 return (
-                  <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                  <tr key={`rent-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
                     <td style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{
@@ -164,12 +165,74 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                   </tr>
                 );
               })}
+
+              {/* Extra Costs */}
+              {extraCosts.length > 0 && (
+                <>
+                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <td colSpan={4} style={{ padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>અન્ય ખર્ચ</td>
+                  </tr>
+                  {extraCosts.map((cost, index) => (
+                    <tr key={`extra-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td colSpan={3} style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
+                        <span style={{ fontWeight: '600' }}>{cost.description}</span>
+                        <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(cost.date), 'dd/MM/yyyy')})</span>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', fontSize: '16px' }}>{formatIndianCurrency(cost.amount)}</td>
+                    </tr>
+                  ))}
+                </>
+              )}
+
+              {/* Discounts */}
+              {discounts.length > 0 && (
+                <>
+                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+                    <td colSpan={4} style={{ padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>ડિસ્કાઉન્ટ</td>
+                  </tr>
+                  {discounts.map((discount, index) => (
+                    <tr key={`disc-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td colSpan={3} style={{ borderRight: '1px solid #000', padding: '10px 12px' }}>
+                        <span style={{ fontWeight: '600' }}>{discount.description}</span>
+                        <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(discount.date), 'dd/MM/yyyy')})</span>
+                      </td>
+                      <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: '700', fontSize: '16px', color: '#dc2626' }}>-{formatIndianCurrency(discount.amount)}</td>
+                    </tr>
+                  ))}
+                </>
+              )}
             </tbody>
           </table>
+
+          {/* Payments List (Displayed separately or in table? Let's verify standard practice. Usually payments are separate deduction list or just total. But user requested to REFLECT payment add it. So explicit list is good.) */}
+          {payments.length > 0 && (
+            <div style={{ marginTop: '20px', padding: '0 15px' }}>
+              <div style={{ fontWeight: 'bold', borderBottom: '1px solid #000', paddingBottom: '5px', marginBottom: '5px' }}>ચુકવણી વિગત (Payments):</div>
+              <table style={{ width: '100%', fontSize: '14px' }}>
+                <tbody>
+                  {payments.map((payment, index) => (
+                    <tr key={`pay-${index}`}>
+                      <td style={{ padding: '4px 0' }}>{format(new Date(payment.date), 'dd/MM/yyyy')}</td>
+                      <td style={{ padding: '4px 0' }}>{payment.method} {payment.note ? `(${payment.note})` : ''}</td>
+                      <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: 'bold', color: '#16a34a' }}>{formatIndianCurrency(payment.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Main Note */}
+          {mainNote && (
+            <div style={{ marginTop: '20px', padding: '10px 15px', fontStyle: 'italic', color: '#4b5563' }}>
+              <span style={{ fontWeight: 'bold' }}>નોંધ:</span> {mainNote}
+            </div>
+          )}
+
         </div>
 
         {/* Footer / Summary Area */}
-        <div style={{ borderTop: '2px solid #000', display: 'flex' }}>
+        <div style={{ borderTop: '2px solid #000', display: 'flex', marginTop: 'auto' }}>
           {/* Left Side: Terms / Signature */}
           <div style={{ width: '60%', padding: '15px', borderRight: '1px solid #000', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div style={{ fontSize: '12px', fontWeight: '600', color: '#4b5563' }}>
@@ -196,6 +259,15 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>કુલ રકમ:</td>
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600', fontSize: '16px' }}>{formatIndianCurrency(summary.grandTotal)}</td>
                 </tr>
+
+                {/* Add extra costs total if multiple? */}
+                {summary.totalExtraCosts > 0 && (
+                  <tr>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>અન્ય ખર્ચ:</td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600' }}>{formatIndianCurrency(summary.totalExtraCosts)}</td>
+                  </tr>
+                )}
+
                 <tr>
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#16a34a' }}>ચુકવેલ:</td>
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '700', color: '#16a34a', fontSize: '16px' }}>{formatIndianCurrency(summary.totalPaid)}</td>

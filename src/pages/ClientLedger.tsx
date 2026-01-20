@@ -346,6 +346,29 @@ export default function ClientLedger() {
     }
   }, [fetchClients, transformClientToLedgerData]);
 
+  // Sorted clients memo
+  const sortedClients = useMemo(() => {
+    return [...filteredClients].sort((a, b) => {
+      switch (sortOption) {
+        case 'nameAZ':
+          return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
+        case 'nameZA':
+          return naturalSort(b.client_nic_name || '', a.client_nic_name || '');
+        case 'balanceHighLow': {
+          const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
+          const balanceB = ledgersMap.get(b.id)?.currentBalance.grandTotal || 0;
+          return balanceB !== balanceA ? balanceB - balanceA : naturalSort(a.client_nic_name || '', b.client_nic_name || '');
+        }
+        case 'balanceLowHigh': {
+          const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
+          const balanceB = ledgersMap.get(b.id)?.currentBalance.grandTotal || 0;
+          return balanceA !== balanceB ? balanceA - balanceB : naturalSort(a.client_nic_name || '', b.client_nic_name || '');
+        }
+        default: return 0;
+      }
+    });
+  }, [filteredClients, sortOption, ledgersMap]);
+
   // Optimized: Load visible ledgers when needed using ledgersMap for O(1) lookups
   const loadVisibleLedgers = useCallback(async () => {
     if (loadingMore) return;
@@ -353,7 +376,8 @@ export default function ClientLedger() {
     try {
       const start = 0;
       const end = currentPage * ITEMS_PER_PAGE;
-      const paginatedClients = filteredClients.slice(start, end);
+      // USE SORTED CLIENTS HERE
+      const paginatedClients = sortedClients.slice(start, end);
 
       const unloadedClients = paginatedClients.filter(client => {
         const ledger = ledgersMap.get(client.id);
@@ -383,32 +407,11 @@ export default function ClientLedger() {
     } finally {
       setLoadingMore(false);
     }
-  }, [filteredClients, currentPage, ledgersMap, transformClientToLedgerData, loadingMore]);
+  }, [sortedClients, currentPage, ledgersMap, transformClientToLedgerData, loadingMore]);
 
   // Filtered and sorted ledgers for display - optimized with map lookup
   const filteredAndSortedLedgers = useMemo(() => {
-    // Sort the filtered clients
-    const sortedClients = [...filteredClients].sort((a, b) => {
-      switch (sortOption) {
-        case 'nameAZ':
-          return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
-        case 'nameZA':
-          return naturalSort(b.client_nic_name || '', a.client_nic_name || '');
-        case 'balanceHighLow': {
-          const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
-          const balanceB = ledgersMap.get(b.id)?.currentBalance.grandTotal || 0;
-          return balanceB !== balanceA ? balanceB - balanceA : naturalSort(a.client_nic_name || '', b.client_nic_name || '');
-        }
-        case 'balanceLowHigh': {
-          const balanceA = ledgersMap.get(a.id)?.currentBalance.grandTotal || 0;
-          const balanceB = ledgersMap.get(b.id)?.currentBalance.grandTotal || 0;
-          return balanceA !== balanceB ? balanceA - balanceB : naturalSort(a.client_nic_name || '', b.client_nic_name || '');
-        }
-        default: return 0;
-      }
-    });
-
-    // Get the paginated portion
+    // Get the paginated portion from sortedClients
     const start = 0;
     const end = currentPage * ITEMS_PER_PAGE;
     const paginatedClients = sortedClients.slice(start, end);
@@ -443,7 +446,7 @@ export default function ClientLedger() {
         transactionsLoaded: false
       };
     });
-  }, [filteredClients, ledgersMap, sortOption, currentPage]);
+  }, [sortedClients, ledgersMap, currentPage]);
 
   // CSV Download Handler
   const handleDownloadBackup = async () => {

@@ -209,6 +209,93 @@ export const fetchJamaChallansForClient = async (clientId?: string) => {
   return transformedData;
 };
 
+export const fetchDailyChallans = async (date: Date) => {
+  const dateStr = date.toISOString().split('T')[0];
+
+  const [udharChallans, jamaChallans] = await Promise.all([
+    supabase
+      .from('udhar_challans')
+      .select(`
+        udhar_challan_number,
+        udhar_date,
+        driver_name,
+        alternative_site,
+        secondary_phone_number,
+        client_id,
+        client:clients!udhar_challans_client_id_fkey (
+          id,
+          client_nic_name,
+          client_name,
+          site,
+          primary_phone_number
+        ),
+        items:udhar_items!udhar_items_udhar_challan_number_fkey (
+          size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
+          size_6_qty, size_7_qty, size_8_qty, size_9_qty,
+          size_1_borrowed, size_2_borrowed, size_3_borrowed,
+          size_4_borrowed, size_5_borrowed, size_6_borrowed,
+          size_7_borrowed, size_8_borrowed, size_9_borrowed
+        )
+      `)
+      .eq('udhar_date', dateStr)
+      .order('udhar_challan_number', { ascending: false }),
+    supabase
+      .from('jama_challans')
+      .select(`
+        jama_challan_number,
+        jama_date,
+        driver_name,
+        alternative_site,
+        secondary_phone_number,
+        client_id,
+        client:clients!jama_challans_client_id_fkey (
+          id,
+          client_nic_name,
+          client_name,
+          site,
+          primary_phone_number
+        ),
+        items:jama_items!jama_items_jama_challan_number_fkey (
+          size_1_qty, size_2_qty, size_3_qty, size_4_qty, size_5_qty,
+          size_6_qty, size_7_qty, size_8_qty, size_9_qty,
+          size_1_borrowed, size_2_borrowed, size_3_borrowed,
+          size_4_borrowed, size_5_borrowed, size_6_borrowed,
+          size_7_borrowed, size_8_borrowed, size_9_borrowed
+        )
+      `)
+      .eq('jama_date', dateStr)
+      .order('jama_challan_number', { ascending: false })
+  ]);
+
+  const mapChallan = (challan: any, type: 'udhar' | 'jama') => {
+    const rawItems = challan.items;
+    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+
+    return {
+      challanNumber: type === 'udhar' ? challan.udhar_challan_number : challan.jama_challan_number,
+      date: type === 'udhar' ? challan.udhar_date : challan.jama_date,
+      type,
+      driverName: challan.driver_name,
+      clientNicName: challan.client?.client_nic_name || '',
+      clientFullName: challan.client?.client_name || '',
+      clientId: challan.client_id,
+      site: challan.alternative_site || challan.client?.site || '',
+      isAlternativeSite: !!challan.alternative_site,
+      phone: challan.secondary_phone_number || challan.client?.primary_phone_number || '',
+      isSecondaryPhone: !!challan.secondary_phone_number,
+      items: itemRow,
+      totalItems: calculateTotalFromItems(itemRow)
+    };
+  };
+
+  const udharData = (udharChallans.data || []).map(c => mapChallan(c, 'udhar'));
+  const jamaData = (jamaChallans.data || []).map(c => mapChallan(c, 'jama'));
+
+  // Combine and sort by challan number as a proxy for time (since we don't have time field), 
+  // or just return concatenated. Let's return concatenated.
+  return [...udharData, ...jamaData].sort((a, b) => b.challanNumber.localeCompare(a.challanNumber));
+};
+
 // Cache for transactions to avoid redundant fetches
 const transactionCache = new Map<string, { data: any[]; timestamp: number }>();
 const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes

@@ -389,12 +389,8 @@ export function calculateBillingPeriods(
           ? addDays(parseISO(currentDate), 1).toISOString().split('T')[0]
           : currentDate;
 
-        // Final duration check: if start and end dates are same, force 1 day
-        // This handles cases where calculation might result in 2 days due to timezone/boundary issues
+        // Final days calculation
         let finalDays = periodData.days;
-        if (startDate === periodData.endDate) {
-          finalDays = 1;
-        }
 
         // Recalculate rent with corrected days
         const rateInPaise = Math.round(dailyRate * 100);

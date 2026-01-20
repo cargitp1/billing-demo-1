@@ -1,22 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  UserPlus, 
-  FileText, 
-  FileCheck, 
-  Package, 
-  BookOpen, 
+import {
+  UserPlus,
+  FileText,
+  FileCheck,
+  Package,
+  BookOpen,
   BookMarked,
   Activity,
-  Calendar,
-  ArrowUpRight,
-  Sparkles
+  ArrowUpRight
 } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import Navbar from '../components/Navbar';
 import { Toaster } from 'react-hot-toast';
 import { format } from 'date-fns';
 import '../styles/wave.css';
+import TodayChallans from '../components/TodayChallans';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -287,7 +286,7 @@ const Dashboard: React.FC = () => {
         }
       `}</style>
 
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -306,7 +305,7 @@ const Dashboard: React.FC = () => {
         }}
       />
       <Navbar />
-      
+
       <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0">
         <div className="w-full px-3 py-3 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-8 max-w-7xl">
           {/* Welcome Section - Compact Mobile */}
@@ -321,7 +320,7 @@ const Dashboard: React.FC = () => {
                 {t('appName')}
               </h1>
               <p className="mb-2 text-xs text-blue-100 sm:text-sm lg:text-base sm:mb-0">{t('Manage_your')}</p>
-              
+
               {/* Mobile Date Display */}
               <div className="flex items-center gap-1.5 mt-2 sm:hidden">
                 <div className="calendar-flip-container">
@@ -333,7 +332,7 @@ const Dashboard: React.FC = () => {
                         <div className="calendar-date-month calendar-date-month-mobile">{currentMonth}</div>
                       </div>
                     </div>
-                    
+
                     {/* Page 2 - 2 days ago */}
                     <div className="calendar-flip-page calendar-flip-page-2">
                       <div className="calendar-date-card calendar-date-card-mobile">
@@ -341,7 +340,7 @@ const Dashboard: React.FC = () => {
                         <div className="calendar-date-month calendar-date-month-mobile">{currentMonth}</div>
                       </div>
                     </div>
-                    
+
                     {/* Page 3 - Yesterday */}
                     <div className="calendar-flip-page calendar-flip-page-3">
                       <div className="calendar-date-card calendar-date-card-mobile">
@@ -349,7 +348,7 @@ const Dashboard: React.FC = () => {
                         <div className="calendar-date-month calendar-date-month-mobile">{currentMonth}</div>
                       </div>
                     </div>
-                    
+
                     {/* Base - Today */}
                     <div className="calendar-base-page">
                       <div className="calendar-date-card calendar-date-card-mobile">
@@ -361,7 +360,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <p className="text-xs font-medium">{format(new Date(), 'dd MMM yyyy')}</p>
               </div>
-              
+
               {/* Desktop Date Display */}
               <div className="absolute items-center hidden gap-3 overflow-visible top-3 right-3 sm:flex sm:top-4 sm:right-4 lg:top-6 lg:right-6">
                 <div className="text-right">
@@ -377,7 +376,7 @@ const Dashboard: React.FC = () => {
                         <div className="calendar-date-month">{currentMonth}</div>
                       </div>
                     </div>
-                    
+
                     {/* Page 2 - 2 days ago */}
                     <div className="calendar-flip-page calendar-flip-page-2">
                       <div className="calendar-date-card">
@@ -385,7 +384,7 @@ const Dashboard: React.FC = () => {
                         <div className="calendar-date-month">{currentMonth}</div>
                       </div>
                     </div>
-                    
+
                     {/* Page 3 - Yesterday */}
                     <div className="calendar-flip-page calendar-flip-page-3">
                       <div className="calendar-date-card">
@@ -393,7 +392,7 @@ const Dashboard: React.FC = () => {
                         <div className="calendar-date-month">{currentMonth}</div>
                       </div>
                     </div>
-                    
+
                     {/* Base - Today */}
                     <div className="calendar-base-page">
                       <div className="calendar-date-card">
@@ -436,6 +435,9 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
+          {/* Today's Challans */}
+          <TodayChallans />
+
           {/* Recent Activity - Compact Mobile */}
           <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
             <div className="flex flex-col items-start justify-between gap-2 mb-3 sm:flex-row sm:items-center sm:gap-0 sm:mb-5">
@@ -443,7 +445,7 @@ const Dashboard: React.FC = () => {
                 <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                 <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('recentActivity')}</h2>
               </div>
-              <button 
+              <button
                 onClick={() => navigate('/challan-book')}
                 className="flex items-center gap-0.5 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95"
               >
