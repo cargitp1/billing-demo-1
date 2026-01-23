@@ -7,8 +7,7 @@ import { translations } from '../utils/translations';
 import TransactionTable from './TransactionTable';
 import ClientLedgerDownload from './ClientLedgerDownload';
 import { generateClientLedgerJPEG } from '../utils/generateLedgerJPEG';
-import { generateJPEG } from '../utils/generateJPEG';
-import ReceiptTemplate from './ReceiptTemplate';
+
 import toast from 'react-hot-toast';
 
 interface ClientLedgerCardProps {
@@ -107,7 +106,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
             <div className="flex flex-col">
               <span className="text-xs text-gray-500">કુલ બહાર</span>
               {ledger.transactionsLoaded ? (
-                <span className={`text - sm font - semibold ${(ledger.currentBalance?.grandTotal ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'} `}>
+                <span className={`text-sm font-semibold ${(ledger.currentBalance?.grandTotal ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'} `}>
                   {ledger.currentBalance?.grandTotal ?? 0}
                 </span>
               ) : (
@@ -175,7 +174,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               <div className="flex flex-col items-end">
                 <span className="text-[10px] text-gray-500">કુલ બહાર</span>
                 {ledger.transactionsLoaded ? (
-                  <span className={`text - sm font - semibold ${(ledger.currentBalance?.grandTotal ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'} `}>
+                  <span className={`text-sm font-semibold ${(ledger.currentBalance?.grandTotal ?? 0) > 0 ? 'text-amber-600' : 'text-green-600'} `}>
                     {ledger.currentBalance?.grandTotal ?? 0}
                   </span>
                 ) : (
@@ -256,7 +255,7 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
 
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <ClientLedgerDownload
-          elementId={`client - ledger - download - ${ledger.clientId} `}
+          elementId={`client-ledger-download-${ledger.clientId}`}
           clientNicName={ledger.clientNicName}
           clientFullName={ledger.clientFullName}
           clientSite={ledger.clientSite}

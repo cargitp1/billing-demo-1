@@ -110,7 +110,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
             {/* Right */}
             <div style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '14px' }}>
               સુરેશભાઈ પોલરા - ૯૩૨૮૭ ૨૮૨૨૮<br />
-              હરેશભાઈ કુંભર - ૯૭૩૭૯ ૧૨૫૧૬<br />
+              હરેશભાઈ ઠુંમર - ૯૭૩૭૯ ૧૨૫૧૬<br />
               હરેશભાઈ પોલરા - ૯૦૯૯૨ ૬૪૪૩૬
             </div>
           </div>
