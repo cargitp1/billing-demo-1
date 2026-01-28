@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { supabase } from "../utils/supabase";
 import { PLATE_SIZES } from "../components/ItemsTable";
@@ -14,6 +15,7 @@ import {
   Users,
   X,
   Loader2,
+  BookOpen,
 } from "lucide-react";
 import { fetchUdharChallansForClient, fetchJamaChallansForClient } from "../utils/challanFetching";
 import Navbar from "../components/Navbar";
@@ -44,14 +46,7 @@ const StockManagement: React.FC = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [sortField, setSortField] = useState<SortField>("size");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
-  const [actionModal, setActionModal] = useState<{
-    isOpen: boolean;
-    type: "add" | "remove";
-  }>({
-    isOpen: false,
-    type: "add",
-  });
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+
   const [distributionModal, setDistributionModal] = useState<{
     isOpen: boolean;
     size: number | null;
@@ -71,7 +66,7 @@ const StockManagement: React.FC = () => {
     loading: false,
     data: [],
   });
-  const [actionQuantity, setActionQuantity] = useState("");
+
 
   const [calculatedStocks, setCalculatedStocks] = useState<Map<number, { rent: number; borrowed: number }>>(new Map());
 
@@ -154,51 +149,124 @@ const StockManagement: React.FC = () => {
     setRefreshing(false);
   };
 
+  // State for bulk stock update
+  const [bulkAction, setBulkAction] = useState<{
+    isOpen: boolean;
+    type: "add" | "remove";
+    quantities: { [key: number]: number };
+    partyName: string;
+    note: string;
+    amount: string;
+    date: string;
+  }>({
+    isOpen: false,
+    type: "add",
+    quantities: {},
+    partyName: "",
+    note: "",
+    amount: "",
+    date: new Date().toISOString().split('T')[0],
+  });
+
   const handleActionClick = (type: "add" | "remove") => {
-    setActionModal({ isOpen: true, type });
-    setSelectedSize(null);
-    setActionQuantity("");
+    setBulkAction({
+      isOpen: true,
+      type,
+      quantities: {},
+      partyName: "",
+      note: "",
+      amount: "",
+      date: new Date().toISOString().split('T')[0],
+    });
   };
 
-  const handleActionSubmit = async () => {
-    if (!selectedSize || !actionQuantity) {
-      toast.error(t("enterValidNumber"));
-      return;
-    }
-    const qty = parseInt(actionQuantity);
-    if (isNaN(qty) || qty <= 0) {
-      toast.error(t("enterValidNumber"));
+  const handleQuantityChange = (size: number, value: string) => {
+    const qty = parseInt(value) || 0;
+    setBulkAction((prev) => ({
+      ...prev,
+      quantities: {
+        ...prev.quantities,
+        [size]: qty,
+      },
+    }));
+  };
+
+  const handleBulkSubmit = async () => {
+    const { type, quantities, partyName, note, amount, date } = bulkAction;
+
+    // Validation
+    const hasQuantities = Object.values(quantities).some((q) => q > 0);
+    if (!hasQuantities) {
+      toast.error(t("enterQuantity") || "Please enter at least one quantity");
       return;
     }
 
-    const stock = stocks.find((s) => s.size === selectedSize);
-    if (!stock) return;
-
-    const currentTotal = stock.total_stock;
-    const newTotal =
-      actionModal.type === "add" ? currentTotal + qty : currentTotal - qty;
+    if (!partyName.trim()) {
+      toast.error("Please enter Party Name or Reason");
+      return;
+    }
 
     const loadingToast = toast.loading(t("updatingStock"));
 
-    const { error } = await supabase
-      .from("stock")
-      .update({
-        total_stock: newTotal,
-      })
-      .eq("size", selectedSize);
+    try {
+      // 1. Log to stock_history
+      const { error: historyError } = await supabase
+        .from("stock_history")
+        .insert({
+          type,
+          party_name: partyName,
+          note: note,
+          amount: parseFloat(amount) || 0,
+          items: quantities,
+          date: new Date(date).toISOString(),
+        });
 
-    toast.dismiss(loadingToast);
+      if (historyError) throw historyError;
 
-    if (error) {
+      // 2. Update stock items
+      const updates = Object.entries(quantities).map(async ([sizeStr, qty]) => {
+        if (qty <= 0) return;
+        const size = parseInt(sizeStr);
+
+        // Fetch current stock
+        const { data: currentStock, error: fetchError } = await supabase
+          .from("stock")
+          .select("total_stock")
+          .eq("size", size)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        const currentTotal = currentStock.total_stock;
+        const newTotal = type === "add" ? currentTotal + qty : Math.max(0, currentTotal - qty);
+
+        const { error: updateError } = await supabase
+          .from("stock")
+          .update({ total_stock: newTotal })
+          .eq("size", size);
+
+        if (updateError) throw updateError;
+      });
+
+      await Promise.all(updates);
+
+      toast.success(t("stockUpdated"));
+      setBulkAction((prev) => ({ ...prev, isOpen: false }));
+      fetchStock();
+    } catch (error) {
       console.error("Error updating stock:", error);
       toast.error(t("failedToUpdate"));
-    } else {
-      toast.success(t("stockUpdated"));
-      setActionModal({ ...actionModal, isOpen: false });
-      setSelectedSize(null);
-      fetchStock();
+    } finally {
+      toast.dismiss(loadingToast);
     }
   };
+
+  // ... (keeping existing distribution modal logic)
+
+  // ... (keeping existing sort logic)
+
+  // ... (keeping existing render helpers)
+
 
   const fetchDistribution = async (size: number, type: "rent" | "borrowed") => {
     setDistributionModal({
@@ -418,6 +486,13 @@ const StockManagement: React.FC = () => {
               <Minus className="w-4 h-4" />
               {t("removeStock")}
             </button>
+            <Link
+              to="/stock-history"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors shadow-sm"
+            >
+              <BookOpen className="w-4 h-4" />
+              {t("stockHistory")}
+            </Link>
             <button
               onClick={() => fetchStock(true)}
               disabled={refreshing}
@@ -747,7 +822,7 @@ const StockManagement: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-2.5 h-2.5 rounded-full bg-purple-500 flex-shrink-0"></div>
                     <span className="text-xs text-purple-600">
-                      બીજા ડેપો ના નંગ 
+                      બીજા ડેપો ના નંગ
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -777,6 +852,12 @@ const StockManagement: React.FC = () => {
           <Minus className="w-4 h-4" />
           {t("removeStock")}
         </button>
+        <Link
+          to="/stock-history"
+          className="inline-flex items-center justify-center p-2 text-gray-700 bg-gray-50 border border-gray-200 rounded-xl shadow-sm active:scale-95 transition-all"
+        >
+          <BookOpen className="w-5 h-5" />
+        </Link>
         <button
           onClick={() => fetchStock(true)}
           disabled={refreshing}
@@ -788,70 +869,110 @@ const StockManagement: React.FC = () => {
         </button>
       </div>
 
-      {/* Action Modal */}
-      {actionModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
-          <div className="w-full max-w-sm bg-white rounded-lg shadow-xl">
-            <div className="p-3 border-b border-gray-200">
-              <h3 className="text-base font-semibold text-gray-900">
-                {actionModal.type === "add" ? t("addStock") : t("removeStock")}
+      {/* Action Modal (Bulk Update) */}
+      {bulkAction.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white rounded-t-xl sm:rounded-xl shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b border-gray-100">
+              <h3 className={`text-lg font-bold ${bulkAction.type === 'add' ? 'text-green-600' : 'text-red-600'}`}>
+                {bulkAction.type === "add" ? t("addStock") : t("removeStock")}
               </h3>
+              <button
+                onClick={() => setBulkAction((prev) => ({ ...prev, isOpen: false }))}
+                className="p-1 text-gray-400 rounded-full hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="p-3 space-y-3">
-              <div>
-                <label className="block mb-1.5 text-xs font-medium text-gray-700">
-                  {t("size")}
-                </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {PLATE_SIZES.map((size, index) => {
-                    const isSelected = selectedSize === index + 1;
-                    return (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedSize(index + 1)}
-                        className={`px-1 py-2 text-xs font-semibold rounded-lg transition-all border ${isSelected
-                          ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                          : "bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:bg-gray-50"
-                          }`}
-                      >
-                        {size}
-                      </button>
-                    );
-                  })}
+
+            <div className="p-4 space-y-4">
+              {/* Details Section */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Date
+                  </label>
+                  <input
+                    type="date"
+                    value={bulkAction.date}
+                    onChange={(e) => setBulkAction(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Party Name / Reason <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={bulkAction.partyName}
+                    onChange={(e) => setBulkAction(prev => ({ ...prev, partyName: e.target.value }))}
+                    placeholder="e.g. New Purchase or Damaged"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Note (Optional)
+                  </label>
+                  <textarea
+                    value={bulkAction.note}
+                    onChange={(e) => setBulkAction(prev => ({ ...prev, note: e.target.value }))}
+                    placeholder="Any additional details..."
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Total Amount (Optional)
+                  </label>
+                  <input
+                    type="number"
+                    value={bulkAction.amount}
+                    onChange={(e) => setBulkAction(prev => ({ ...prev, amount: e.target.value }))}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                  />
                 </div>
               </div>
-              <div>
-                <label className="block mb-1.5 text-xs font-medium text-gray-700">
-                  {t("quantity")}
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={actionQuantity}
-                  onChange={(e) => setActionQuantity(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                  placeholder={t("enterQuantity")}
-                />
+
+              <div className="border-t border-gray-100 my-2"></div>
+
+              {/* Sizes Grid */}
+              <h4 className="text-sm font-bold text-gray-800 mb-2">Sizes Quantities</h4>
+              <div className="grid grid-cols-3 gap-3">
+                {PLATE_SIZES.map((sizeStr, index) => {
+                  const size = index + 1;
+                  return (
+                    <div key={size} className="space-y-1">
+                      <label className="block text-xs font-medium text-gray-500 text-center">
+                        {sizeStr}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        value={bulkAction.quantities[size] || ""}
+                        onChange={(e) => handleQuantityChange(size, e.target.value)}
+                        className="w-full px-3 py-2 text-center text-sm font-semibold border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      />
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-            <div className="flex justify-end gap-2 p-3 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-              <button
-                onClick={() =>
-                  setActionModal({ ...actionModal, isOpen: false })
-                }
-                className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                {t("cancel")}
-              </button>
-              <button
-                onClick={handleActionSubmit}
-                className={`px-3 py-1.5 text-xs font-medium text-white rounded-lg ${actionModal.type === "add"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-red-600 hover:bg-red-700"
-                  }`}
-              >
-                {t("confirm")}
-              </button>
+
+              <div className="pt-4 mt-2 border-t border-gray-100">
+                <button
+                  onClick={handleBulkSubmit}
+                  className={`w-full py-2.5 px-4 text-sm font-bold text-white rounded-lg shadow-md transition-all active:scale-[0.98] ${bulkAction.type === 'add'
+                    ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-green-200'
+                    : 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-red-200'
+                    }`}
+                >
+                  {bulkAction.type === 'add' ? 'Confirm & Add Stock' : 'Confirm & Remove Stock'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

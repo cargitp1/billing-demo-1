@@ -116,19 +116,20 @@ const Navbar: React.FC = () => {
   const getCurrentPageName = () => {
     const currentPath = location.pathname;
     const currentNavItem = navItems.find(item => item.path === currentPath);
+    if (currentPath === '/stock-history') return t('stockHistory');
     return currentNavItem?.label || t('appName');
   };
 
   const SidebarContent = () => (
     <>
-            <div className="p-4" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="p-4" style={{ height: '80px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center p-2 overflow-hidden transition-colors w-14 h-14 rounded-xl bg-white/10 hover:bg-white/20">
-            <img 
-              src={logo} 
+            <img
+              src={logo}
               alt="Company Logo"
               className="object-contain w-full h-full"
-              style={{ 
+              style={{
                 maxWidth: '100%',
                 maxHeight: '100%'
               }}
@@ -191,8 +192,8 @@ const Navbar: React.FC = () => {
         <button
           onClick={handleLogout}
           className="flex items-center justify-center w-full gap-2 px-4 py-2 transition-colors duration-150 rounded-lg bg-red-500/10 hover:bg-red-500/20"
-          style={{ 
-            minHeight: '44px', 
+          style={{
+            minHeight: '44px',
             color: '#f87171'
           }}
         >
@@ -211,10 +212,10 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* Mobile Header - Slightly lower position with rounded corners */}
-      <div 
-        className="fixed left-0 right-0 z-50 flex items-center px-4 bg-white border-b shadow-sm lg:hidden" 
-        style={{ 
-          height: '56px', 
+      <div
+        className="fixed left-0 right-0 z-50 flex items-center px-4 bg-white border-b shadow-sm lg:hidden"
+        style={{
+          height: '56px',
           borderColor: '#e5e7eb',
           top: '8px',
           margin: '0 8px',

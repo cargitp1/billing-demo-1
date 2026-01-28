@@ -174,6 +174,17 @@ export const translations = {
     hide: 'છુપાવો',
 
     stockManagement: 'સ્ટોક',
+    stockHistory: 'સ્ટોક ઇતિહાસ',
+    trackStockAdjustments: 'બધા સ્ટોક ફેરફારો જુઓ',
+    searchPartyOrNote: 'પાર્ટી અથવા નોંધ શોધો...',
+    all: 'બધું',
+    added: 'ઉમેર્યું',
+    removed: 'બાદ કર્યું',
+    loadingHistory: 'ઇતિહાસ લોડ થઈ રહ્યો છે...',
+    noRecordsFound: 'કોઈ રેકોર્ડ મળ્યા નથી',
+    type: 'પ્રકાર',
+    partyOrReason: 'પાર્ટી / કારણ',
+    itemsSizeQty: 'વસ્તુઓ (કદ: સંખ્યા)',
     totalStock: 'કુલ સ્ટોક',
     onRent: 'ભાડે',
     borrowed: 'માર્કો',
@@ -254,6 +265,7 @@ export const translations = {
     createJama: 'જમા ચલણ બનાવો',
     recentClients: 'તાજેતરના ગ્રાહકો',
 
+    activityOn: "પ્રવૃત્તિ:",
     saveSuccess: 'સફળતાપૂર્વક સેવ થયું',
     deleteConfirm: 'શું તમે ખરેખર ડિલીટ કરવા માંગો છો?',
     requiredField: 'આ ફીલ્ડ જરૂરી છે',
@@ -511,6 +523,18 @@ export const translations = {
     backToDashboard: 'Back to Dashboard',
 
     stockManagement: 'Stock Management',
+    stockHistory: 'Stock History',
+    trackStockAdjustments: 'Track all stock adjustments',
+    searchPartyOrNote: 'Search party or note...',
+    all: 'All',
+    added: 'Added',
+    removed: 'Removed',
+    loadingHistory: 'Loading history...',
+    noRecordsFound: 'No records found',
+    type: 'Type',
+    partyOrReason: 'Party / Reason',
+    itemsSizeQty: 'Items (Size: Qty)',
+
     totalStock: 'Total Stock',
     total: 'Total',
     onRent: 'On Rent',
@@ -633,6 +657,7 @@ export const translations = {
     of: 'of',
     clients: 'clients',
     noMatchingClients: 'No matching clients',
+    activityOn: "Activity:",
 
 
 

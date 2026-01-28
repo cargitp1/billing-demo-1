@@ -9,6 +9,7 @@ import ClientManagement from './pages/ClientManagement';
 import UdharChallan from './pages/UdharChallan';
 import JamaChallan from './pages/JamaChallan';
 import StockManagement from './pages/StockManagement';
+import StockHistory from './pages/StockHistory';
 import ChallanBook from './pages/ChallanBook';
 import ClientLedger from './pages/ClientLedger';
 import Billing from './pages/Billing';
@@ -103,6 +104,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <StockManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/stock-history"
+              element={
+                <ProtectedRoute>
+                  <StockHistory />
                 </ProtectedRoute>
               }
             />
