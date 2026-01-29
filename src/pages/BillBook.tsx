@@ -202,6 +202,44 @@ export default function BillBook() {
     );
 
     return result.sort((a, b) => {
+      // Priority based on search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+
+        // Check Bill Number matches
+        const aBill = a.bill_number.toLowerCase();
+        const bBill = b.bill_number.toLowerCase();
+
+        // Exact bill number match
+        if (aBill === query && bBill !== query) return -1;
+        if (bBill === query && aBill !== query) return 1;
+
+        // Check Client Nic Name (ID) matches
+        const aNic = (a.client?.client_nic_name || '').toLowerCase();
+        const bNic = (b.client?.client_nic_name || '').toLowerCase();
+
+        const getID = (str: string) => {
+          const m = str.match(/^(\d+)/);
+          return m ? m[1] : '';
+        };
+
+        const aId = getID(aNic);
+        const bId = getID(bNic);
+
+        // Exact ID matches
+        const aExactId = aId === query;
+        const bExactId = bId === query;
+
+        if (aExactId && !bExactId) return -1;
+        if (bExactId && !aExactId) return 1;
+
+        // Starts with search query
+        const aStarts = aBill.startsWith(query) || aNic.startsWith(query);
+        const bStarts = bBill.startsWith(query) || bNic.startsWith(query);
+        if (aStarts && !bStarts) return -1;
+        if (bStarts && !aStarts) return 1;
+      }
+
       // Use proper date fallback
       const dateA = new Date(a.billing_date || a.bill_date || a.created_at).getTime();
       const dateB = new Date(b.billing_date || b.bill_date || b.created_at).getTime();

@@ -143,10 +143,10 @@ const ChallanBook: React.FC = () => {
     }
   };
 
-const fetchUdharChallans = async () => {
-  const { data, error } = await supabase
-    .from('udhar_challans')
-    .select(`
+  const fetchUdharChallans = async () => {
+    const { data, error } = await supabase
+      .from('udhar_challans')
+      .select(`
       udhar_challan_number,
       udhar_date,
       driver_name,
@@ -171,40 +171,40 @@ const fetchUdharChallans = async () => {
         size_9_note, main_note
       )
     `)
-    .order('udhar_challan_number', { ascending: true });
+      .order('udhar_challan_number', { ascending: true });
 
-  if (error) {
-    console.error('Error fetching udhar challans:', error);
-    return;
-  }
+    if (error) {
+      console.error('Error fetching udhar challans:', error);
+      return;
+    }
 
-  const transformedData = (data || []).map((challan: any) => {
-    const rawItems = challan.items;
-    // Use default values directly instead of expensive JSON operations
-    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
-    return {
-      challanNumber: challan.udhar_challan_number,
-      date: challan.udhar_date,
-      driverName: challan.driver_name,
-      clientNicName: challan.client.client_nic_name,
-      clientFullName: challan.client.client_name,
-      clientId: challan.client_id,
-      site: challan.alternative_site || challan.client.site,
-      isAlternativeSite: !!challan.alternative_site,
-      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
-      isSecondaryPhone: !!challan.secondary_phone_number,
-      items: itemRow,
-      totalItems: calculateTotalItems(itemRow),
-    };
-  });
+    const transformedData = (data || []).map((challan: any) => {
+      const rawItems = challan.items;
+      // Use default values directly instead of expensive JSON operations
+      const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+      return {
+        challanNumber: challan.udhar_challan_number,
+        date: challan.udhar_date,
+        driverName: challan.driver_name,
+        clientNicName: challan.client.client_nic_name,
+        clientFullName: challan.client.client_name,
+        clientId: challan.client_id,
+        site: challan.alternative_site || challan.client.site,
+        isAlternativeSite: !!challan.alternative_site,
+        phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+        isSecondaryPhone: !!challan.secondary_phone_number,
+        items: itemRow,
+        totalItems: calculateTotalItems(itemRow),
+      };
+    });
 
-  setUdharChallans(transformedData);
-};
+    setUdharChallans(transformedData);
+  };
 
-const fetchJamaChallans = async () => {
-  const { data, error } = await supabase
-    .from('jama_challans')
-    .select(`
+  const fetchJamaChallans = async () => {
+    const { data, error } = await supabase
+      .from('jama_challans')
+      .select(`
       jama_challan_number,
       jama_date,
       driver_name,
@@ -229,35 +229,35 @@ const fetchJamaChallans = async () => {
         size_9_note, main_note
       )
     `)
-    .order('jama_challan_number', { ascending: false });
+      .order('jama_challan_number', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching jama challans:', error);
-    return;
-  }
+    if (error) {
+      console.error('Error fetching jama challans:', error);
+      return;
+    }
 
-  const transformedData = (data || []).map((challan: any) => {
-    const rawItems = challan.items;
-    // Use default values directly instead of expensive JSON operations
-    const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
-    return {
-      challanNumber: challan.jama_challan_number,
-      date: challan.jama_date,
-      driverName: challan.driver_name,
-      clientNicName: challan.client.client_nic_name,
-      clientFullName: challan.client.client_name,
-      clientId: challan.client_id,
-      site: challan.alternative_site || challan.client.site,
-      isAlternativeSite: !!challan.alternative_site,
-      phone: challan.secondary_phone_number || challan.client.primary_phone_number,
-      isSecondaryPhone: !!challan.secondary_phone_number,
-      items: itemRow,
-      totalItems: calculateTotalItems(itemRow),
-    };
-  });
+    const transformedData = (data || []).map((challan: any) => {
+      const rawItems = challan.items;
+      // Use default values directly instead of expensive JSON operations
+      const itemRow = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+      return {
+        challanNumber: challan.jama_challan_number,
+        date: challan.jama_date,
+        driverName: challan.driver_name,
+        clientNicName: challan.client.client_nic_name,
+        clientFullName: challan.client.client_name,
+        clientId: challan.client_id,
+        site: challan.alternative_site || challan.client.site,
+        isAlternativeSite: !!challan.alternative_site,
+        phone: challan.secondary_phone_number || challan.client.primary_phone_number,
+        isSecondaryPhone: !!challan.secondary_phone_number,
+        items: itemRow,
+        totalItems: calculateTotalItems(itemRow),
+      };
+    });
 
-  setJamaChallans(transformedData);
-};
+    setJamaChallans(transformedData);
+  };
 
   const handleViewDetails = (challan: ChallanData) => {
     setSelectedChallan(challan);
@@ -300,7 +300,7 @@ const fetchJamaChallans = async () => {
 
       const root = await import('react-dom/client');
       const reactRoot = root.createRoot(container);
-      
+
       await new Promise<void>((resolve) => {
         reactRoot.render(
           <ReceiptTemplate
@@ -326,7 +326,7 @@ const fetchJamaChallans = async () => {
 
       reactRoot.unmount();
       document.body.removeChild(container);
-      
+
       toast.dismiss(loadingToast);
       toast.success(t('challanDownloadSuccess'));
     } catch (error) {
@@ -393,7 +393,7 @@ const fetchJamaChallans = async () => {
   };
 
   const currentChallans = activeTab === 'udhar' ? udharChallans : jamaChallans;
-  
+
   const filteredChallans = useMemo(() => {
     const filtered = currentChallans.filter((challan) => {
       const searchLower = searchTerm.toLowerCase();
@@ -406,6 +406,35 @@ const fetchJamaChallans = async () => {
     });
 
     return filtered.sort((a, b) => {
+      if (searchTerm.trim()) {
+        const query = searchTerm.toLowerCase().trim();
+
+        // Check Challan Number matches
+        const aChallan = a.challanNumber.toLowerCase();
+        const bChallan = b.challanNumber.toLowerCase();
+
+        if (aChallan === query && bChallan !== query) return -1;
+        if (bChallan === query && aChallan !== query) return 1;
+
+        // Check Client Nic Name (ID) matches
+        const aNic = (a.clientNicName || '').toLowerCase();
+        const bNic = (b.clientNicName || '').toLowerCase();
+
+        const getID = (str: string) => {
+          const m = str.match(/^(\d+)/);
+          return m ? m[1] : '';
+        };
+
+        const aId = getID(aNic);
+        const bId = getID(bNic);
+
+        const aExactId = aId === query;
+        const bExactId = bId === query;
+
+        if (aExactId && !bExactId) return -1;
+        if (bExactId && !aExactId) return 1;
+      }
+
       switch (sortOption) {
         case 'dateNewOld':
           return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -448,7 +477,7 @@ const fetchJamaChallans = async () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -498,42 +527,38 @@ const fetchJamaChallans = async () => {
               <nav className="flex -mb-px">
                 <button
                   onClick={() => setActiveTab('udhar')}
-                  className={`flex-1 py-3 sm:py-4 px-3 sm:px-6 text-center font-semibold text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${
-                    activeTab === 'udhar'
+                  className={`flex-1 py-3 sm:py-4 px-3 sm:px-6 text-center font-semibold text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${activeTab === 'udhar'
                       ? 'border-b-2 border-red-600 text-red-600 bg-red-50'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                     <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     <span className="hidden sm:inline">{t('udharChallans')}</span>
                     <span className="sm:hidden">{t('udhar')}</span>
-                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
-                      activeTab === 'udhar' 
-                        ? 'bg-red-100 text-red-700' 
+                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${activeTab === 'udhar'
+                        ? 'bg-red-100 text-red-700'
                         : 'bg-gray-100 text-gray-600'
-                    }`}>
+                      }`}>
                       {udharChallans.length}
                     </span>
                   </div>
                 </button>
                 <button
                   onClick={() => setActiveTab('jama')}
-                  className={`flex-1 py-3 sm:py-4 px-3 sm:px-6 text-center font-semibold text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${
-                    activeTab === 'jama'
+                  className={`flex-1 py-3 sm:py-4 px-3 sm:px-6 text-center font-semibold text-xs sm:text-sm transition-colors touch-manipulation active:scale-[0.98] ${activeTab === 'jama'
                       ? 'border-b-2 border-green-600 text-green-600 bg-green-50'
                       : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-center gap-1.5 sm:gap-2">
                     <Package className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     <span className="hidden sm:inline">{t('jamaChallans')}</span>
                     <span className="sm:hidden">{t('jama')}</span>
-                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${
-                      activeTab === 'jama' 
-                        ? 'bg-green-100 text-green-700' 
+                    <span className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs rounded-full ${activeTab === 'jama'
+                        ? 'bg-green-100 text-green-700'
                         : 'bg-gray-100 text-gray-600'
-                    }`}>
+                      }`}>
                       {jamaChallans.length}
                     </span>
                   </div>
@@ -569,7 +594,7 @@ const fetchJamaChallans = async () => {
                       <Filter className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
                     </button>
-                    
+
                     {showSortMenu && (
                       <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
                         {(['dateNewOld', 'dateOldNew', 'numberHighLow', 'numberLowHigh'] as SortOption[]).map((option) => (
@@ -579,9 +604,8 @@ const fetchJamaChallans = async () => {
                               setSortOption(option);
                               setShowSortMenu(false);
                             }}
-                            className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${
-                              sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
-                            }`}
+                            className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                              }`}
                           >
                             {getSortLabel(option)}
                           </button>
@@ -642,8 +666,8 @@ const fetchJamaChallans = async () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {paginatedChallans.map((challan, index) => (
-                      <tr 
-                        key={challan.challanNumber} 
+                      <tr
+                        key={challan.challanNumber}
                         className={`hover:bg-gray-50 transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}
                       >
                         <td className="px-6 py-4 text-sm font-bold text-center text-gray-900 whitespace-nowrap">
@@ -737,28 +761,25 @@ const fetchJamaChallans = async () => {
                 paginatedChallans.map((challan) => (
                   <div
                     key={challan.challanNumber}
-                    className={`p-3 sm:p-4 border shadow-sm rounded-lg sm:rounded-xl ${
-                      activeTab === 'udhar'
+                    className={`p-3 sm:p-4 border shadow-sm rounded-lg sm:rounded-xl ${activeTab === 'udhar'
                         ? 'bg-red-50 border-red-200'
                         : 'bg-green-50 border-green-200'
-                    }`}
+                      }`}
                   >
                     {/* Header - Date removed from here */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className={`px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-white ${
-                          activeTab === 'udhar'
+                        <div className={`px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm text-white ${activeTab === 'udhar'
                             ? 'bg-red-600'
                             : 'bg-green-600'
-                        }`}>
+                          }`}>
                           #{challan.challanNumber}
                         </div>
                       </div>
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${
-                        activeTab === 'udhar'
+                      <span className={`inline-flex items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium ${activeTab === 'udhar'
                           ? 'bg-red-100 text-red-800'
                           : 'bg-green-100 text-green-800'
-                      }`}>
+                        }`}>
                         <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         {challan.totalItems}
                       </span>
@@ -778,7 +799,7 @@ const fetchJamaChallans = async () => {
                         <span className="font-semibold text-gray-900">{challan.clientNicName}</span>
                         <div className="text-[10px] sm:text-xs text-gray-600">{challan.clientFullName}</div>
                       </div>
-                      
+
                       {/* Line 2: Date and Location */}
                       <div className="flex flex-wrap gap-3">
                         <div className="flex items-center gap-1.5 sm:gap-2 text-gray-700">
@@ -839,7 +860,7 @@ const fetchJamaChallans = async () => {
                     </span>{' '}
                     of <span className="font-medium">{filteredChallans.length}</span> challans
                   </div>
-                  
+
                   <div className="flex items-center gap-1.5 sm:gap-2">
                     <button
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
@@ -848,7 +869,7 @@ const fetchJamaChallans = async () => {
                     >
                       <ChevronLeft className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                     </button>
-                    
+
                     <div className="flex gap-1">
                       {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                         let pageNum;
@@ -861,25 +882,24 @@ const fetchJamaChallans = async () => {
                         } else {
                           pageNum = currentPage - 2 + i;
                         }
-                        
+
                         return (
                           <button
                             key={pageNum}
                             onClick={() => setCurrentPage(pageNum)}
-                            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs lg:text-sm font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${
-                              currentPage === pageNum
+                            className={`px-2.5 sm:px-3 py-1 sm:py-1.5 text-[10px] sm:text-xs lg:text-sm font-medium rounded-lg transition-colors touch-manipulation active:scale-95 ${currentPage === pageNum
                                 ? activeTab === 'udhar'
                                   ? 'bg-red-600 text-white'
                                   : 'bg-green-600 text-white'
                                 : 'text-gray-600 hover:bg-gray-100'
-                            }`}
+                              }`}
                           >
                             {pageNum}
                           </button>
                         );
                       })}
                     </div>
-                    
+
                     <button
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}

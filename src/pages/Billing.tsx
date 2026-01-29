@@ -76,7 +76,38 @@ export default function Billing() {
     client.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.site.toLowerCase().includes(searchQuery.toLowerCase()) ||
     client.primary_phone_number.includes(searchQuery)
-  );
+  ).sort((a, b) => {
+    if (!searchQuery.trim()) return 0; // Keep original order if no search
+
+    const query = searchQuery.toLowerCase().trim();
+    const aNic = a.client_nic_name.toLowerCase();
+    const bNic = b.client_nic_name.toLowerCase();
+
+    // Helper to extract numeric ID
+    const getID = (str: string) => {
+      const m = str.match(/^(\d+)/);
+      return m ? m[1] : '';
+    };
+
+    const aId = getID(aNic);
+    const bId = getID(bNic);
+
+    // EXACT ID MATCH PRIORITY
+    const aExactId = aId === query;
+    const bExactId = bId === query;
+
+    if (aExactId && !bExactId) return -1;
+    if (bExactId && !aExactId) return 1;
+
+    // STARTS WITH PRIORITY
+    const aStarts = aNic.startsWith(query);
+    const bStarts = bNic.startsWith(query);
+
+    if (aStarts && !bStarts) return -1;
+    if (bStarts && !aStarts) return 1;
+
+    return 0;
+  });
 
   return (
     <div className="flex min-h-screen bg-gray-50">

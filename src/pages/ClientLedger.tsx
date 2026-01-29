@@ -349,6 +349,35 @@ export default function ClientLedger() {
   // Sorted clients memo
   const sortedClients = useMemo(() => {
     return [...filteredClients].sort((a, b) => {
+      // Priority based on search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const aNic = (a.client_nic_name || '').toLowerCase();
+        const bNic = (b.client_nic_name || '').toLowerCase();
+
+        // Helper to extract numeric ID
+        const getID = (str: string) => {
+          const m = str.match(/^(\d+)/);
+          return m ? m[1] : '';
+        };
+
+        const aId = getID(aNic);
+        const bId = getID(bNic);
+
+        // Priority 1: Exact ID match
+        const aExactId = aId === query;
+        const bExactId = bId === query;
+        if (aExactId && !bExactId) return -1;
+        if (bExactId && !aExactId) return 1;
+
+        // Priority 2: Starts with search query
+        const aStarts = aNic.startsWith(query);
+        const bStarts = bNic.startsWith(query);
+        if (aStarts && !bStarts) return -1;
+        if (bStarts && !aStarts) return 1;
+      }
+
+      // Default sorting options
       switch (sortOption) {
         case 'nameAZ':
           return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
@@ -367,7 +396,7 @@ export default function ClientLedger() {
         default: return 0;
       }
     });
-  }, [filteredClients, sortOption, ledgersMap]);
+  }, [filteredClients, sortOption, ledgersMap, searchQuery]);
 
   // Optimized: Load visible ledgers when needed using ledgersMap for O(1) lookups
   const loadVisibleLedgers = useCallback(async () => {

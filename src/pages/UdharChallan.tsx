@@ -83,10 +83,39 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
         (client.primary_phone_number || '').includes(searchQuery)
       );
     })
-    .sort((a, b) => naturalSort(
-      a.client_nic_name || '',
-      b.client_nic_name || ''
-    ));
+    .sort((a, b) => {
+      const query = searchQuery.toLowerCase().trim();
+
+      if (!query) {
+        return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
+      }
+
+      const aNic = (a.client_nic_name || '').toLowerCase();
+      const bNic = (b.client_nic_name || '').toLowerCase();
+
+      // Helper to extract numeric ID from start of string
+      const getID = (str: string) => {
+        const m = str.match(/^(\d+)/);
+        return m ? m[1] : '';
+      };
+
+      const aId = getID(aNic);
+      const bId = getID(bNic);
+
+      // Priority 1: Exact ID match
+      const aExactId = aId === query;
+      const bExactId = bId === query;
+      if (aExactId && !bExactId) return -1;
+      if (bExactId && !aExactId) return 1;
+
+      // Priority 2: Starts with search query
+      const aStarts = aNic.startsWith(query);
+      const bStarts = bNic.startsWith(query);
+      if (aStarts && !bStarts) return -1;
+      if (bStarts && !aStarts) return 1;
+
+      return naturalSort(a.client_nic_name || '', b.client_nic_name || '');
+    });
 
   return (
     <div className="space-y-3 sm:space-y-4 lg:space-y-6">
