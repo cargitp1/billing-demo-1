@@ -34,7 +34,7 @@ interface Payment {
   date: string;
   note: string;
   amount: number;
-  method: 'cash' | 'bank' | 'upi' | 'cheque' | 'card' | 'other';
+  method: 'cash' | 'bank' ;
 }
 
 export const validateBillData = async (billData: BillData): Promise<{ valid: boolean; error?: string }> => {

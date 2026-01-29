@@ -3,6 +3,7 @@ import { addDays, parseISO, differenceInDays } from 'date-fns';
 /**
  * BILLING PERIOD CALCULATION SYSTEM
  * -------------------------------
+ * Updated to include transactionAmount
  * 
  * EDGE CASES HANDLED:
  * 
@@ -98,6 +99,7 @@ interface BillingPeriod {
   rent: number;
   causeType: 'udhar' | 'jama';
   challanNumber: string;
+  txnQty: number;
 }
 
 export interface BillingPeriodResult {
@@ -141,6 +143,8 @@ export function createCombinedEntryList(
       }
       return sum + total;
     }, 0);
+
+    console.log('Udhar Entry plateCount:', totalPlates, 'from items:', itemsArray);
 
     entries.push({
       date: challan.udhar_date,           // When plates were issued
@@ -397,6 +401,11 @@ export function calculateBillingPeriods(
         const rentInPaise = currentBalance * finalDays * rateInPaise;
         const rent = Math.round(rentInPaise) / 100;
 
+        // Get the first change's plateCount directly (for single/primary transaction display)
+        const txnQty = balanceChanges[currentDate][0].plateCount || 0;
+
+        console.log('Period txnQty:', txnQty, 'from date:', currentDate);
+
         // Add the billing period with full details
         periods.push({
           startDate,
@@ -405,7 +414,8 @@ export function calculateBillingPeriods(
           days: finalDays,
           rent,
           causeType: balanceChanges[currentDate][0].type,
-          challanNumber: balanceChanges[currentDate][0].challanNumber
+          challanNumber: balanceChanges[currentDate][0].challanNumber,
+          txnQty
         });
 
         // Update total rent

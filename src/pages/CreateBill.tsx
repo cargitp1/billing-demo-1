@@ -96,7 +96,7 @@ interface Payment {
   date: string;
   note: string;
   amount: number;
-  method: "cash" | "bank" | "upi" | "cheque" | "card" | "other";
+  method: "cash" | "bank";
 }
 
 interface BillData {
@@ -147,6 +147,8 @@ export default function CreateBill() {
   const [isLoading, setIsLoading] = useState(false);
   const [showCalculation, setShowCalculation] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [pendingAmount, setPendingAmount] = useState<number>(0);
+  const [lastUnpaidBillNumber, setLastUnpaidBillNumber] = useState<string>("");
 
   useEffect(() => {
     if (clientId) {
@@ -196,6 +198,30 @@ export default function CreateBill() {
 
         const newBillNumber = `${clientPrefix}/${sequence}`;
         setBillData((prev) => ({ ...prev, billNumber: newBillNumber }));
+      }
+
+      // Fetch pending amount from previous bills
+      const { data: billsData, error: billsError } = await supabase
+        .from("bills")
+        .select("bill_number, due_payment, created_at")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: true }); // Order to identify "last"
+
+      if (!billsError && billsData) {
+        const totalPending = billsData.reduce((sum, bill) => sum + (bill.due_payment || 0), 0);
+        setPendingAmount(totalPending);
+
+        // Find last unpaid bill number
+        const unpaidBills = billsData.filter(b => (b.due_payment || 0) > 0);
+        if (unpaidBills.length > 0) {
+          // Get the last one in the sorted list
+          setLastUnpaidBillNumber(unpaidBills[unpaidBills.length - 1].bill_number);
+        } else {
+          setLastUnpaidBillNumber("");
+        }
+
+      } else if (billsError) {
+        console.error("Error fetching pending amount:", billsError);
       }
 
       // Log validation results
@@ -327,7 +353,8 @@ export default function CreateBill() {
       ),
       grandTotal:
         calculatedTotalRent +
-        billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0),
+        billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) +
+        (pendingAmount || 0),
       totalPaid: billData.payments.reduce(
         (sum, payment) => sum + payment.amount,
         0
@@ -335,7 +362,8 @@ export default function CreateBill() {
       advancePaid: 0, // TODO: Add advance payment tracking
       duePayment:
         calculatedTotalRent +
-        billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) -
+        billData.extraCosts.reduce((sum, cost) => sum + cost.total, 0) +
+        (pendingAmount || 0) -
         billData.discounts.reduce(
           (sum, discount) => sum + discount.total,
           0
@@ -643,6 +671,78 @@ export default function CreateBill() {
     return null;
   }
 
+  const invoiceProps = {
+    companyDetails: {
+      name: "Nilkanth Plate Depot",
+      address: "Street Address",
+      phone: "Phone Number",
+    },
+    billDetails: {
+      billNumber: billData.billNumber,
+      billDate: billData.billDate,
+      fromDate: billData.fromDate || "",
+      toDate: billData.toDate,
+      dailyRent: billData.dailyRent,
+    },
+    clientDetails: {
+      name: client?.client_name || "",
+      nicName: client?.client_nic_name || "",
+      site: client?.site || "",
+      phone: client?.primary_phone_number || "",
+    },
+    rentalCharges: billResult?.billingPeriods.periods.map((period, index, array) => {
+      const nextType = array[index + 1]?.causeType;
+      let end = parseISO(period.endDate);
+      let newDisplayEndDate = period.endDate;
+      if (period.causeType === "jama") {
+        newDisplayEndDate = period.endDate;
+      } else {
+        newDisplayEndDate = subDays(end, 1).toISOString();
+        if (period.causeType !== nextType && nextType === 'jama') {
+          newDisplayEndDate = period.endDate;
+        }
+      }
+
+      return {
+        size: "All",
+        pieces: period.plateCount,
+        days: period.days,
+        rate: billData.dailyRent,
+        amount: period.plateCount * period.days * billData.dailyRent,
+        startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate,
+        endDate: newDisplayEndDate,
+        causeType: period.causeType as 'udhar' | 'jama'
+      };
+    }) || [],
+    extraCosts: billData.extraCosts.map(cost => ({
+      id: cost.id,
+      date: cost.date,
+      description: cost.note,
+      amount: cost.total,
+      pieces: cost.pieces,
+      rate: cost.pricePerPiece
+    })),
+    discounts: billData.discounts.map(discount => ({
+      id: discount.id,
+      date: discount.date,
+      description: discount.note,
+      amount: discount.total,
+    })),
+    payments: billData.payments.map(payment => ({
+      id: payment.id,
+      date: payment.date,
+      method: payment.method,
+      note: payment.note,
+      amount: payment.amount,
+    })),
+    summary: fullSummary,
+    mainNote: billData.mainNote,
+    previousBill: pendingAmount > 0 ? {
+      billNumber: lastUnpaidBillNumber,
+      amount: pendingAmount
+    } : undefined
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
@@ -672,6 +772,19 @@ export default function CreateBill() {
                 <span>{client.site}</span>
               </div>
             </div>
+
+            {/* Pending Amount Alert */}
+            {pendingAmount > 0 && (
+              <div className="flex items-center gap-3 p-3 mt-4 bg-red-50 border border-red-100 rounded-lg">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <Receipt className="w-5 h-5 text-red-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-red-800">Total Pending Amount</p>
+                  <p className="text-lg font-bold text-red-700">₹{pendingAmount.toLocaleString("en-IN")}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Section B: Bill Header Information */}
@@ -761,6 +874,7 @@ export default function CreateBill() {
                           parseFloat(e.target.value)
                         )
                       }
+                      onWheel={(e) => (e.target as HTMLInputElement).blur()}
                       className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                       placeholder="E.g., 5.00"
                     />
@@ -965,80 +1079,13 @@ export default function CreateBill() {
           {showLedger && billData.fromDate && (
             <>
               {/* Mobile Action Bar */}
-              <div className="grid grid-cols-3 gap-2 mb-4 md:hidden">
-                <button
-                  onClick={() => {
-                    setBillData((prev) => ({
-                      ...prev,
-                      extraCosts: [
-                        ...prev.extraCosts,
-                        {
-                          id: crypto.randomUUID(),
-                          date: format(new Date(), "yyyy-MM-dd"),
-                          note: "",
-                          pieces: 0,
-                          pricePerPiece: 0,
-                          total: 0,
-                        },
-                      ],
-                    }));
-                  }}
-                  className="flex items-center justify-center gap-1 p-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm active:bg-gray-50"
-                  type="button"
-                >
-                  <Plus className="w-4 h-4" />
-                  ખર્ચ
-                </button>
-                <button
-                  onClick={() => {
-                    setBillData((prev) => ({
-                      ...prev,
-                      discounts: [
-                        ...prev.discounts,
-                        {
-                          id: crypto.randomUUID(),
-                          date: format(new Date(), "yyyy-MM-dd"),
-                          note: "",
-                          pieces: 0,
-                          discountPerPiece: 0,
-                          total: 0,
-                        },
-                      ],
-                    }));
-                  }}
-                  className="flex items-center justify-center gap-1 p-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm active:bg-gray-50"
-                  type="button"
-                >
-                  <Plus className="w-4 h-4" />
-                  છૂટ
-                </button>
-                <button
-                  onClick={() => {
-                    setBillData((prev) => ({
-                      ...prev,
-                      payments: [
-                        ...prev.payments,
-                        {
-                          id: crypto.randomUUID(),
-                          date: format(new Date(), "yyyy-MM-dd"),
-                          note: "",
-                          amount: 0,
-                          method: "cash",
-                        },
-                      ],
-                    }));
-                  }}
-                  className="flex items-center justify-center gap-1 p-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm active:bg-gray-50"
-                  type="button"
-                >
-                  <Plus className="w-4 h-4" />
-                  ચુકવણી
-                </button>
-              </div>
+              {/* Mobile Action Bar - Dropdown */}
+
 
               <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-3">
                 {/* Section D: Extra Costs */}
-                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                {/* Section D: Extra Costs */}
+                <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.extraCosts.length === 0 ? 'hidden md:block' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-base font-medium text-gray-900">
                       વધારાનો ખર્ચ
@@ -1068,9 +1115,9 @@ export default function CreateBill() {
                                 id: crypto.randomUUID(),
                                 date: format(new Date(), "yyyy-MM-dd"),
                                 note: "",
-                                pieces: 0,
-                                pricePerPiece: 0,
-                                total: 0, // Local UI calculation only
+                                pieces: 1, // Default quantity 1 as requested
+                                pricePerPiece: 1, // Default price 1 to show charge immediately
+                                total: 1, // 1 * 1 = 1
                               },
                             ],
                           }));
@@ -1136,6 +1183,7 @@ export default function CreateBill() {
                                       }));
                                     }}
                                     placeholder=" નોંધ "
+                                    list="cost-suggestions"
                                     className="w-full px-2 py-1 border rounded"
                                   />
                                 </td>
@@ -1149,13 +1197,14 @@ export default function CreateBill() {
                                       newCosts[index] = {
                                         ...cost,
                                         pieces,
-                                        total: pieces * cost.pricePerPiece,
+                                        total: pieces * (cost.pricePerPiece || 1),
                                       };
                                       setBillData((prev) => ({
                                         ...prev,
                                         extraCosts: newCosts,
                                       }));
                                     }}
+                                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                     min="0"
                                     className="w-20 px-2 py-1 border rounded"
                                   />
@@ -1170,13 +1219,14 @@ export default function CreateBill() {
                                       newCosts[index] = {
                                         ...cost,
                                         pricePerPiece: price,
-                                        total: cost.pieces * price,
+                                        total: (cost.pieces || 1) * price,
                                       };
                                       setBillData((prev) => ({
                                         ...prev,
                                         extraCosts: newCosts,
                                       }));
                                     }}
+                                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                     min="0"
                                     step="0.01"
                                     className="w-24 px-2 py-1 border rounded"
@@ -1261,6 +1311,7 @@ export default function CreateBill() {
                                     }));
                                   }}
                                   placeholder="નોંધ"
+                                  list="cost-suggestions"
                                   className="w-full px-2 py-1 text-sm border rounded"
                                 />
                               </div>
@@ -1293,13 +1344,14 @@ export default function CreateBill() {
                                     newCosts[index] = {
                                       ...cost,
                                       pieces,
-                                      total: pieces * cost.pricePerPiece,
+                                      total: pieces * (cost.pricePerPiece || 1),
                                     };
                                     setBillData((prev) => ({
                                       ...prev,
                                       extraCosts: newCosts,
                                     }));
                                   }}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   min="0"
                                   className="w-full px-2 py-1 text-sm border rounded"
                                 />
@@ -1315,13 +1367,14 @@ export default function CreateBill() {
                                     newCosts[index] = {
                                       ...cost,
                                       pricePerPiece: price,
-                                      total: cost.pieces * price,
+                                      total: (cost.pieces || 1) * price,
                                     };
                                     setBillData((prev) => ({
                                       ...prev,
                                       extraCosts: newCosts,
                                     }));
                                   }}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   min="0"
                                   step="0.01"
                                   className="w-full px-2 py-1 text-sm border rounded"
@@ -1352,7 +1405,8 @@ export default function CreateBill() {
                 </div>
 
                 {/* Section E: Discounts */}
-                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                {/* Section E: Discounts */}
+                <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.discounts.length === 0 ? 'hidden md:block' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-base font-medium text-gray-900">
                       છૂટ
@@ -1395,6 +1449,12 @@ export default function CreateBill() {
                         છૂટ ઉમેરો
                       </button>
                     </div>
+
+                    {/* Datalist for Extra Cost Suggestions */}
+                    <datalist id="cost-suggestions">
+                      <option value="સર્વિસ ચાર્જ" />
+                      <option value="ભરાઈ / ઉતરાઈ" />
+                    </datalist>
                   </div>
 
 
@@ -1470,6 +1530,7 @@ export default function CreateBill() {
                                         discounts: newDiscounts,
                                       }));
                                     }}
+                                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                     min="0"
                                     className="w-20 px-2 py-1 border rounded"
                                   />
@@ -1491,6 +1552,7 @@ export default function CreateBill() {
                                         discounts: newDiscounts,
                                       }));
                                     }}
+                                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                     min="0"
                                     step="0.01"
                                     className="w-24 px-2 py-1 border rounded"
@@ -1613,6 +1675,7 @@ export default function CreateBill() {
                                       discounts: newDiscounts,
                                     }));
                                   }}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   min="0"
                                   className="w-full px-2 py-1 text-sm border rounded"
                                 />
@@ -1635,6 +1698,7 @@ export default function CreateBill() {
                                       discounts: newDiscounts,
                                     }));
                                   }}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   min="0"
                                   step="0.01"
                                   className="w-full px-2 py-1 text-sm border rounded"
@@ -1665,7 +1729,8 @@ export default function CreateBill() {
                 </div>
 
                 {/* Section F: Payments */}
-                <div className="p-4 bg-white border border-gray-200 rounded-xl">
+                {/* Section F: Payments */}
+                <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.payments.length === 0 ? 'hidden md:block' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-base font-medium text-gray-900">
                       ચુકવણી
@@ -1804,6 +1869,7 @@ export default function CreateBill() {
                                         payments: newPayments,
                                       }));
                                     }}
+                                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                     min="0"
                                     step="0.01"
                                     className="w-32 px-2 py-1 border rounded"
@@ -1924,10 +1990,6 @@ export default function CreateBill() {
                                 >
                                   <option value="cash">રોકડ</option>
                                   <option value="bank">બેંક</option>
-                                  <option value="upi">UPI</option>
-                                  <option value="cheque">ચેક</option>
-                                  <option value="card">કાર્ડ</option>
-                                  <option value="other">અન્ય</option>
                                 </select>
                               </div>
                               <div>
@@ -1947,6 +2009,7 @@ export default function CreateBill() {
                                       payments: newPayments,
                                     }));
                                   }}
+                                  onWheel={(e) => (e.target as HTMLInputElement).blur()}
                                   min="0"
                                   step="0.01"
                                   className="w-full px-2 py-1 text-sm border rounded"
@@ -1969,6 +2032,68 @@ export default function CreateBill() {
                     </>
                   )}
                 </div>
+              </div>
+
+              {/* Mobile Action Bar - Dropdown (Moved to bottom) */}
+              <div className="mb-4 md:hidden">
+                <select
+                  className="w-full p-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value=""
+                  onChange={(e) => {
+                    const action = e.target.value;
+                    if (action === "add_cost") {
+                      setBillData((prev) => ({
+                        ...prev,
+                        extraCosts: [
+                          ...prev.extraCosts,
+                          {
+                            id: crypto.randomUUID(),
+                            date: format(new Date(), "yyyy-MM-dd"),
+                            note: "",
+                            pieces: 1,
+                            pricePerPiece: 1,
+                            total: 1,
+                          },
+                        ],
+                      }));
+                    } else if (action === "add_discount") {
+                      setBillData((prev) => ({
+                        ...prev,
+                        discounts: [
+                          ...prev.discounts,
+                          {
+                            id: crypto.randomUUID(),
+                            date: format(new Date(), "yyyy-MM-dd"),
+                            note: "",
+                            pieces: 0,
+                            discountPerPiece: 0,
+                            total: 0,
+                          },
+                        ],
+                      }));
+                    } else if (action === "add_payment") {
+                      setBillData((prev) => ({
+                        ...prev,
+                        payments: [
+                          ...prev.payments,
+                          {
+                            id: crypto.randomUUID(),
+                            date: format(new Date(), "yyyy-MM-dd"),
+                            note: "",
+                            amount: 0,
+                            method: "cash",
+                          },
+                        ],
+                      }));
+                    }
+                    // Reset select value is handled by value="" prop
+                  }}
+                >
+                  <option value="" disabled>+ ઉમેરો </option>
+                  <option value="add_cost">ખર્ચ</option>
+                  <option value="add_discount">છૂટ</option>
+                  <option value="add_payment">ચુકવણી</option>
+                </select>
               </div>
             </>
           )}
@@ -2062,114 +2187,7 @@ export default function CreateBill() {
             </div>
             <div className="p-4 overflow-y-auto overflow-x-hidden bg-gray-100 flex-1 flex justify-center">
               <div className="bg-white shadow-lg origin-top transform scale-[0.45] sm:scale-75 md:scale-100 shrink-0 w-[794px]">
-                <BillInvoiceTemplate
-                  companyDetails={{
-                    name: "Nilkanth Plate Depot",
-                    address: "Street Address",
-                    phone: "Phone Number",
-                  }}
-                  billDetails={{
-                    billNumber: billData.billNumber,
-                    billDate: billData.billDate,
-                    fromDate: billData.fromDate || "",
-                    toDate: billData.toDate,
-                    dailyRent: billData.dailyRent,
-                  }}
-                  clientDetails={{
-                    name: client?.client_name || "",
-                    nicName: client?.client_nic_name || "",
-                    site: client?.site || "",
-                    phone: client?.primary_phone_number || "",
-                  }}
-
-                  rentalCharges={billResult?.billingPeriods.periods.map((period, index, array) => {
-                    // Logic to match the UI table display
-                    const nextType = array[index + 1]?.causeType;
-                    let end = parseISO(period.endDate);
-
-
-                    // Actually, let's just replicate the table logic exactly but return ISO string
-                    let newDisplayEndDate = period.endDate;
-                    if (period.causeType === "jama") {
-                      newDisplayEndDate = period.endDate;
-                    } else {
-                      // Udhar default: subtract 1 day
-                      newDisplayEndDate = subDays(end, 1).toISOString();
-
-                      // Exception: if next is Jama?
-                      // Table code: if (period.causeType !== nextType) ... nextType === 'jama' ? end : subDays(end, 1)
-                      if (period.causeType !== nextType && nextType === 'jama') {
-                        newDisplayEndDate = period.endDate;
-                      }
-                    }
-
-                    // For start date: Jama periods start day after return (start date computed in calc is correct?)
-                    // In table: period.causeType === "jama" ? format(addDays(parseISO(period.startDate), 1)) : format(parseISO(period.startDate))
-                    // In billingPeriodCalculations.ts:
-                    // periods.push({startDate: isJamaPeriod ? addDays(currentDate, 1)... : currentDate })
-                    // So the period.startDate IS ALREADY adjusted for Jama?
-                    // Let's check billingPeriodCalculations.ts again.
-                    // Line 393: startDate: isJamaPeriod ? addDays(parseISO(currentDate), 1)... : currentDate
-
-                    // Wait, the table code (line 917) does addDays(parseISO(period.startDate), 1) AGAIN for Jama?
-                    // Lines 916-923 in CreateBill.tsx:
-                    // period.causeType === "jama" ? format(addDays(parseISO(period.startDate), 1)...)
-
-                    // If calculation already added 1 day, then table adds ANOTHER day?
-                    // I need to be careful.
-                    // Let's check calculation output vs table display.
-                    // Calculation: startDate is effective start date.
-                    // Table: seems to think it needs to add 1 day for Jama?
-                    // Or maybe calculation returns the return date for Jama as start date?
-                    // Calculation line 394: addDays(parseISO(currentDate), 1).toISOString().split('T')[0]
-                    // So it IS already the day after.
-                    // Why does table add another day?
-                    // line 917 of CreateBill.tsx: format(addDays(parseISO(period.startDate), 1)...)
-                    // If so, the table is showing Start + 2 days for Jama?
-                    // Or maybe table logic is outdated/wrong?
-                    // User said "Fixed extra day addition" in calculation.
-                    // Let's assume calculation `startDate` is the correct effective start date.
-                    // If I pass `period.startDate` directly, BillInvoiceTemplate will use it.
-                    // Let's use `period.startDate`. If the table adds 1, maybe there's a reason, but let's stick to the period data which "should" be correct status.
-                    // Wait, if table adds 1, and I don't, mine will be 1 day earlier.
-                    // Let's replicate table logic for safety for now?
-                    // No, I prefer trusting the calculated period.startDate if I just fixed the calculation logic.
-                    // But wait, I fixed the DURATION calculation. I didn't change startDate logic.
-                    // Let's simplify and pass period.startDate.
-
-                    return {
-                      size: "All",
-                      pieces: period.plateCount,
-                      days: period.days,
-                      rate: billData.dailyRent,
-                      amount: period.plateCount * period.days * billData.dailyRent,
-                      startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate, // Replicating table logic of adding 1 day for Jama display?
-                      endDate: newDisplayEndDate,
-                      causeType: period.causeType as 'udhar' | 'jama'
-                    };
-                  }) || []}
-                  extraCosts={billData.extraCosts.map(cost => ({
-                    id: cost.id,
-                    date: cost.date,
-                    description: cost.note,
-                    amount: cost.total,
-                  }))}
-                  discounts={billData.discounts.map(discount => ({
-                    id: discount.id,
-                    date: discount.date,
-                    description: discount.note,
-                    amount: discount.total,
-                  }))}
-                  payments={billData.payments.map(payment => ({
-                    id: payment.id,
-                    date: payment.date,
-                    method: payment.method,
-                    note: payment.note,
-                    amount: payment.amount,
-                  }))}
-                  summary={fullSummary}
-                  mainNote={billData.mainNote}
-                />
+                <BillInvoiceTemplate {...invoiceProps} />
               </div>
             </div>
             <div className="flex justify-end gap-3 p-4 border-t bg-gray-50">
@@ -2193,73 +2211,9 @@ export default function CreateBill() {
         </div>
       )}
 
-      {/* Hidden Bill Template for JPEG generation */}
-      <div id="invoice-template" style={{ position: 'absolute', left: '-9999px' }}>
-        <BillInvoiceTemplate
-          companyDetails={{
-            name: "Nilkanth Plate Depot",
-            address: "Street Address",
-            phone: "Phone Number",
-          }}
-          billDetails={{
-            billNumber: billData.billNumber,
-            billDate: billData.billDate,
-            fromDate: billData.fromDate || "",
-            toDate: billData.toDate,
-            dailyRent: billData.dailyRent,
-          }}
-          clientDetails={{
-            name: client?.client_name || "",
-            nicName: client?.client_nic_name || "",
-            site: client?.site || "",
-            phone: client?.primary_phone_number || "",
-          }}
-          rentalCharges={billResult?.billingPeriods.periods.map((period, index, array) => {
-            const nextType = array[index + 1]?.causeType;
-            let end = parseISO(period.endDate);
-            let newDisplayEndDate = period.endDate;
-            if (period.causeType === "jama") {
-              newDisplayEndDate = period.endDate;
-            } else {
-              newDisplayEndDate = subDays(end, 1).toISOString();
-              if (period.causeType !== nextType && nextType === 'jama') {
-                newDisplayEndDate = period.endDate;
-              }
-            }
-
-            return {
-              size: "All",
-              pieces: period.plateCount,
-              days: period.days,
-              rate: billData.dailyRent,
-              amount: period.plateCount * period.days * billData.dailyRent,
-              startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate,
-              endDate: newDisplayEndDate,
-              causeType: period.causeType as 'udhar' | 'jama'
-            };
-          }) || []}
-          extraCosts={billData.extraCosts.map(cost => ({
-            id: cost.id,
-            date: cost.date,
-            description: cost.note,
-            amount: cost.total,
-          }))}
-          discounts={billData.discounts.map(discount => ({
-            id: discount.id,
-            date: discount.date,
-            description: discount.note,
-            amount: discount.total,
-          }))}
-          payments={billData.payments.map(payment => ({
-            id: payment.id,
-            date: payment.date,
-            method: payment.method,
-            note: payment.note,
-            amount: payment.amount,
-          }))}
-          summary={fullSummary}
-          mainNote={billData.mainNote}
-        />
+      {/* Hidden Bill Template for JPEG generation - Source for cloning */}
+      <div id="invoice-template" style={{ display: 'none' }}>
+        <BillInvoiceTemplate {...invoiceProps} />
       </div>
     </div >
   );

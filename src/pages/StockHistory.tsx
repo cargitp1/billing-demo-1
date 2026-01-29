@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Trash2 } from "lucide-react";
 import { PLATE_SIZES } from "../components/ItemsTable";
 import Navbar from "../components/Navbar";
 import { supabase } from "../utils/supabase";
+import toast, { Toaster } from "react-hot-toast";
 
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -45,6 +46,7 @@ const StockHistory: React.FC = () => {
 
         if (error) {
             console.error("Error fetching stock history:", error);
+            toast.error("Failed to fetch history");
         } else {
             setHistory(data || []);
         }
@@ -55,8 +57,71 @@ const StockHistory: React.FC = () => {
         fetchHistory();
     }, [filterType, searchQuery]);
 
+    const handleDelete = async (item: StockHistoryItem) => {
+        if (!window.confirm(t("confirmDeleteStockHistory") || "Are you sure you want to delete this entry? This will reverse the stock changes.")) return;
+
+        try {
+            setLoading(true);
+            const loadingToast = toast.loading("Reversing stock changes...");
+
+            // 1. Revert stock changes
+            // Iterate sequentially to avoid race conditions on DB if any, though parallel is likely fine here.
+            // Using Promise.all for speed.
+            const updates = Object.entries(item.items).map(async ([sizeStr, qty]) => {
+                const size = parseInt(sizeStr);
+                const quantity = qty as number;
+
+                if (quantity <= 0) return;
+
+                // Fetch current stock
+                const { data: currentStock, error: fetchError } = await supabase
+                    .from("stock")
+                    .select("total_stock")
+                    .eq("size", size)
+                    .single();
+
+                if (fetchError) throw fetchError;
+
+                const currentTotal = currentStock.total_stock;
+                // Reverse logic:
+                // If deleted item was 'add', we subtract.
+                // If deleted item was 'remove', we add.
+                const newTotal = item.type === 'add'
+                    ? Math.max(0, currentTotal - quantity)
+                    : currentTotal + quantity;
+
+                const { error: updateError } = await supabase
+                    .from("stock")
+                    .update({ total_stock: newTotal })
+                    .eq("size", size);
+
+                if (updateError) throw updateError;
+            });
+
+            await Promise.all(updates);
+
+            // 2. Delete history entry
+            const { error: deleteError } = await supabase
+                .from("stock_history")
+                .delete()
+                .eq("id", item.id);
+
+            if (deleteError) throw deleteError;
+
+            toast.dismiss(loadingToast);
+            toast.success("Entry deleted and stock reversed successfully");
+            fetchHistory(); // Refresh list
+
+        } catch (error) {
+            console.error("Error deleting stock history:", error);
+            toast.error("Failed to delete entry");
+            setLoading(false); // Ensure loading is off if error
+        }
+    };
+
     return (
         <div className="flex min-h-screen bg-gray-50">
+            <Toaster position="top-center" />
             <Navbar />
             <main className="flex-1 w-full ml-0 overflow-auto pt-14 pb-20 sm:pt-0 sm:pb-0 lg:ml-64">
                 <div className="p-4 sm:p-6 lg:p-8">
@@ -125,6 +190,7 @@ const StockHistory: React.FC = () => {
                                             <th className="px-4 py-3 font-medium text-gray-500 whitespace-nowrap">{t("partyOrReason")}</th>
                                             <th className="px-4 py-3 font-medium text-gray-500 text-right whitespace-nowrap">{t("amount")}</th>
                                             <th className="px-4 py-3 font-medium text-gray-500 whitespace-nowrap">{t("note")}</th>
+                                            <th className="px-4 py-3 font-medium text-gray-500 text-center whitespace-nowrap">{t("action") || "Action"}</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-100">
@@ -156,6 +222,15 @@ const StockHistory: React.FC = () => {
                                                     </td>
                                                     <td className="px-4 py-4 text-sm text-gray-500 max-w-[200px] truncate">
                                                         {item.note || '-'}
+                                                    </td>
+                                                    <td className="px-4 py-4 text-center">
+                                                        <button
+                                                            onClick={() => handleDelete(item)}
+                                                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                            title="Delete and reverse stock"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             );

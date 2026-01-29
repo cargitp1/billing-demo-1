@@ -25,7 +25,7 @@ interface Discount {
 
 interface Payment {
   date: string;
-  method: 'cash' | 'bank' | 'upi' | 'cheque' | 'card' | 'other';
+  method: 'cash' | 'bank' ;
   note: string;
   amount: number;
 }

@@ -90,7 +90,7 @@ export const translations = {
     // addNewClient: "નવો ગ્રાહક ઉમેરો",
     // editClient: "ગ્રાહક માહિતી સુધારો",
     noNickname: "ટૂંકું નામ નથી",
-    maintenanceMessage: "🚧 આ પેજ હાલમાં નિર્માણાધીન છે. પૂર્ણ રિલીઝ 1/1/26 થી ઉપલબ્ધ થશે",
+    maintenanceMessage: "🚧 આ પેજ હાલમાં નિર્માણાધીન છે. પૂર્ણ રિલીઝ 1/3/26 થી ઉપલબ્ધ થશે",
     // tillDate: "સુધીની તારીખ",
     // Using the existing translations for fromDate and toDate
     // dailyRent: "દૈનિક ભાડું",
@@ -440,7 +440,7 @@ export const translations = {
     unknownClient: "Unknown Client",
     noDate: "No date",
     noNickname: "No nickname",
-    maintenanceMessage: "🚧 This page is under maintenance. Full release will be available on 1/1/26",
+    maintenanceMessage: "🚧 This page is under maintenance. Full release will be available on 1/3/26",
     calculateBill: "Calculate Bill",
     rentalCalculation: "Rental Calculation",
     totalDays: "Total Days",
