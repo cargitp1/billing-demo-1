@@ -1,4 +1,4 @@
-import { addDays, parseISO, differenceInDays } from 'date-fns';
+import { addDays, parseISO, differenceInDays, format } from 'date-fns';
 
 /**
  * BILLING PERIOD CALCULATION SYSTEM
@@ -121,12 +121,6 @@ export function createCombinedEntryList(
     items: any; // Can be array or single item
   }>
 ): ChallanEntry[] {
-  console.log('Processing Challans:', {
-    udharCount: udharChallans.length,
-    jamaCount: jamaReturns.length,
-    firstUdhar: udharChallans[0],
-    firstJama: jamaReturns[0]
-  });
   const entries: ChallanEntry[] = [];
 
   // Process Udhar challans
@@ -171,15 +165,17 @@ export function createCombinedEntryList(
       return sum + total;
     }, 0);
 
-    // Two-Date System for Jama (Return) Challans:
-    // 1. date = Actual return date (e.g., Jan 10th)
-    //    - Customer still has plates on this date
-    //    - Rent IS charged for this day
-    // 2. effectiveDate = Next day (e.g., Jan 11th)
-    //    - First day customer doesn't have plates
-    //    - NO rent charged from this day onwards
-    //    - Any new rentals would start from this date
-    const effectiveDate = addDays(parseISO(jama.jama_date), 1).toISOString().split('T')[0];
+    // Special Case: If Udhar and Jama are on the SAME DAY, use the same effective date
+    // This allows the return to net out the udhar immediately, resulting in 0 rent for that day
+    // "check challan date if its same... count it combainly... adding extra cost"
+    const hasUdharSameDay = udharChallans.some(u => u.udhar_date === jama.jama_date);
+
+    let effectiveDate: string;
+    if (hasUdharSameDay) {
+      effectiveDate = jama.jama_date; // No +1 shift
+    } else {
+      effectiveDate = format(addDays(parseISO(jama.jama_date), 1), 'yyyy-MM-dd');
+    }
 
     entries.push({
       date: jama.jama_date,          // Actual return date (when plates were returned)
@@ -258,11 +254,15 @@ export function calculateBillingPeriods(
 
   const ledger = buildTransactionLedger(entries);
 
+  // Filter entries to strictly exclude anything after the bill date
+  // This ensures the bill stops exactly at the "To Date"
+  const filteredEntries = entries.filter(entry => entry.date <= billDate);
+
   // Group changes by effective date (when balance actually changes)
   // For billing calculations:
   // - Udhar: Use issue date (balance changes immediately)
   // - Jama: Use next day (balance changes day after return)
-  const balanceChanges = entries.reduce((acc, entry) => {
+  const balanceChanges = filteredEntries.reduce((acc, entry) => {
     // Use effectiveDate for balance changes:
     // Udhar: Same as transaction date
     // Jama: Next day after return
@@ -282,8 +282,7 @@ export function calculateBillingPeriods(
     const currentDate = dates[i];
     const nextDate = i < dates.length - 1 ? dates[i + 1] : billDate;
 
-    // Check if current period starts from a Jama
-    const isJamaPeriod = balanceChanges[currentDate].some(change => change.type === 'jama');    // Apply all changes for this date
+    // Apply all changes for this date
     /**
      * EDGE CASE 1: Same-Day Events
      * --------------------------
@@ -333,10 +332,8 @@ export function calculateBillingPeriods(
       let periodData: { days: number; endDate: string; } | null = null;
 
       try {
-        // For Jama periods, start date is next day
-        const effectiveStartDate = isJamaPeriod
-          ? addDays(parseISO(currentDate), 1)
-          : parseISO(currentDate);
+        // Start date is simply the effective date of the change
+        const effectiveStartDate = parseISO(currentDate);
 
         if (isNaN(effectiveStartDate.getTime())) {
           throw new Error(`Invalid start date: ${currentDate}`);
@@ -349,24 +346,11 @@ export function calculateBillingPeriods(
             throw new Error(`Invalid end date: ${nextDate}`);
           }
 
-          const nextChanges = balanceChanges[nextDate];
-          const hasJamaNext = nextChanges?.some(change => change.type === 'jama');
-
-          if (hasJamaNext) {
-            // End with Jama - include return date
-            // Note: nextDate is the effective date of Jama (return date + 1)
-            // So differenceInDays gives the correct inclusive count up to return date
-            periodData = {
-              days: differenceInDays(endDateObj, effectiveStartDate),
-              endDate: nextDate
-            };
-          } else {
-            // End before next Udhar
-            periodData = {
-              days: differenceInDays(endDateObj, effectiveStartDate),
-              endDate: nextDate
-            };
-          }
+          // Use the start date directly
+          periodData = {
+            days: differenceInDays(endDateObj, effectiveStartDate),
+            endDate: nextDate
+          };
         } else {
           // Last period - include bill date
           const billDateObj = parseISO(billDate);
@@ -376,7 +360,7 @@ export function calculateBillingPeriods(
 
           periodData = {
             days: differenceInDays(billDateObj, effectiveStartDate) + 1,
-            endDate: billDate
+            endDate: format(addDays(billDateObj, 1), 'yyyy-MM-dd')
           };
         }
       } catch (error) {
@@ -386,12 +370,6 @@ export function calculateBillingPeriods(
 
       // Create period if we have valid data with positive days
       if (periodData && periodData.days > 0) {
-        // Check if this period starts from a Jama event
-        const isJamaPeriod = balanceChanges[currentDate].some(change => change.type === 'jama');
-
-        const startDate = isJamaPeriod
-          ? addDays(parseISO(currentDate), 1).toISOString().split('T')[0]
-          : currentDate;
 
         // Final days calculation
         let finalDays = periodData.days;
@@ -408,7 +386,7 @@ export function calculateBillingPeriods(
 
         // Add the billing period with full details
         periods.push({
-          startDate,
+          startDate: currentDate,
           endDate: periodData.endDate,
           plateCount: currentBalance,
           days: finalDays,
@@ -423,6 +401,7 @@ export function calculateBillingPeriods(
       }
     }
   }
+
 
   return {
     entries,
@@ -440,7 +419,8 @@ export function calculateBill(
   extraCharges: Array<{ amount: number }> = [],
   discounts: Array<{ amount: number }> = [],
   payments: Array<{ amount: number }> = [],
-  serviceRate: number = 10
+  serviceRate: number = 10,
+  fromDate?: string // New optional parameter
 ): {
   billingPeriods: BillingPeriodResult;
   extraChargesTotal: number;
@@ -452,7 +432,68 @@ export function calculateBill(
 } {
   // Calculate billing periods and rent
   const entries = createCombinedEntryList(udharChallans, jamaReturns);
-  const billingPeriods = calculateBillingPeriods(entries, billDate, dailyRate);
+  let billingPeriods = calculateBillingPeriods(entries, billDate, dailyRate);
+
+  // If fromDate is provided, filter and clamp periods
+  if (fromDate) {
+    const clampedPeriods: BillingPeriod[] = [];
+    let clampedTotalRent = 0;
+
+    billingPeriods.periods.forEach(period => {
+      // 1. Period ends before fromDate: Skip completely
+      if (period.endDate < fromDate) {
+        return;
+      }
+
+      // 2. Period starts after or on fromDate: Keep as is
+      if (period.startDate >= fromDate) {
+        clampedPeriods.push(period);
+        clampedTotalRent += period.rent;
+        return;
+      }
+
+      // 3. Period overlaps (Start < fromDate < End): Clamp Start
+      // Recalculate days and rent
+
+      const newStartDate = fromDate;
+      const rateInPaise = Math.round(dailyRate * 100);
+
+      // Determine if we need +1 day logic (if it was the last period ending on billDate)
+      // Original logic:
+      // If last period (ends on billDate): days = diff + 1
+      // If normal period: days = diff
+
+      // Check if original period treated endDate as inclusive (Last Period)
+      // Standard logic: differenceInDays(end, start)
+      // If days > diff(end, start), then it was inclusive.
+
+      const rawDiff = differenceInDays(parseISO(period.endDate), parseISO(period.startDate));
+      const isInclusiveEnd = period.days > rawDiff;
+
+      const newDiff = differenceInDays(parseISO(period.endDate), parseISO(newStartDate));
+      const newDays = isInclusiveEnd ? newDiff + 1 : newDiff;
+
+      if (newDays > 0) {
+        const rentInPaise = period.plateCount * newDays * rateInPaise;
+        const newRent = Math.round(rentInPaise) / 100;
+
+        clampedPeriods.push({
+          ...period,
+          startDate: newStartDate,
+          days: newDays,
+          rent: newRent
+        });
+        clampedTotalRent += newRent;
+      }
+    });
+
+    // Update billingPeriods with clamped data
+    billingPeriods = {
+      ...billingPeriods,
+      periods: clampedPeriods,
+      totalRent: clampedTotalRent
+    };
+  }
 
   // Calculate other components
   const extraChargesTotal = extraCharges.reduce((sum, charge) => sum + charge.amount, 0);
@@ -460,6 +501,8 @@ export function calculateBill(
   const paymentsTotal = payments.reduce((sum, payment) => sum + payment.amount, 0);
 
   // Calculate service charge (₹10 per plate by default)
+  // Logic update: Ensure service charge only applies to visible periods?
+  // Usually service charge is per period or per bill. Assuming per period plate count is correct.
   const serviceChargeTotal = billingPeriods.periods.reduce((sum, period) => {
     return sum + (period.plateCount * serviceRate);
   }, 0);

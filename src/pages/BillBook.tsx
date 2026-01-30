@@ -297,7 +297,7 @@ export default function BillBook() {
       const billDateStr = bill.billing_date || bill.bill_date || bill.created_at;
 
       // 3. Re-calculate Bill
-      // format extra/discount/payments for calculation
+      // ... (existing calc code) ...
       const calcExtra = (extraCosts || []).map((c: any) => ({ amount: (c.total_amount || (c.pieces * c.price_per_piece)) }));
       const calcDisc = (discounts || []).map((d: any) => ({ amount: (d.total_amount || (d.pieces * d.discount_per_piece)) }));
       const calcPay = (payments || []).map((p: any) => ({ amount: p.amount }));
@@ -309,10 +309,33 @@ export default function BillBook() {
         bill.daily_rent || 1.5,
         calcExtra,
         calcDisc,
-        calcPay
+        calcPay,
+        10, // serviceRate
+        bill.from_date // Important: Use bill's from_date for correct period calculation
       );
 
       console.log('Calculated Periods:', result.billingPeriods.periods); // DEBUG LOG
+
+      // FETCH PREVIOUS BILL for Pending Amount Display
+      let previousBillData = undefined;
+      // We look for the bill that ends just before this one starts, or the immediately preceding bill
+      const { data: prevBills } = await supabase
+        .from('bills')
+        .select('bill_number, due_payment, to_date')
+        .eq('client_id', bill.client_id)
+        .lt('to_date', bill.from_date || billDateStr) // Bills ending before this one starts
+        .order('to_date', { ascending: false })
+        .limit(1);
+
+      if (prevBills && prevBills.length > 0) {
+        const prev = prevBills[0];
+        if ((prev.due_payment || 0) > 0) {
+          previousBillData = {
+            billNumber: prev.bill_number,
+            amount: prev.due_payment
+          };
+        }
+      }
 
       // 4. Construct Full Bill Object
       const fullBillData = {
@@ -334,6 +357,7 @@ export default function BillBook() {
           site: bill.client?.site,
           phone: bill.client?.primary_phone_number,
         },
+        previousBill: previousBillData, // Pass the previous bill data here
         rentalCharges: result.billingPeriods.periods.map((p: any) => ({
           size: "All",
           startDate: p.startDate,

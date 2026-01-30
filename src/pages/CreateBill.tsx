@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff,
   X,
+  ChevronDown,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -156,6 +157,16 @@ export default function CreateBill() {
     }
   }, [clientId]);
 
+  // Auto-calculate bill when parameters change, if ledger is already shown
+  useEffect(() => {
+    if (showLedger && billData.toDate && billData.dailyRent) {
+      const timer = setTimeout(() => {
+        calculateBill();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [billData.toDate, billData.dailyRent]);
+
   const fetchClient = async () => {
     try {
       // Fetch and validate all client data first
@@ -200,28 +211,51 @@ export default function CreateBill() {
         setBillData((prev) => ({ ...prev, billNumber: newBillNumber }));
       }
 
-      // Fetch pending amount from previous bills
+      // Fetch pending amount and dates from previous bills
       const { data: billsData, error: billsError } = await supabase
         .from("bills")
-        .select("bill_number, due_payment, created_at")
+        .select("bill_number, due_payment, created_at, to_date")
         .eq("client_id", clientId)
-        .order("created_at", { ascending: true }); // Order to identify "last"
+        .order("to_date", { ascending: true }); // Order by to_date to find the latest covered period
 
-      if (!billsError && billsData) {
-        const totalPending = billsData.reduce((sum, bill) => sum + (bill.due_payment || 0), 0);
+      let calculatedFromDate = udharChallans?.[0]?.udhar_date || "";
+
+      if (!billsError && billsData && billsData.length > 0) {
+        // PENDING AMOUNT LOGIC
+        // "make sure its count only last one"
+        // Instead of summing all bills, we take the due_payment of the LATEST bill, 
+        // assuming it carries forward previous dues.
+        const lastBill = billsData[billsData.length - 1];
+        const totalPending = lastBill.due_payment || 0;
+
         setPendingAmount(totalPending);
 
         // Find last unpaid bill number
         const unpaidBills = billsData.filter(b => (b.due_payment || 0) > 0);
         if (unpaidBills.length > 0) {
-          // Get the last one in the sorted list
+          // Get the last one in the sorted list (by to_date now)
           setLastUnpaidBillNumber(unpaidBills[unpaidBills.length - 1].bill_number);
         } else {
           setLastUnpaidBillNumber("");
         }
 
+        // AUTO-SET START DATE LOGIC
+        // "first fetch pervious date bill was generated till when date and then start from that date"
+        // lastBill is already defined above
+        if (lastBill.to_date) {
+          // Start from next day
+          const nextDay = addDays(parseISO(lastBill.to_date), 1);
+          calculatedFromDate = format(nextDay, 'yyyy-MM-dd');
+          console.log(`Auto-setting fromDate to ${calculatedFromDate} (Day after last bill end date ${lastBill.to_date})`);
+        }
+
       } else if (billsError) {
         console.error("Error fetching pending amount:", billsError);
+      } else {
+        // No bills found, use default (first udhar date)
+        if (udharChallans?.[0]) {
+          // already set above
+        }
       }
 
       // Log validation results
@@ -231,41 +265,16 @@ export default function CreateBill() {
         jamaChallans: validation.data.validation.jamaChallans,
       });
 
-      // Log detailed data for debugging
-      console.log("Client Data:", {
-        id: client.id,
-        name: client.client_name,
-        nickname: client.client_nic_name,
-        site: client.site,
-        phone: client.primary_phone_number,
-      });
-
-      console.log("Udhar Challans:", {
-        count: udharChallans?.length || 0,
-        firstDate: udharChallans?.[0]?.udhar_date,
-        lastDate: udharChallans?.[udharChallans.length - 1]?.udhar_date,
-        hasItems: udharChallans?.every(
-          (c: { items?: any[] }) => Array.isArray(c.items) && c.items.length > 0
-        ),
-      });
-
-      console.log("Jama Challans:", {
-        count: jamaChallans?.length || 0,
-        firstDate: jamaChallans?.[0]?.jama_date,
-        lastDate: jamaChallans?.[jamaChallans.length - 1]?.jama_date,
-        hasItems: jamaChallans?.every(
-          (c: { items?: any[] }) => Array.isArray(c.items) && c.items.length > 0
-        ),
-      });
+      // Log detailed data for debugging (omitted for brevity)
 
       // Set client data
       setClient(client);
 
-      // Set from date to first udhar date if available
-      if (udharChallans?.[0]) {
+      // Set from date
+      if (calculatedFromDate) {
         setBillData((prev) => ({
           ...prev,
-          fromDate: udharChallans[0].udhar_date,
+          fromDate: calculatedFromDate,
         }));
       }
     } catch (error) {
@@ -598,7 +607,9 @@ export default function CreateBill() {
           billData.dailyRent,
           extraCharges,
           discounts,
-          payments
+          payments,
+          10, // serviceRate default
+          billData.fromDate // Pass the start date for filtering
         );
 
         setBillResult(result);
@@ -633,7 +644,7 @@ export default function CreateBill() {
         setCurrentBalance(balance);
         setBillData((prev) => ({
           ...prev,
-          fromDate: earliestDate,
+          // fromDate: earliestDate, // REMOVED: Do not override user selection
           currentBalance: balance,
           // Convert transactions from the ledger for UI display
           transactions: result.billingPeriods.ledger.map((entry) => ({
@@ -1078,14 +1089,79 @@ export default function CreateBill() {
           {/* Section D, E, F: Extra Costs, Discounts, Payments */}
           {showLedger && billData.fromDate && (
             <>
-              {/* Mobile Action Bar */}
-              {/* Mobile Action Bar - Dropdown */}
+              {/* Action Buttons - Direct Access */}
+              <div className="flex justify-end gap-2 mb-4 overflow-x-auto scrollbar-hide">
+                <button
+                  onClick={() => {
+                    setBillData((prev) => ({
+                      ...prev,
+                      extraCosts: [
+                        ...prev.extraCosts,
+                        {
+                          id: crypto.randomUUID(),
+                          date: format(new Date(), "yyyy-MM-dd"),
+                          note: "",
+                          pieces: 1,
+                          pricePerPiece: 1,
+                          total: 1,
+                        },
+                      ],
+                    }));
+                  }}
+                  className="flex items-center flex-shrink-0 gap-1 px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100"
+                >
+                  <Plus className="w-4 h-4" />
+                  ખર્ચ
+                </button>
+                <button
+                  onClick={() => {
+                    setBillData((prev) => ({
+                      ...prev,
+                      discounts: [
+                        ...prev.discounts,
+                        {
+                          id: crypto.randomUUID(),
+                          date: format(new Date(), "yyyy-MM-dd"),
+                          note: "",
+                          pieces: 0,
+                          discountPerPiece: 0,
+                          total: 0,
+                        },
+                      ],
+                    }));
+                  }}
+                  className="flex items-center flex-shrink-0 gap-1 px-3 py-2 text-sm font-medium text-green-700 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100"
+                >
+                  <Plus className="w-4 h-4" />
+                  છૂટ
+                </button>
+                <button
+                  onClick={() => {
+                    setBillData((prev) => ({
+                      ...prev,
+                      payments: [
+                        ...prev.payments,
+                        {
+                          id: crypto.randomUUID(),
+                          date: format(new Date(), "yyyy-MM-dd"),
+                          note: "",
+                          amount: 0,
+                          method: "cash",
+                        },
+                      ],
+                    }));
+                  }}
+                  className="flex items-center flex-shrink-0 gap-1 px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100"
+                >
+                  <Plus className="w-4 h-4" />
+                  ચુકવણી
+                </button>
+              </div>
 
 
               <div className="grid grid-cols-1 gap-4 mb-4 md:grid-cols-3">
                 {/* Section D: Extra Costs */}
-                {/* Section D: Extra Costs */}
-                <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.extraCosts.length === 0 ? 'hidden md:block' : ''}`}>
+                <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.extraCosts.length === 0 ? 'hidden' : 'block'}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-base font-medium text-gray-900">
                       વધારાનો ખર્ચ
@@ -1099,34 +1175,12 @@ export default function CreateBill() {
                               extraCosts: [],
                             }));
                           }}
-                          className="block p-1 text-red-600 transition-colors rounded hover:bg-red-50 md:hidden"
+                          className="block p-1 text-red-600 transition-colors rounded hover:bg-red-50"
                           title="Clear all"
                         >
                           <X className="w-5 h-5" />
                         </button>
                       )}
-                      <button
-                        onClick={() => {
-                          setBillData((prev) => ({
-                            ...prev,
-                            extraCosts: [
-                              ...prev.extraCosts,
-                              {
-                                id: crypto.randomUUID(),
-                                date: format(new Date(), "yyyy-MM-dd"),
-                                note: "",
-                                pieces: 1, // Default quantity 1 as requested
-                                pricePerPiece: 1, // Default price 1 to show charge immediately
-                                total: 1, // 1 * 1 = 1
-                              },
-                            ],
-                          }));
-                        }}
-                        className="items-center hidden gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md md:flex hover:bg-gray-200"
-                      >
-                        <Plus className="w-4 h-4" />
-                        વધારાનો ખર્ચ ઉમેરો
-                      </button>
                     </div>
                   </div>
 
@@ -1405,7 +1459,6 @@ export default function CreateBill() {
                 </div>
 
                 {/* Section E: Discounts */}
-                {/* Section E: Discounts */}
                 <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.discounts.length === 0 ? 'hidden md:block' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-base font-medium text-gray-900">
@@ -1420,34 +1473,12 @@ export default function CreateBill() {
                               discounts: [],
                             }));
                           }}
-                          className="block p-1 text-red-600 transition-colors rounded hover:bg-red-50 md:hidden"
+                          className="block p-1 text-red-600 transition-colors rounded hover:bg-red-50"
                           title="Clear all"
                         >
                           <X className="w-5 h-5" />
                         </button>
                       )}
-                      <button
-                        onClick={() => {
-                          setBillData((prev) => ({
-                            ...prev,
-                            discounts: [
-                              ...prev.discounts,
-                              {
-                                id: crypto.randomUUID(),
-                                date: format(new Date(), "yyyy-MM-dd"),
-                                note: "",
-                                pieces: 0,
-                                discountPerPiece: 0,
-                                total: 0,
-                              },
-                            ],
-                          }));
-                        }}
-                        className="items-center hidden gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md md:flex hover:bg-gray-200"
-                      >
-                        <Plus className="w-4 h-4" />
-                        છૂટ ઉમેરો
-                      </button>
                     </div>
 
                     {/* Datalist for Extra Cost Suggestions */}
@@ -1729,7 +1760,6 @@ export default function CreateBill() {
                 </div>
 
                 {/* Section F: Payments */}
-                {/* Section F: Payments */}
                 <div className={`p-4 bg-white border border-gray-200 rounded-xl ${billData.payments.length === 0 ? 'hidden md:block' : ''}`}>
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-base font-medium text-gray-900">
@@ -1744,33 +1774,12 @@ export default function CreateBill() {
                               payments: [],
                             }));
                           }}
-                          className="block p-1 text-red-600 transition-colors rounded hover:bg-red-50 md:hidden"
+                          className="block p-1 text-red-600 transition-colors rounded hover:bg-red-50"
                           title="Clear all"
                         >
                           <X className="w-5 h-5" />
                         </button>
                       )}
-                      <button
-                        onClick={() => {
-                          setBillData((prev) => ({
-                            ...prev,
-                            payments: [
-                              ...prev.payments,
-                              {
-                                id: crypto.randomUUID(),
-                                date: format(new Date(), "yyyy-MM-dd"),
-                                note: "",
-                                amount: 0,
-                                method: "cash",
-                              },
-                            ],
-                          }));
-                        }}
-                        className="items-center hidden gap-2 px-4 py-2 text-sm font-medium bg-gray-100 rounded-md md:flex hover:bg-gray-200"
-                      >
-                        <Plus className="w-4 h-4" />
-                        ચુકવણી ઉમેરો
-                      </button>
                     </div>
                   </div>
 
