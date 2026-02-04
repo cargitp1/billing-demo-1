@@ -212,7 +212,7 @@ export const fetchJamaChallansForClient = async (clientId?: string) => {
 export const fetchDailyChallans = async (date: Date) => {
   const dateStr = date.toISOString().split('T')[0];
 
-  const [udharChallans, jamaChallans] = await Promise.all([
+  const [udharChallans, jamaChallans, bills] = await Promise.all([
     supabase
       .from('udhar_challans')
       .select(`
@@ -264,7 +264,23 @@ export const fetchDailyChallans = async (date: Date) => {
         )
       `)
       .eq('jama_date', dateStr)
-      .order('jama_challan_number', { ascending: false })
+      .order('jama_challan_number', { ascending: false }),
+    supabase
+      .from('bills')
+      .select(`
+        bill_number,
+        billing_date,
+        grand_total,
+        client_id,
+        client:clients (
+          client_nic_name,
+          client_name,
+          site,
+          primary_phone_number
+        )
+      `)
+      .eq('billing_date', dateStr)
+      .order('created_at', { ascending: false })
   ]);
 
   const mapChallan = (challan: any, type: 'udhar' | 'jama') => {
@@ -288,12 +304,31 @@ export const fetchDailyChallans = async (date: Date) => {
     };
   };
 
+  const mapBill = (bill: any) => ({
+    challanNumber: bill.bill_number,
+    date: bill.billing_date,
+    type: 'bill' as const,
+    driverName: '',
+    clientNicName: bill.client?.client_nic_name || '',
+    clientFullName: bill.client?.client_name || '',
+    clientId: bill.client_id,
+    site: bill.client?.site || '',
+    isAlternativeSite: false,
+    phone: bill.client?.primary_phone_number || '',
+    isSecondaryPhone: false,
+    items: emptyItems,
+    totalItems: 0,
+    amount: bill.grand_total || 0
+  });
+
   const udharData = (udharChallans.data || []).map(c => mapChallan(c, 'udhar'));
   const jamaData = (jamaChallans.data || []).map(c => mapChallan(c, 'jama'));
+  const billData = (bills.data || []).map(b => mapBill(b));
 
-  // Combine and sort by challan number as a proxy for time (since we don't have time field), 
-  // or just return concatenated. Let's return concatenated.
-  return [...udharData, ...jamaData].sort((a, b) => b.challanNumber.localeCompare(a.challanNumber));
+  return [...billData, ...udharData, ...jamaData].sort((a, b) => {
+    // Basic sort by ID/Number usually works if formats align, otherwise standard collator
+    return b.challanNumber.localeCompare(a.challanNumber);
+  });
 };
 
 // Cache for transactions to avoid redundant fetches

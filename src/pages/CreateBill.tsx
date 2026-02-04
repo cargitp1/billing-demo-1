@@ -542,7 +542,6 @@ export default function CreateBill() {
           total_discount: fullSummary.discounts,
           total_payment: fullSummary.totalPaid,
           due_payment: fullSummary.duePayment,
-          total_amount: fullSummary.grandTotal,
         }).eq('bill_number', billData.billNumber);
 
         if (billUpdateError) throw billUpdateError;
@@ -607,7 +606,6 @@ export default function CreateBill() {
           total_discount: fullSummary.discounts,
           total_payment: fullSummary.totalPaid,
           due_payment: fullSummary.duePayment,
-          total_amount: fullSummary.grandTotal,
         });
 
         if (error) throw error;

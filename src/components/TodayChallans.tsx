@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Calendar, MapPin, ArrowUpRight } from 'lucide-react';
+import { Package, Calendar, MapPin, ArrowUpRight, Receipt } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { fetchDailyChallans } from '../utils/challanFetching';
 import { useNavigate } from 'react-router-dom';
@@ -190,10 +190,12 @@ const TodayChallans: React.FC = () => {
                         {challans.map((challan) => (
                             <div
                                 key={`${challan.type}-${challan.challanNumber}`}
-                                onClick={() => handleViewDetails(challan)}
+                                onClick={() => challan.type === 'bill' ? navigate('/bill-book') : handleViewDetails(challan)}
                                 className={`relative overflow-hidden p-3 border shadow-sm rounded-lg transition-all active:scale-[0.98] touch-manipulation cursor-pointer ${challan.type === 'udhar'
                                     ? 'bg-red-50 border-red-100'
-                                    : 'bg-green-50 border-green-100'
+                                    : challan.type === 'jama'
+                                        ? 'bg-green-50 border-green-100'
+                                        : 'bg-blue-50 border-blue-100' // Bills
                                     }`}
                             >
                                 {/* Header */}
@@ -201,22 +203,34 @@ const TodayChallans: React.FC = () => {
                                     <div className="flex items-center gap-2">
                                         <span className={`px-2 py-0.5 rounded-md font-bold text-xs text-white shadow-sm ${challan.type === 'udhar'
                                             ? 'bg-gradient-to-r from-red-600 to-red-500'
-                                            : 'bg-gradient-to-r from-green-600 to-green-500'
+                                            : challan.type === 'jama'
+                                                ? 'bg-gradient-to-r from-green-600 to-green-500'
+                                                : 'bg-gradient-to-r from-blue-600 to-blue-500'
                                             }`}>
                                             #{challan.challanNumber}
                                         </span>
-                                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${challan.type === 'udhar' ? 'text-red-600' : 'text-green-600'
+                                        <span className={`text-[10px] font-semibold uppercase tracking-wider ${challan.type === 'udhar' ? 'text-red-600'
+                                            : challan.type === 'jama' ? 'text-green-600' : 'text-blue-600'
                                             }`}>
-                                            {challan.type === 'udhar' ? t('udhar') : t('jama')}
+                                            {challan.type === 'udhar' ? t('udhar') : challan.type === 'jama' ? t('jama') : t('bill') || 'Bill'}
                                         </span>
                                     </div>
-                                    <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${challan.type === 'udhar'
-                                        ? 'bg-white text-red-700 border-red-100'
-                                        : 'bg-white text-green-700 border-green-100'
-                                        }`}>
-                                        <Package className="w-3 h-3" />
-                                        {challan.totalItems}
-                                    </span>
+
+                                    {/* Item Count or Amount */}
+                                    {challan.type === 'bill' ? (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold border bg-white text-blue-700 border-blue-100">
+                                            <Receipt className="w-3 h-3" />
+                                            ₹{(challan.amount || 0).toLocaleString('en-IN')}
+                                        </span>
+                                    ) : (
+                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium border ${challan.type === 'udhar'
+                                            ? 'bg-white text-red-700 border-red-100'
+                                            : 'bg-white text-green-700 border-green-100'
+                                            }`}>
+                                            <Package className="w-3 h-3" />
+                                            {challan.totalItems}
+                                        </span>
+                                    )}
                                 </div>
 
                                 {/* Client Info */}
