@@ -9,10 +9,11 @@ import { ClientFormData } from "../components/ClientForm";
 
 interface ClientCardProps {
   client: ClientFormData;
+  balance?: number;
   onClick: () => void;
 }
 
-const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => (
+const ClientCard: React.FC<ClientCardProps> = ({ client, balance, onClick }) => (
   <button
     onClick={onClick}
     className="p-3 text-left transition-all bg-white border border-gray-200 shadow-sm sm:p-4 lg:p-5 group rounded-lg sm:rounded-xl hover:shadow-md hover:border-blue-500 touch-manipulation active:scale-[0.98]"
@@ -27,6 +28,12 @@ const ClientCard: React.FC<ClientCardProps> = ({ client, onClick }) => (
         </h4>
         <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 truncate">{client.client_name}</p>
       </div>
+      {balance !== undefined && balance > 0 && (
+        <div className="text-right mr-2">
+          <span className="block text-[10px] text-gray-400 font-medium uppercase tracking-wider">Payable</span>
+          <span className="text-xs font-bold text-red-600 sm:text-sm">₹{balance.toLocaleString('en-IN')}</span>
+        </div>
+      )}
       <ChevronRight className="flex-shrink-0 w-4 h-4 text-gray-400 transition-transform sm:w-5 sm:h-5 group-hover:translate-x-1" />
     </div>
     <div className="pt-2 mt-2 space-y-1 border-t border-gray-100 sm:pt-3 sm:mt-3 sm:space-y-1.5 lg:space-y-2">
@@ -46,6 +53,7 @@ export default function Billing() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [clients, setClients] = useState<ClientFormData[]>([]);
+  const [clientBalances, setClientBalances] = useState<Record<string, number>>({});
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -61,6 +69,27 @@ export default function Billing() {
 
       if (error) throw error;
       setClients(clientsData || []);
+
+      // Fetch latest balances from generated bills only
+      const { data: bills, error: billsError } = await supabase
+        .from('bills')
+        .select('client_id, due_payment, to_date, created_at')
+        .order('to_date', { ascending: false })
+        .order('created_at', { ascending: false });
+
+      if (!billsError && bills) {
+        const balanceMap: Record<string, number> = {};
+        const seenClients = new Set<string>();
+
+        // Get the latest bill's due_payment for each client
+        bills.forEach(bill => {
+          if (bill.client_id && !seenClients.has(bill.client_id)) {
+            balanceMap[bill.client_id] = bill.due_payment || 0;
+            seenClients.add(bill.client_id);
+          }
+        });
+        setClientBalances(balanceMap);
+      }
     } catch (error) {
       toast.error("Error fetching clients");
       console.error("Error fetching clients:", error);
@@ -163,6 +192,7 @@ export default function Billing() {
                   <ClientCard
                     key={client.id}
                     client={client}
+                    balance={clientBalances[client.id || '']}
                     onClick={() => handleClientSelect(client.id || "")}
                   />
                 ))}

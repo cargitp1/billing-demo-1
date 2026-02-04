@@ -15,6 +15,7 @@ import {
   EyeOff,
   X,
   ChevronDown,
+  Save,
 } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -693,6 +694,23 @@ export default function CreateBill() {
     }
   };
 
+  const handleUpdateDailyRent = async () => {
+    if (!clientId || !billData.dailyRent) return;
+
+    try {
+      const { error } = await supabase
+        .from('clients')
+        .update({ daily_rent_price: billData.dailyRent })
+        .eq('id', clientId);
+
+      if (error) throw error;
+      toast.success(t("saveSuccess") || "Saved Successfully");
+    } catch (error) {
+      console.error("Error updating daily rent:", error);
+      toast.error("Failed to update daily rent");
+    }
+  };
+
   const calculateBill = async () => {
     setIsLoading(true);
     try {
@@ -913,7 +931,9 @@ export default function CreateBill() {
         amount: period.plateCount * period.days * billData.dailyRent,
         startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate,
         endDate: newDisplayEndDate,
-        causeType: period.causeType as 'udhar' | 'jama'
+        causeType: period.causeType as 'udhar' | 'jama',
+        udharQty: period.udharQty,
+        jamaQty: period.jamaQty
       };
     }) || [],
     extraCosts: billData.extraCosts.map(cost => ({
@@ -1049,22 +1069,32 @@ export default function CreateBill() {
                     {t("dailyRent")}
                     <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <CreditCard className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={billData.dailyRent}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "dailyRent",
-                          parseFloat(e.target.value)
-                        )
-                      }
-                      onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                      className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="E.g., 5.00"
-                    />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <CreditCard className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={billData.dailyRent}
+                        onChange={(e) =>
+                          handleInputChange(
+                            "dailyRent",
+                            parseFloat(e.target.value)
+                          )
+                        }
+                        onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                        className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="E.g., 5.00"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleUpdateDailyRent}
+                      className="p-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                      title="Update Default Rent"
+                    >
+                      <Save className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
               </div>

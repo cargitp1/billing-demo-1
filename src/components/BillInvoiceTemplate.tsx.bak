@@ -33,8 +33,6 @@ interface BillInvoiceProps {
     endDate?: string;
     causeType?: 'udhar' | 'jama';
     txnQty?: number;
-    udharQty?: number;
-    jamaQty?: number;
   }[];
   extraCosts: {
     id: string;
@@ -227,72 +225,119 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                 </tr>
               )}
 
-              {/* Rental Charges */}
-              {rentalCharges.map((charge, index) => {
-                const rowStartDate = charge.startDate ? new Date(charge.startDate) : new Date(billDetails.fromDate);
-                const rowEndDate = charge.endDate ? new Date(charge.endDate) : new Date(billDetails.toDate);
-                const isJama = charge.causeType === 'jama';
+              {/* Rental Charges - Group by date range to show both udhar and jama */}
+              {(() => {
+                // Group periods that have the same date range
+                const grouped: Array<{
+                  startDate: string;
+                  endDate: string;
+                  udharQty: number;
+                  jamaQty: number;
+                  pieces: number;
+                  rate: number;
+                  days: number;
+                  amount: number;
+                }> = [];
 
-                // Use provided udharQty/jamaQty if available (from billing calculation)
-                let udharQty = 0;
-                let jamaQty = 0;
-
-                if (charge.udharQty !== undefined || charge.jamaQty !== undefined) {
-                  // Direct use of individual quantities from billing calculation
-                  udharQty = charge.udharQty || 0;
-                  jamaQty = charge.jamaQty || 0;
-                } else {
-                  // Fallback: calculate from transaction type and matching
-                  const prevPieces = index > 0 ? rentalCharges[index - 1].pieces : 0;
-                  const stockChange = Math.abs(charge.pieces - prevPieces);
-                  const currentQty = charge.txnQty || stockChange || charge.pieces;
-
+                rentalCharges.forEach((charge) => {
                   const chargeStart = charge.startDate || billDetails.fromDate;
                   const chargeEnd = charge.endDate || billDetails.toDate;
 
-                  const matchingCharge = rentalCharges.find((c, i) => {
-                    if (i === index) return false;
-                    const cStart = c.startDate || billDetails.fromDate;
-                    const cEnd = c.endDate || billDetails.toDate;
-                    return cStart === chargeStart && cEnd === chargeEnd && c.causeType !== charge.causeType;
-                  });
+                  // Find if we already have a group for this date range
+                  const existingGroup = grouped.find(g =>
+                    g.startDate === chargeStart && g.endDate === chargeEnd
+                  );
 
-                  if (isJama && matchingCharge) {
-                    return null;
+                  if (existingGroup) {
+                    // Add this transaction to the existing group
+                    if (charge.causeType === 'udhar') {
+                      existingGroup.udharQty += (charge.txnQty || 0);
+                    } else {
+                      existingGroup.jamaQty += (charge.txnQty || 0);
+                    }
+                    existingGroup.amount += charge.amount;
+                  } else {
+                    // Create a new group
+                    grouped.push({
+                      startDate: chargeStart,
+                      endDate: chargeEnd,
+                      udharQty: charge.causeType === 'udhar' ? (charge.txnQty || 0) : 0,
+                      jamaQty: charge.causeType === 'jama' ? (charge.txnQty || 0) : 0,
+                      pieces: charge.pieces,
+                      rate: charge.rate || billDetails.dailyRent,
+                      days: charge.days,
+                      amount: charge.amount
+                    });
+                  }
+                });
+
+                return grouped.map((group, index) => {
+                  const rowStartDate = new Date(group.startDate);
+                  const rowEndDate = new Date(group.endDate);
+                  const netChange = group.udharQty - group.jamaQty;
+
+                  return (
+                const rowStartDate = charge.startDate ? new Date(charge.startDate) : new Date(billDetails.fromDate);
+                  const rowEndDate = charge.endDate ? new Date(charge.endDate) : new Date(billDetails.toDate);
+
+                  // Calculate stock changes - both udhar and jama
+                  const prevPieces = index > 0 ? rentalCharges[index - 1].pieces : 0;
+                  const netChange = charge.pieces - prevPieces;
+
+                  // Find udhar and jama in this period
+                  let udharQty = 0;
+                  let jamaQty = 0;
+
+                  if (netChange > 0) {
+                    udharQty = netChange;
+                  } else if (netChange < 0) {
+                    jamaQty = Math.abs(netChange);
                   }
 
-                  const matchingQty = matchingCharge ? (matchingCharge.txnQty || Math.abs(matchingCharge.pieces - (rentalCharges.findIndex(c => c === matchingCharge) > 0 ? rentalCharges[rentalCharges.findIndex(c => c === matchingCharge) - 1].pieces : 0))) : 0;
+                  // Check if we have txnQty data which shows actual transaction
+                  if (charge.txnQty !== undefined && charge.txnQty !== 0) {
+                    if (charge.causeType === 'udhar') {
+                      udharQty = charge.txnQty;
+                    } else if (charge.causeType === 'jama') {
+                      jamaQty = charge.txnQty;
+                    }
+                  }
 
-                  udharQty = isJama ? matchingQty : currentQty;
-                  jamaQty = isJama ? currentQty : matchingQty;
-                }
-
-                return (
-                  <tr key={`rent-${index}`}>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}
-                    </td>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {udharQty > 0 && <span style={{ color: '#dc2626' }}>+{udharQty}</span>}
-                      {udharQty > 0 && jamaQty > 0 && <span style={{ color: '#6b7280' }}> / </span>}
-                      {jamaQty > 0 && <span style={{ color: '#16a34a' }}>-{jamaQty}</span>}
-                      {udharQty === 0 && jamaQty === 0 && <span style={{ color: '#6b7280' }}>-</span>}
-                    </td>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {charge.pieces}
-                    </td>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {charge.rate || billDetails.dailyRent}
-                    </td>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {charge.days}
-                    </td>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {formatIndianCurrency(Math.round(charge.amount))}
-                    </td>
-                  </tr>
-                );
-              }).filter(Boolean)}
+                  return (
+                    <tr key={`rent-${index}`}>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                        {format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            {udharQty > 0 && <span style={{ color: '#dc2626', fontSize: '16px' }}>+{udharQty}</span>}
+                            {jamaQty > 0 && <span style={{ color: '#16a34a', fontSize: '16px' }}>-{jamaQty}</span>}
+                            {udharQty === 0 && jamaQty === 0 && <span style={{ color: '#6b7280' }}>-</span>}
+                          </div>
+                          {udharQty > 0 && jamaQty > 0 && (
+                            <span style={{ color: netChange >= 0 ? '#dc2626' : '#16a34a', fontSize: '12px', fontWeight: '600' }}>
+                              {netChange >= 0 ? '+' : ''}{netChange}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                        {charge.pieces}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                        {charge.rate || billDetails.dailyRent}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                        {charge.days}
+                      </td>
+                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                        {formatIndianCurrency(Math.round(charge.amount))}
+                      </td>
+                    </tr>
+                  );
+                })
+              }
 
               {/* Extra Costs */}
               {extraCosts.length > 0 && (

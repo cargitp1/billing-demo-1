@@ -100,6 +100,8 @@ interface BillingPeriod {
   causeType: 'udhar' | 'jama';
   challanNumber: string;
   txnQty: number;
+  udharQty?: number;  // Individual udhar quantity if both types on same date
+  jamaQty?: number;   // Individual jama quantity if both types on same date
 }
 
 export interface BillingPeriodResult {
@@ -379,10 +381,16 @@ export function calculateBillingPeriods(
         const rentInPaise = currentBalance * finalDays * rateInPaise;
         const rent = Math.round(rentInPaise) / 100;
 
-        // Get the first change's plateCount directly (for single/primary transaction display)
-        const txnQty = balanceChanges[currentDate][0].plateCount || 0;
+        // Get transaction quantities - check if there are both udhar and jama on this date
+        const changesOnDate = balanceChanges[currentDate];
+        const udharChange = changesOnDate.find(c => c.type === 'udhar');
+        const jamaChange = changesOnDate.find(c => c.type === 'jama');
 
-        console.log('Period txnQty:', txnQty, 'from date:', currentDate);
+        const txnQty = changesOnDate[0].plateCount || 0;
+        const udharQty = udharChange ? udharChange.plateCount : undefined;
+        const jamaQty = jamaChange ? jamaChange.plateCount : undefined;
+
+        console.log('Period txnQty:', txnQty, 'udharQty:', udharQty, 'jamaQty:', jamaQty, 'from date:', currentDate);
 
         // Add the billing period with full details
         periods.push({
@@ -393,7 +401,9 @@ export function calculateBillingPeriods(
           rent,
           causeType: balanceChanges[currentDate][0].type,
           challanNumber: balanceChanges[currentDate][0].challanNumber,
-          txnQty
+          txnQty,
+          udharQty,
+          jamaQty
         });
 
         // Update total rent
