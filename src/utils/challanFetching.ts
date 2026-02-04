@@ -270,7 +270,8 @@ export const fetchDailyChallans = async (date: Date) => {
       .select(`
         bill_number,
         billing_date,
-        grand_total,
+        total_rent_amount,
+        total_extra_cost,
         client_id,
         client:clients (
           client_nic_name,
@@ -318,7 +319,7 @@ export const fetchDailyChallans = async (date: Date) => {
     isSecondaryPhone: false,
     items: emptyItems,
     totalItems: 0,
-    amount: bill.grand_total || 0
+    amount: (bill.total_rent_amount || 0) + (bill.total_extra_cost || 0)
   });
 
   const udharData = (udharChallans.data || []).map(c => mapChallan(c, 'udhar'));

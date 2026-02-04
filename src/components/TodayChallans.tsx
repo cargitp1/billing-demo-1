@@ -212,7 +212,7 @@ const TodayChallans: React.FC = () => {
                                         <span className={`text-[10px] font-semibold uppercase tracking-wider ${challan.type === 'udhar' ? 'text-red-600'
                                             : challan.type === 'jama' ? 'text-green-600' : 'text-blue-600'
                                             }`}>
-                                            {challan.type === 'udhar' ? t('udhar') : challan.type === 'jama' ? t('jama') : t('bill') || 'Bill'}
+                                            {challan.type === 'udhar' ? t('udhar') : challan.type === 'jama' ? t('jama') : t('bill' as any) || 'Bill'}
                                         </span>
                                     </div>
 
