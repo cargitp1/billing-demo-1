@@ -18,3 +18,7 @@ CREATE POLICY "Allow public select on stock_history" ON stock_history FOR SELECT
 CREATE POLICY "Allow public insert on stock_history" ON stock_history FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow public update on stock_history" ON stock_history FOR UPDATE USING (true);
 CREATE POLICY "Allow public delete on stock_history" ON stock_history FOR DELETE USING (true);
+
+
+ALTER TABLE clients 
+ADD COLUMN daily_rent_price NUMERIC DEFAULT 1;

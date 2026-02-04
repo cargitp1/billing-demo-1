@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  UserPlus, 
+import {
+  Users,
+  UserPlus,
   Search,
   Plus,
   Filter
@@ -69,24 +69,24 @@ const ClientManagement: React.FC = () => {
   // Scroll handler for infinite loading
   const handleScroll = async (e: React.UIEvent<HTMLElement>) => {
     const target = e.currentTarget;
-    const scrolledToBottom = 
+    const scrolledToBottom =
       target.scrollHeight - target.scrollTop <= target.clientHeight * 1.5;
 
     if (!loadingMore && hasMore && scrolledToBottom) {
       setLoadingMore(true);
       try {
-        const relevantClients = searchQuery 
+        const relevantClients = searchQuery
           ? allClients.filter(client => {
-              const searchLower = searchQuery.toLowerCase();
-              return client.client_nic_name.toLowerCase().includes(searchLower) ||
-                     client.client_name.toLowerCase().includes(searchLower) ||
-                     client.site.toLowerCase().includes(searchLower);
-            })
+            const searchLower = searchQuery.toLowerCase();
+            return client.client_nic_name.toLowerCase().includes(searchLower) ||
+              client.client_name.toLowerCase().includes(searchLower) ||
+              client.site.toLowerCase().includes(searchLower);
+          })
           : allClients;
 
         const start = currentPage * ITEMS_PER_PAGE;
         const nextBatch = relevantClients.slice(start, start + ITEMS_PER_PAGE);
-        
+
         if (nextBatch.length > 0) {
           setClients(prev => [...prev, ...nextBatch]);
           setCurrentPage(prev => prev + 1);
@@ -118,8 +118,8 @@ const ClientManagement: React.FC = () => {
       const filteredResults = allClients.filter(client => {
         const searchLower = searchQuery.toLowerCase();
         return client.client_nic_name.toLowerCase().includes(searchLower) ||
-               client.client_name.toLowerCase().includes(searchLower) ||
-               client.site.toLowerCase().includes(searchLower);
+          client.client_name.toLowerCase().includes(searchLower) ||
+          client.site.toLowerCase().includes(searchLower);
       });
       setClients(filteredResults.slice(0, ITEMS_PER_PAGE));
       setHasMore(filteredResults.length > ITEMS_PER_PAGE);
@@ -167,7 +167,7 @@ const ClientManagement: React.FC = () => {
       // Sort the data using improved natural sort
       const sortedData = [...(data || [])].sort((a, b) => {
         const result = naturalSort(
-          a.client_nic_name.toString(), 
+          a.client_nic_name.toString(),
           b.client_nic_name.toString()
         );
         return sortOption === 'nameAZ' ? result : -result;
@@ -175,11 +175,11 @@ const ClientManagement: React.FC = () => {
 
       // Store all clients
       setAllClients(sortedData);
-      
+
       // Set initial batch
       const initialBatch = sortedData.slice(0, ITEMS_PER_PAGE);
       setClients(initialBatch);
-      
+
       // Reset pagination
       setCurrentPage(1);
       setHasMore(sortedData.length > ITEMS_PER_PAGE);
@@ -217,6 +217,7 @@ const ClientManagement: React.FC = () => {
           client_name: data.client_name,
           site: data.site,
           primary_phone_number: data.primary_phone_number,
+          daily_rent_price: data.daily_rent_price ?? 1,
           updated_at: new Date().toISOString(),
         })
         .eq('id', editingClient.id);
@@ -253,6 +254,7 @@ const ClientManagement: React.FC = () => {
           client_name: data.client_name,
           site: data.site,
           primary_phone_number: data.primary_phone_number,
+          daily_rent_price: data.daily_rent_price ?? 1,
         });
 
       toast.dismiss(loadingToast);
@@ -331,48 +333,48 @@ const ClientManagement: React.FC = () => {
 
   const filteredClients = useMemo(() => {
     // First filter the clients
-    const filteredAllClients = !searchQuery 
-      ? allClients 
+    const filteredAllClients = !searchQuery
+      ? allClients
       : allClients.filter(client => {
-          const searchLower = searchQuery.toLowerCase().trim();
-          
-          // Try to parse the search term as a number
-          const searchNum = parseInt(searchLower);
-          const isSearchingNumber = !isNaN(searchNum);
+        const searchLower = searchQuery.toLowerCase().trim();
 
-          // If searching for a number, try to match it against the numeric part of client_nic_name
-          if (isSearchingNumber) {
-            const nicNameMatch = client.client_nic_name?.match(/^(\d+)/);
-            if (nicNameMatch) {
-              const clientNum = parseInt(nicNameMatch[1]);
-              if (clientNum === searchNum) return true;
-            }
+        // Try to parse the search term as a number
+        const searchNum = parseInt(searchLower);
+        const isSearchingNumber = !isNaN(searchNum);
+
+        // If searching for a number, try to match it against the numeric part of client_nic_name
+        if (isSearchingNumber) {
+          const nicNameMatch = client.client_nic_name?.match(/^(\d+)/);
+          if (nicNameMatch) {
+            const clientNum = parseInt(nicNameMatch[1]);
+            if (clientNum === searchNum) return true;
           }
+        }
 
-          // Standard text search
-          return (
-            (client.client_nic_name || '').toLowerCase().includes(searchLower) ||
-            (client.client_name || '').toLowerCase().includes(searchLower) ||
-            (client.site || '').toLowerCase().includes(searchLower)
-          );
-        });
-    
+        // Standard text search
+        return (
+          (client.client_nic_name || '').toLowerCase().includes(searchLower) ||
+          (client.client_name || '').toLowerCase().includes(searchLower) ||
+          (client.site || '').toLowerCase().includes(searchLower)
+        );
+      });
+
     // Sort using natural sort
     const sortedClients = [...filteredAllClients].sort((a, b) => {
       const result = naturalSort(
-        (a.client_nic_name || '').toString(), 
+        (a.client_nic_name || '').toString(),
         (b.client_nic_name || '').toString()
       );
       return sortOption === 'nameAZ' ? result : -result;
     });
-    
+
     // Return only the paginated portion
     const start = 0;
     const end = currentPage * ITEMS_PER_PAGE;
     return sortedClients.slice(start, end);
   }, [allClients, searchQuery, currentPage, sortOption]);
 
-  
+
 
   const SkeletonCard = () => (
     <div className="p-2 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-3 lg:p-4 animate-pulse">
@@ -388,7 +390,7 @@ const ClientManagement: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Toaster 
+      <Toaster
         position="top-center"
         toastOptions={{
           duration: 3000,
@@ -413,7 +415,7 @@ const ClientManagement: React.FC = () => {
         }}
       />
       <Navbar />
-      <main 
+      <main
         className="flex-1 w-full ml-0 overflow-y-auto pt-14 sm:pt-0 lg:ml-64 h-[100dvh]"
         onScroll={handleScroll}
       >
@@ -464,7 +466,7 @@ const ClientManagement: React.FC = () => {
                     <Filter className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline">{getSortLabel(sortOption)}</span>
                   </button>
-                  
+
                   {/* Sort Options Dropdown */}
                   {showSortMenu && (
                     <div className="absolute right-0 z-10 w-40 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg">
@@ -475,9 +477,8 @@ const ClientManagement: React.FC = () => {
                             setSortOption(option);
                             setShowSortMenu(false);
                           }}
-                          className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${
-                            sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
-                          }`}
+                          className={`w-full px-4 py-2 text-xs text-left transition-colors hover:bg-gray-50 ${sortOption === option ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            }`}
                         >
                           {getSortLabel(option)}
                         </button>
@@ -489,7 +490,7 @@ const ClientManagement: React.FC = () => {
             </div>
           </div>
 
-          
+
 
           {/* Client Form Section - Hidden on Mobile, Show on Desktop */}
           <div className="hidden p-4 mb-6 bg-white border border-gray-200 shadow-sm lg:block lg:p-6 lg:mb-8 rounded-xl">
@@ -594,7 +595,7 @@ const ClientManagement: React.FC = () => {
         {/* Mobile Form Modal/Sheet */}
         {showForm && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div 
+            <div
               className="absolute inset-0 bg-black bg-opacity-50"
               onClick={handleCancel}
             ></div>

@@ -7,6 +7,7 @@ export interface ClientFormData {
   client_name: string;
   site: string;
   primary_phone_number: string;
+  daily_rent_price?: number;
 }
 
 interface ClientFormProps {
@@ -23,6 +24,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
     client_name: '',
     site: '',
     primary_phone_number: '',
+    daily_rent_price: 1,
   });
   const [errors, setErrors] = useState<Partial<ClientFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +67,7 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
         client_name: '',
         site: '',
         primary_phone_number: '',
+        daily_rent_price: 1,
       });
       setErrors({});
     } finally {
@@ -74,19 +77,36 @@ const ClientForm: React.FC<ClientFormProps> = ({ initialData, onSubmit, onCancel
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-4 ${isQuickAdd ? 'p-4 bg-blue-50 rounded-lg' : ''}`}>
-      <div>
-        <label className="block mb-1 text-sm font-medium text-gray-700">
-          {t('clientNicName')} *
-        </label>
-        <input
-          type="text"
-          value={formData.client_nic_name}
-          onChange={(e) => setFormData({ ...formData, client_nic_name: e.target.value })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          minLength={2}
-          maxLength={50}
-        />
-        {errors.client_nic_name && <p className="mt-1 text-sm text-red-600">{errors.client_nic_name}</p>}
+      {/* Client ID and Daily Rent - Side by side on all screens */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            {t('clientNicName')} *
+          </label>
+          <input
+            type="text"
+            value={formData.client_nic_name}
+            onChange={(e) => setFormData({ ...formData, client_nic_name: e.target.value })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            minLength={2}
+            maxLength={50}
+          />
+          {errors.client_nic_name && <p className="mt-1 text-sm text-red-600">{errors.client_nic_name}</p>}
+        </div>
+
+        <div>
+          <label className="block mb-1 text-sm font-medium text-gray-700">
+            {t('dailyRentPrice')}
+          </label>
+          <input
+            type="number"
+            value={formData.daily_rent_price ?? 1}
+            onChange={(e) => setFormData({ ...formData, daily_rent_price: parseFloat(e.target.value) || 1 })}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            min={0}
+            step={0.1}
+          />
+        </div>
       </div>
 
       <div>

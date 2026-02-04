@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { Search, FileText, User, RefreshCw, Filter, Download, Eye, MapPin, X, Trash2 } from "lucide-react";
+import { Search, FileText, User, RefreshCw, Filter, Download, Eye, MapPin, X, Trash2, Pencil } from "lucide-react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { supabase } from "../utils/supabase";
 import Navbar from "../components/Navbar";
@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import * as periodCalculations from "../utils/billingPeriodCalculations";
 import { generateBillJPEG } from "../utils/generateBillJPEG";
 import BillInvoiceTemplate from "../components/BillInvoiceTemplate";
+import { useNavigate } from "react-router-dom";
 
 type SortOption = 'dateNewOld' | 'dateOldNew' | 'amountHighLow' | 'amountLowHigh';
 
@@ -43,9 +44,10 @@ interface BillCardProps {
   onView: (bill: BillRecord) => void;
   onDownload: (bill: BillRecord) => void;
   onDelete: (bill: BillRecord) => void;
+  onEdit: (bill: BillRecord) => void;
 }
 
-const BillCard: React.FC<BillCardProps> = ({ bill, t, onView, onDownload, onDelete }) => {
+const BillCard: React.FC<BillCardProps> = ({ bill, t, onView, onDownload, onDelete, onEdit }) => {
   const amount = bill.grand_total || bill.total_amount || 0;
   // Fallback chain for date
   const date = bill.billing_date || bill.bill_date || bill.created_at;
@@ -101,6 +103,13 @@ const BillCard: React.FC<BillCardProps> = ({ bill, t, onView, onDownload, onDele
 
         <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
           <button
+            onClick={() => onEdit(bill)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium text-amber-600 bg-amber-50 rounded hover:bg-amber-100 transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </button>
+          <button
             onClick={() => onView(bill)}
             className="flex-1 flex items-center justify-center gap-1.5 px-2 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded hover:bg-blue-100 transition-colors"
           >
@@ -129,6 +138,7 @@ const BillCard: React.FC<BillCardProps> = ({ bill, t, onView, onDownload, onDele
 
 export default function BillBook() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
 
   // State
   const [bills, setBills] = useState<BillRecord[]>([]);
@@ -180,16 +190,7 @@ export default function BillBook() {
   useEffect(() => {
     loadBills();
 
-    // Check for maintenance toast
-    const hasShown = sessionStorage.getItem('billMaintenanceReshown');
-    if (!hasShown) {
-      toast(t('maintenanceMessage'), {
-        duration: 5000,
-        style: { background: '#363636', color: '#fff', fontSize: '14px', padding: '16px', borderRadius: '8px' },
-        id: 'maintenance-message'
-      });
-      sessionStorage.setItem('billMaintenanceReshown', 'true');
-    }
+
   }, []);
 
   // Filter & Sort
@@ -337,6 +338,16 @@ export default function BillBook() {
         }
       }
 
+      // Calculate derived totals to ensure display even if DB columns are 0
+      const calculatedTotalRent = bill.total_rent_amount || result.billingPeriods.totalRent || 0;
+      const calculatedExtra = bill.total_extra_cost || (extraCosts || []).reduce((sum: any, c: any) => sum + (c.total_amount || (c.pieces * c.price_per_piece)), 0);
+      const calculatedDiscount = bill.total_discount || (discounts || []).reduce((sum: any, d: any) => sum + (d.total_amount || (d.pieces * d.discount_per_piece)), 0);
+      const calculatedPaid = bill.total_payment || (payments || []).reduce((sum: any, p: any) => sum + p.amount, 0);
+      const pending = previousBillData?.amount || 0;
+
+      const derivedGrandTotal = calculatedTotalRent + calculatedExtra + pending;
+      const derivedDue = derivedGrandTotal - calculatedDiscount - calculatedPaid;
+
       // 4. Construct Full Bill Object
       const fullBillData = {
         companyDetails: {
@@ -384,12 +395,12 @@ export default function BillBook() {
           id: p.id, date: p.date, method: p.payment_method, note: p.note, amount: p.amount
         })),
         summary: {
-          grandTotal: bill.grand_total || bill.total_amount || 0,
-          totalPaid: bill.total_payment || 0,
-          duePayment: bill.due_payment || 0,
-          totalRent: bill.total_rent_amount || result.billingPeriods.totalRent,
-          totalExtraCosts: bill.total_extra_cost || 0,
-          discounts: bill.total_discount || 0,
+          grandTotal: bill.grand_total || bill.total_amount || derivedGrandTotal,
+          totalPaid: calculatedPaid,
+          duePayment: bill.due_payment !== undefined ? bill.due_payment : derivedDue,
+          totalRent: calculatedTotalRent,
+          totalExtraCosts: calculatedExtra,
+          discounts: calculatedDiscount,
           // placeholders for template required fields
           totalUdharPlates: 0,
           totalJamaPlates: 0,
@@ -449,6 +460,12 @@ export default function BillBook() {
     }
   };
 
+
+  const handleEditBill = (bill: BillRecord) => {
+    // Navigate to CreateBill page with edit param
+    const encodedBillNumber = encodeURIComponent(bill.bill_number);
+    navigate(`/billing/create/${bill.client_id}?edit=${encodedBillNumber}`);
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -559,6 +576,7 @@ export default function BillBook() {
                   onView={handleViewBill}
                   onDownload={handleDownloadBill}
                   onDelete={handleDeleteBill}
+                  onEdit={handleEditBill}
                 />
               ))}
             </div>

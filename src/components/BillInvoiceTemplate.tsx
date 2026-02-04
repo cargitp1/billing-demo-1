@@ -103,7 +103,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
         {/* Header Section */}
         <div style={{ borderBottom: '2px solid #000', padding: '15px' }}>
           {/* Top Row: Contact Info & Religious Text */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '15px' }}>
             {/* Left */}
             <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px' }}>
               પરષોત્તમભાઈ પોલરા<br />
@@ -124,24 +124,31 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
             </div>
           </div>
 
-          {/* Main Title Row */}
+          {/* Main Title Row - Single Capsule Banner */}
           <div style={{
             display: 'flex',
             justifyContent: 'center',
-            alignItems: 'center',
-            border: '2px solid #000',
-            borderRadius: '20px',
-            padding: '8px 220px',
             margin: '10px auto',
-            gap: '20px',
-            width: 'fit-content'
+            width: '100%'
           }}>
-            <h1 style={{ fontSize: '52px', fontWeight: 'bold', margin: '0', lineHeight: '1', whiteSpace: 'nowrap' }}>નિલકંઠ</h1>
-            <h2 style={{ fontSize: '32px', fontWeight: 'bold', margin: '0', lineHeight: '1', whiteSpace: 'nowrap' }}>પ્લેટ ડેપો</h2>
+            <div style={{
+              border: '2px solid #000',
+              borderRadius: '50px',
+              padding: '10px 40px',
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'center',
+              width: '100%',
+              maxWidth: '700px',
+              backgroundColor: '#fff'
+            }}>
+              <span style={{ fontSize: '48px', fontWeight: 'bold', marginRight: '20px' }}>નિલકંઠ</span>
+              <span style={{ fontSize: '32px', fontWeight: 'bold' }}>પ્લેટ ડેપો</span>
+            </div>
           </div>
 
           {/* Bottom Address/Info Row */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 10px', marginTop: '10px' }}>
             <div style={{ fontWeight: 'bold', fontSize: '14px' }}>
               ૧૦, અજમલધામ સોસાયટી, સીમાડા ગામ, સુરત.
             </div>
@@ -250,9 +257,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               {/* Extra Costs */}
               {extraCosts.length > 0 && (
                 <>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>અન્ય ખર્ચ</td>
-                  </tr>
+
                   {extraCosts.map((cost, index) => (
                     <tr key={`extra-${index}`}>
                       <td colSpan={4} style={{ border: '1px solid #000', padding: '8px 12px' }}>
@@ -348,12 +353,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                 </tr>
 
                 {/* Add extra costs total if multiple? */}
-                {summary.totalExtraCosts > 0 && (
-                  <tr>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>અન્ય ખર્ચ:</td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600' }}>{formatIndianCurrency(summary.totalExtraCosts)}</td>
-                  </tr>
-                )}
+
 
                 <tr>
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#16a34a' }}>ચુકવેલ:</td>
@@ -376,6 +376,21 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
 
 
 
+
+      </div>
+
+      {/* Promotional Footer - Outside the bill border */}
+      <div style={{
+        textAlign: 'center',
+        padding: '4px 0',
+        marginTop: '2px',
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#dc2626',
+        letterSpacing: '0.5px',
+        opacity: 0.6
+      }}>
+        કસ્ટમ બિલિંગ સોફ્ટવેર બનાવા સંપર્ક કરો - 8866471567
       </div>
     </div>
   );

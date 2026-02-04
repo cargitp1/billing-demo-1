@@ -156,7 +156,7 @@ export const translations = {
     optionalGeneralNotes: 'વૈકલ્પિક સામાન્ય નોંધ...',
     optional: 'વૈકલ્પિક',
 
-    save: 'સેવ અને ડાઉનલોડ કરો',
+    save: 'સેવ કરો',
     cancel: 'રદ કરો',
     edit: 'સુધારો',
     delete: 'ડિલીટ કરો',
@@ -372,6 +372,8 @@ export const translations = {
     clients: 'ગ્રાહક્સ',
     noMatchingClients: 'કોઈ ગ્રાહક મેળ ખાતો નથી',
     clientExists: "આ ગ્રાહક ID પહેલેથી જ અસ્તિત્વમાં છે",
+    dailyRentPrice: 'દૈનિક ભાડા દર',
+    dailyRentPriceHelp: 'બિલિંગ માટે દૈનિક ભાડા દર, ડિફોલ્ટ 1',
   },
   en: {
     // Landing Page
@@ -658,6 +660,8 @@ export const translations = {
     clients: 'clients',
     noMatchingClients: 'No matching clients',
     activityOn: "Activity:",
+    dailyRentPrice: 'Daily Rent Price',
+    dailyRentPriceHelp: 'Daily rent rate for billing, default is 1',
 
 
 
