@@ -203,6 +203,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                 <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>આ. તારીખ થી જમા તારીખ</th>
                 <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>જમા/ઉધાર</th>
                 <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>ચાલુ નંગ</th>
+                <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>ભાવ</th>
                 <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>દિવસ</th>
                 <th style={{ backgroundColor: '#000', color: '#fff', border: '1px solid #fff', padding: '10px', textAlign: 'center', fontWeight: 'bold' }}>રકમ</th>
               </tr>
@@ -214,6 +215,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                   <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: 'bold', color: '#dc2626' }}>
                     અગાઉનું બિલ #{previousBill.billNumber} બાકી
                   </td>
+                  <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>-</td>
                   <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>-</td>
                   <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>-</td>
                   <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>-</td>
@@ -245,6 +247,9 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                       {charge.pieces}
                     </td>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                      {charge.rate || billDetails.dailyRent}
+                    </td>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
                       {charge.days}
                     </td>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
@@ -260,12 +265,10 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
 
                   {extraCosts.map((cost, index) => (
                     <tr key={`extra-${index}`}>
-                      <td colSpan={4} style={{ border: '1px solid #000', padding: '8px 12px' }}>
+                      <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px' }}>
                         <span style={{ fontWeight: '600' }}>{cost.description}</span>
                         {/* Hide date for Service Charge */}
-                        {!(cost.description === "સર્વિસ ચાર્જ" || cost.description === "Service Charge") && (
-                          <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(cost.date), 'dd/MM/yyyy')})</span>
-                        )}
+                        {/* Date removed as per request */}
                         {/* Show Qty X Rate for Service Charge */}
                         {(cost.description === "સર્વિસ ચાર્જ" || cost.description === "Service Charge") && cost.pieces && cost.rate && (
                           <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({cost.pieces} X {cost.rate})</span>
@@ -281,11 +284,11 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               {discounts.length > 0 && (
                 <>
                   <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>ડિસ્કાઉન્ટ</td>
+                    <td colSpan={6} style={{ border: '1px solid #000', padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>ડિસ્કાઉન્ટ</td>
                   </tr>
                   {discounts.map((discount, index) => (
                     <tr key={`disc-${index}`}>
-                      <td colSpan={4} style={{ border: '1px solid #000', padding: '8px 12px' }}>
+                      <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px' }}>
                         <span style={{ fontWeight: '600' }}>{discount.description}</span>
                         <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(discount.date), 'dd/MM/yyyy')})</span>
                       </td>

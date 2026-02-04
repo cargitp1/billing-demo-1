@@ -438,6 +438,7 @@ export default function CreateBill() {
     setBillData((prev) => ({
       ...prev,
       [field]: value,
+      billDate: field === 'toDate' ? (value as string) : prev.billDate,
       errors: newErrors,
     }));
   };
@@ -1023,23 +1024,7 @@ export default function CreateBill() {
                   )}
                 </div>
 
-                <div>
-                  <label className="block mb-1 text-sm font-medium text-gray-700">
-                    {t("billDate")}
-                    <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Calendar className="absolute w-5 h-5 text-gray-400 transform -translate-y-1/2 left-3 top-1/2" />
-                    <input
-                      type="date"
-                      value={billData.billDate}
-                      onChange={(e) =>
-                        handleInputChange("billDate", e.target.value)
-                      }
-                      className="block w-full py-2 pl-10 pr-3 text-sm border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
+
 
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">

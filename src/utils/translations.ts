@@ -265,7 +265,7 @@ export const translations = {
     createJama: 'જમા ચલણ બનાવો',
     recentClients: 'તાજેતરના ગ્રાહકો',
 
-    activityOn: "પ્રવૃત્તિ:",
+    activityOn: "રોજમેળ:",
     saveSuccess: 'સફળતાપૂર્વક સેવ થયું',
     deleteConfirm: 'શું તમે ખરેખર ડિલીટ કરવા માંગો છો?',
     requiredField: 'આ ફીલ્ડ જરૂરી છે',
