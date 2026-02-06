@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronDown, ChevronUp, MapPin, Phone, Download, Plus, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { ClientLedgerData } from '../pages/ClientLedger';
@@ -66,6 +66,40 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
         }
       }
     });
+  };
+
+  // Long press logic
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const isLongPress = useRef(false);
+
+  const startPress = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation(); // Stop propagation immediately
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      handleDownloadLedger('simple');
+      if (navigator.vibrate) navigator.vibrate(200); // Haptic feedback
+    }, 2000); // 2 seconds threshold
+  };
+
+  const endPress = (e: React.MouseEvent | React.TouchEvent) => {
+    e.stopPropagation();
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+
+    if (!isLongPress.current) {
+      handleDownloadLedger('detailed');
+    }
+    // If it was a long press, the action already happened in the timeout
+  };
+
+  const cancelPress = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   };
 
   return (
@@ -138,26 +172,15 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               </button>
 
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDownloadLedger('detailed');
-                }}
-                className="p-2 text-blue-600 transition-colors rounded-full bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-                title="Download Detailed Ledger"
+                onMouseDown={startPress}
+                onMouseUp={endPress}
+                onMouseLeave={cancelPress}
+                onTouchStart={startPress}
+                onTouchEnd={endPress}
+                className="p-2 text-blue-600 transition-colors rounded-full bg-blue-50 hover:bg-blue-100 hover:text-blue-700 select-none"
+                title="Download: Click for Detailed, Hold 2s for Simple"
               >
                 <Download className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDownloadLedger('simple');
-                }}
-                className="p-2 text-purple-600 transition-colors rounded-full bg-purple-50 hover:bg-purple-100 hover:text-purple-700"
-                title="Download Simple Ledger"
-              >
-                <Download className="w-5 h-5" />
-                <span className="text-[10px] absolute -mt-3 -ml-2 bg-white px-1 font-bold">S</span>
               </button>
 
               <button className="p-2 text-gray-400 transition-colors rounded-full hover:bg-gray-100 hover:text-gray-600">
@@ -210,27 +233,17 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                   <span className="text-base font-bold leading-none">−</span>
                 </button>
 
-                {/* Mobile Download Buttons */}
+                {/* Mobile Download Button with Long Press */}
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownloadLedger('detailed');
-                  }}
-                  className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation active:scale-95"
-                  aria-label="Download Detailed Ledger"
+                  onMouseDown={startPress}
+                  onMouseUp={endPress}
+                  onMouseLeave={cancelPress}
+                  onTouchStart={startPress}
+                  onTouchEnd={endPress}
+                  className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation active:scale-95 select-none"
+                  aria-label="Download Ledger (Hold 2s for Simple)"
                 >
                   <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDownloadLedger('simple');
-                  }}
-                  className="relative p-1.5 sm:p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors touch-manipulation active:scale-95"
-                  aria-label="Download Simple Ledger"
-                >
-                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span className="absolute top-0 right-0 text-[8px] font-bold bg-white px-0.5 rounded-bl">S</span>
                 </button>
               </div>
             </div>
