@@ -11,6 +11,7 @@ interface ClientLedgerDownloadProps {
   transactions: Transaction[];
   currentBalance: ClientBalance;
   elementId?: string;
+  simpleMode?: boolean;
 }
 
 const SIZE_INDICES = [1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -23,14 +24,18 @@ export default function ClientLedgerDownload({
   transactions,
   currentBalance,
   elementId,
+  simpleMode = false,
 }: ClientLedgerDownloadProps) {
   const { language } = useLanguage();
   const t = translations[language];
+
+  // ... (keep helper functions same) ...
 
   const formatSizeValue = (
     size: { qty: number; borrowed: number },
     note?: string | null
   ) => {
+    // ... (keep existing logic) ...
     const total = (size?.qty || 0) + (size?.borrowed || 0);
 
     if (total === 0 && !note) return '-';
@@ -89,6 +94,7 @@ export default function ClientLedgerDownload({
     borrowed: number;
     total: number;
   }) => {
+    // ... (keep existing logic) ...
     if (!sizeBalance || sizeBalance.total === 0) return '-';
 
     if (sizeBalance.borrowed === 0) {
@@ -131,7 +137,7 @@ export default function ClientLedgerDownload({
     <div
       id={elementId || 'client-ledger-download'}
       style={{
-        width: '1300px',
+        width: simpleMode ? '800px' : '1300px', // Adjust width for simple mode
         backgroundColor: '#ffffff',
         fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
         padding: '24px',
@@ -159,7 +165,7 @@ export default function ClientLedgerDownload({
               marginBottom: '4px',
             }}
           >
-            ગ્રાહક ખાતાવહી
+            ગ્રાહક ખાતાવહી {simpleMode ? '(Simple)' : ''}
           </div>
           <div
             style={{
@@ -225,7 +231,7 @@ export default function ClientLedgerDownload({
                 style={{
                   padding: '8px 8px',
                   textAlign: 'left',
-                  minWidth: '120px',
+                  minWidth: simpleMode ? '100px' : '120px',
                   borderBottom: '2px solid #d1d5db',
                 }}
               >
@@ -235,7 +241,7 @@ export default function ClientLedgerDownload({
                 style={{
                   padding: '8px 8px',
                   textAlign: 'left',
-                  minWidth: '90px',
+                  minWidth: simpleMode ? '100px' : '90px',
                   borderBottom: '2px solid #d1d5db',
                 }}
               >
@@ -245,14 +251,14 @@ export default function ClientLedgerDownload({
                 style={{
                   padding: '8px 4px',
                   textAlign: 'center',
-                  minWidth: '70px',
+                  minWidth: simpleMode ? '80px' : '70px',
                   borderBottom: '2px solid #d1d5db',
                 }}
               >
                 કુલ
               </th>
 
-              {SIZE_INDICES.map((sizeIndex, idx) => (
+              {!simpleMode && SIZE_INDICES.map((sizeIndex, idx) => (
                 <th
                   key={sizeIndex}
                   style={{
@@ -337,7 +343,7 @@ export default function ClientLedgerDownload({
                 {currentBalance.grandTotal}
               </td>
 
-              {SIZE_INDICES.map(sizeIndex => (
+              {!simpleMode && SIZE_INDICES.map(sizeIndex => (
                 <td
                   key={sizeIndex}
                   style={{
@@ -424,11 +430,11 @@ export default function ClientLedgerDownload({
                     {transaction.grandTotal}
                   </td>
 
-                  {SIZE_INDICES.map(sizeIndex => {
+                  {!simpleMode && SIZE_INDICES.map(sizeIndex => {
                     const sizeNote =
                       transaction.items?.[`size_${sizeIndex}_note` as keyof typeof transaction.items] as
-                        | string
-                        | undefined;
+                      | string
+                      | undefined;
 
                     return (
                       <td
@@ -561,6 +567,20 @@ export default function ClientLedgerDownload({
           </p>
         </div>
       </section>
+
+      {/* Promotional Footer */}
+      <div style={{
+        textAlign: 'center',
+        padding: '4px 0',
+        marginTop: '40px',
+        fontSize: '18px',
+        fontWeight: '600',
+        color: '#dc2626',
+        letterSpacing: '0.5px',
+        opacity: 0.6
+      }}>
+        કસ્ટમ બિલિંગ સોફ્ટવેર બનાવા સંપર્ક કરો - 8866471567
+      </div>
     </div>
   );
 }

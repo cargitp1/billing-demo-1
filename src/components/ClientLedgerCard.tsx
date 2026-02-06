@@ -24,10 +24,10 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
     return name.charAt(0).toUpperCase();
   };
 
-  const handleDownloadLedger = async () => {
+  const handleDownloadLedger = async (type: 'simple' | 'detailed') => {
     const loadingToast = toast.loading('Generating ledger image...');
     try {
-      const elementId = `client-ledger-download-${ledger.clientId}`;
+      const elementId = `client-ledger-download-${ledger.clientId}-${type}`;
       await generateClientLedgerJPEG(elementId, ledger.clientNicName);
       toast.dismiss(loadingToast);
       toast.success('Ledger downloaded successfully');
@@ -140,12 +140,24 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDownloadLedger();
+                  handleDownloadLedger('detailed');
                 }}
                 className="p-2 text-blue-600 transition-colors rounded-full bg-blue-50 hover:bg-blue-100 hover:text-blue-700"
-                title="Download Ledger"
+                title="Download Detailed Ledger"
               >
                 <Download className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownloadLedger('simple');
+                }}
+                className="p-2 text-purple-600 transition-colors rounded-full bg-purple-50 hover:bg-purple-100 hover:text-purple-700"
+                title="Download Simple Ledger"
+              >
+                <Download className="w-5 h-5" />
+                <span className="text-[10px] absolute -mt-3 -ml-2 bg-white px-1 font-bold">S</span>
               </button>
 
               <button className="p-2 text-gray-400 transition-colors rounded-full hover:bg-gray-100 hover:text-gray-600">
@@ -197,15 +209,28 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
                 >
                   <span className="text-base font-bold leading-none">−</span>
                 </button>
+
+                {/* Mobile Download Buttons */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDownloadLedger();
+                    handleDownloadLedger('detailed');
                   }}
                   className="p-1.5 sm:p-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors touch-manipulation active:scale-95"
-                  aria-label="Download Ledger"
+                  aria-label="Download Detailed Ledger"
                 >
                   <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownloadLedger('simple');
+                  }}
+                  className="relative p-1.5 sm:p-2 text-purple-600 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors touch-manipulation active:scale-95"
+                  aria-label="Download Simple Ledger"
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="absolute top-0 right-0 text-[8px] font-bold bg-white px-0.5 rounded-bl">S</span>
                 </button>
               </div>
             </div>
@@ -235,35 +260,52 @@ export default function ClientLedgerCard({ ledger }: ClientLedgerCardProps) {
         </div>
       </div>
 
-      {isExpanded && (
-        <div className="p-5 border-t border-gray-200 bg-gray-50">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="font-semibold text-gray-700 text-md">
-              {t.transactionHistory}
-            </h4>
+      {
+        isExpanded && (
+          <div className="p-5 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="font-semibold text-gray-700 text-md">
+                {t.transactionHistory}
+              </h4>
+            </div>
+            <TransactionTable
+              transactions={ledger.transactions || []}
+              currentBalance={ledger.currentBalance}
+              clientNicName={ledger.clientNicName}
+              clientFullName={ledger.clientFullName}
+              clientSite={ledger.clientSite}
+              clientPhone={ledger.clientPhone}
+            />
           </div>
-          <TransactionTable
-            transactions={ledger.transactions || []}
-            currentBalance={ledger.currentBalance}
-            clientNicName={ledger.clientNicName}
-            clientFullName={ledger.clientFullName}
-            clientSite={ledger.clientSite}
-            clientPhone={ledger.clientPhone}
-          />
-        </div>
-      )}
+        )
+      }
 
+      {/* Hidden Download Containers */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        {/* Detailed Version */}
         <ClientLedgerDownload
-          elementId={`client-ledger-download-${ledger.clientId}`}
+          elementId={`client-ledger-download-${ledger.clientId}-detailed`}
           clientNicName={ledger.clientNicName}
           clientFullName={ledger.clientFullName}
           clientSite={ledger.clientSite}
           clientPhone={ledger.clientPhone}
           transactions={ledger.transactions}
           currentBalance={ledger.currentBalance}
+          simpleMode={false}
+        />
+
+        {/* Simple Version */}
+        <ClientLedgerDownload
+          elementId={`client-ledger-download-${ledger.clientId}-simple`}
+          clientNicName={ledger.clientNicName}
+          clientFullName={ledger.clientFullName}
+          clientSite={ledger.clientSite}
+          clientPhone={ledger.clientPhone}
+          transactions={ledger.transactions}
+          currentBalance={ledger.currentBalance}
+          simpleMode={true}
         />
       </div>
-    </div>
+    </div >
   );
 }

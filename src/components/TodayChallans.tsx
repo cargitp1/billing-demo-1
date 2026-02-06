@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Package, Calendar, MapPin, ArrowUpRight, Receipt } from 'lucide-react';
+import { Package, Calendar, MapPin, ArrowUpRight, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { fetchDailyChallans } from '../utils/challanFetching';
 import { useNavigate } from 'react-router-dom';
@@ -13,9 +13,21 @@ const TodayChallans: React.FC = () => {
     const navigate = useNavigate();
     const [challans, setChallans] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedChallan, setSelectedChallan] = useState<any | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [selectedDate, setSelectedDate] = useState(new Date());
+
+    const goToPreviousDay = () => {
+        const newDate = new Date(selectedDate);
+        newDate.setDate(newDate.getDate() - 1);
+        setSelectedDate(newDate);
+    };
+
+    const goToNextDay = () => {
+        const newDate = new Date(selectedDate);
+        newDate.setDate(newDate.getDate() + 1);
+        setSelectedDate(newDate);
+    };
 
     useEffect(() => {
         const loadChallans = async () => {
@@ -133,49 +145,77 @@ const TodayChallans: React.FC = () => {
                     <div className="flex items-center justify-between w-full sm:justify-start sm:gap-4">
                         <div className="flex items-center gap-1.5 sm:gap-2">
                             <Calendar className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                            <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">
+                            <h2 className="text-lg font-bold text-gray-900 sm:text-xl md:text-2xl">
                                 {isToday(selectedDate)
-                                    ? (t('todaysActivity') || "Today's Activity")
+                                    ? (t('todayActivity') || "Today's Activity")
                                     : (t('activityOn' as any) || 'Activity:') + ` ${selectedDate.toLocaleDateString()}`
                                 }
                             </h2>
                         </div>
-                        {/* Mobile Compact Date Picker */}
-                        <div className="block sm:hidden">
+                        {/* Mobile Compact Date Picker with Arrows */}
+                        <div className="flex items-center gap-0.5 sm:hidden">
                             <input
                                 type="date"
                                 value={selectedDate.toISOString().split('T')[0]}
                                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
                                 className="px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
+                            {/* Arrow Buttons */}
+                            <div className="flex flex-row gap-0.5">
+                                <button
+                                    onClick={goToPreviousDay}
+                                    className="p-1 text-gray-600 bg-white border border-gray-300 rounded-l-lg shadow-sm hover:bg-gray-50"
+                                    aria-label="Previous day"
+                                >
+                                    <ChevronDown className="w-3 h-3" />
+                                </button>
+                                <button
+                                    onClick={goToNextDay}
+                                    className="p-1 text-gray-600 bg-white border border-gray-300 rounded-r-lg shadow-sm hover:bg-gray-50"
+                                    aria-label="Next day"
+                                >
+                                    <ChevronUp className="w-3 h-3" />
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-                        {/* Desktop Date Picker */}
-                        <div className="hidden sm:block">
+                        {/* Desktop Date Picker with Arrows */}
+                        <div className="hidden sm:flex sm:items-center sm:gap-0.5">
                             <input
                                 type="date"
                                 value={selectedDate.toISOString().split('T')[0]}
                                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
                                 className="px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
+                            {/* Arrow Buttons */}
+                            <div className="flex flex-row gap-0.5">
+                                <button
+                                    onClick={goToPreviousDay}
+                                    className="p-1 text-gray-600 bg-white border border-gray-300 rounded-l-lg shadow-sm hover:bg-gray-50"
+                                    aria-label="Previous day"
+                                >
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={goToNextDay}
+                                    className="p-1 text-gray-600 bg-white border border-gray-300 rounded-r-lg shadow-sm hover:bg-gray-50"
+                                    aria-label="Next day"
+                                >
+                                    <ChevronUp className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
-
-                        <button
-                            onClick={() => navigate('/challan-book')}
-                            className="flex items-center gap-0.5 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95 whitespace-nowrap ml-auto sm:ml-0"
-                        >
-                            {t('viewAll')}
-                            <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        </button>
                     </div>
                 </div>
 
                 {challans.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center p-8 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg">
-                        <Calendar className="w-10 h-10 mb-3 text-gray-300" />
-                        <p className="text-sm font-medium text-gray-500">No activity found based on current active filter</p>
+                    <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg">
+                        <Calendar className="w-12 h-12 mb-3 text-gray-300" />
+                        <p className="text-base font-medium text-gray-500">
+                            {t('noActivityFound') || 'No activity found based on current active filter'}
+                        </p>
                         {!isToday(selectedDate) && (
                             <button
                                 onClick={() => setSelectedDate(new Date())}

@@ -16,6 +16,7 @@ import { Toaster } from 'react-hot-toast';
 import { format } from 'date-fns';
 import '../styles/wave.css';
 import TodayChallans from '../components/TodayChallans';
+import JournalSection from '../components/JournalSection';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('createBill'),
-      description: t('underDevelopment'),
+      description: t('createNewBill'),
       icon: FileText,
       path: '/billing',
       gradient: 'from-amber-500 to-amber-700',
@@ -85,7 +86,7 @@ const Dashboard: React.FC = () => {
     },
     {
       title: t('billBook'),
-      description: t('underDevelopment'),
+      description: t('billingManagement'),
       icon: BookOpen,
       path: '/bill-book',
       gradient: 'from-cyan-500 to-cyan-700',
@@ -438,20 +439,16 @@ const Dashboard: React.FC = () => {
           {/* Today's Challans */}
           <TodayChallans />
 
-          {/* Recent Activity - Compact Mobile */}
-          <div className="p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 lg:p-6 sm:rounded-xl">
+          {/* Journal Section */}
+          <JournalSection />
+
+          {/* Recent Activity - Hidden on Mobile */}
+          <div className="hidden p-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:block sm:p-4 lg:p-6 sm:rounded-xl">
             <div className="flex flex-col items-start justify-between gap-2 mb-3 sm:flex-row sm:items-center sm:gap-0 sm:mb-5">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Activity className="w-4 h-4 text-gray-700 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                 <h2 className="text-base font-bold text-gray-900 sm:text-lg lg:text-2xl">{t('recentActivity')}</h2>
               </div>
-              <button
-                onClick={() => navigate('/challan-book')}
-                className="flex items-center gap-0.5 text-xs sm:text-sm font-medium text-blue-600 hover:text-blue-700 touch-manipulation active:scale-95"
-              >
-                {t('viewAll')}
-                <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-              </button>
             </div>
             <div className="py-6 text-center sm:py-8 lg:py-12">
               <div className="inline-flex items-center justify-center w-10 h-10 mb-2 bg-gray-100 rounded-full sm:w-12 sm:h-12 sm:mb-3 lg:w-16 lg:h-16 lg:mb-4">

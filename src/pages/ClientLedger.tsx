@@ -670,7 +670,7 @@ export default function ClientLedger() {
                   <button
                     onClick={handleDownloadBackup}
                     disabled={downloading}
-                    className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                    className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-gray-600 border border-gray-200 rounded-md hover:bg-gray-50 disabled:opacity-50"
                     title="Download Backup (CSV)"
                   >
                     {downloading ? (
