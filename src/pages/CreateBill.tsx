@@ -910,18 +910,10 @@ export default function CreateBill() {
       site: client?.site || "",
       phone: client?.primary_phone_number || "",
     },
-    rentalCharges: billResult?.billingPeriods.periods.map((period, index, array) => {
-      const nextType = array[index + 1]?.causeType;
+    rentalCharges: billResult?.billingPeriods.periods.map((period) => {
+
       let end = parseISO(period.endDate);
-      let newDisplayEndDate = period.endDate;
-      if (period.causeType === "jama") {
-        newDisplayEndDate = period.endDate;
-      } else {
-        newDisplayEndDate = subDays(end, 1).toISOString();
-        if (period.causeType !== nextType && nextType === 'jama') {
-          newDisplayEndDate = period.endDate;
-        }
-      }
+      const newDisplayEndDate = subDays(end, 1).toISOString();
 
       return {
         size: "All",
@@ -929,7 +921,7 @@ export default function CreateBill() {
         days: period.days,
         rate: billData.dailyRent,
         amount: period.plateCount * period.days * billData.dailyRent,
-        startDate: period.causeType === 'jama' ? addDays(parseISO(period.startDate), 1).toISOString() : period.startDate,
+        startDate: period.startDate,
         endDate: newDisplayEndDate,
         causeType: period.causeType as 'udhar' | 'jama',
         udharQty: period.udharQty,
@@ -1198,24 +1190,14 @@ export default function CreateBill() {
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                       {billResult?.billingPeriods.periods.map(
-                        (period, index, array) => {
+                        (period, index) => {
                           // const isLastPeriod = index === array.length - 1;
                           // For Jama periods, show the actual return date
                           // For other periods, show one day before the next period starts
-                          const nextType = array[index + 1]?.causeType;
                           let end = parseISO(period.endDate);
 
-                          let newDisplayEndDate =
-                            period.causeType === "jama"
-                              ? format(end, "dd/MM/yyyy")
-                              : format(subDays(end, 1), "dd/MM/yyyy");
-
-                          if (period.causeType !== nextType) {
-                            newDisplayEndDate =
-                              nextType === "jama"
-                                ? format(end, "dd/MM/yyyy")
-                                : format(subDays(end, 1), "dd/MM/yyyy");
-                          }
+                          // Always subtract 1 day for display to avoid overlap with next period start
+                          const newDisplayEndDate = format(subDays(end, 1), "dd/MM/yyyy");
 
                           // Days calculation is now handled in billingPeriodCalculations.ts
                           const amount =
@@ -1242,18 +1224,10 @@ export default function CreateBill() {
                                         }`}
                                     ></div>
                                     <span>
-                                      {period.causeType === "jama"
-                                        ? format(
-                                          addDays(
-                                            parseISO(period.startDate),
-                                            1
-                                          ),
-                                          "dd/MM/yyyy"
-                                        )
-                                        : format(
-                                          parseISO(period.startDate),
-                                          "dd/MM/yyyy"
-                                        )}{" "}
+                                      {format(
+                                        parseISO(period.startDate),
+                                        "dd/MM/yyyy"
+                                      )}{" "}
                                       થી {newDisplayEndDate}
                                     </span>
                                   </div>

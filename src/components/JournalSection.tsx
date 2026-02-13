@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { BookOpen, Calendar, ChevronDown, ChevronUp, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Calendar, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { fetchDailyChallans } from '../utils/challanFetching';
 import { calculateTotalFromItems } from '../utils/challanFetching';
-import { toJpeg } from 'html-to-image';
+
 import toast from 'react-hot-toast';
 
 const JournalSection: React.FC = () => {
@@ -87,38 +87,67 @@ const JournalSection: React.FC = () => {
         return { totalUdhar, totalJama };
     };
 
-    const journalRef = useRef<HTMLDivElement>(null);
-    const printRef = useRef<HTMLDivElement>(null);
 
-    const downloadJournal = async () => {
-        const loadingToast = toast.loading('Generating journal...');
+
+    const downloadCSV = () => {
         try {
-            if (printRef.current) {
-                // Wait for any images/fonts to settle (though hidden)
-                await new Promise(resolve => setTimeout(resolve, 500));
+            // Define CSV Headers
+            let csvContent = "Type,Challan No,Client Name,Site,Phone,Total Qty,";
 
-                const dataUrl = await toJpeg(printRef.current, {
-                    quality: 0.95,
-                    pixelRatio: 2,
-                    cacheBust: true,
-                    backgroundColor: '#ffffff'
-                });
-
-                const link = document.createElement('a');
-                const dateStr = selectedDate.toISOString().split('T')[0];
-                link.download = `journal_${dateStr}.jpg`;
-                link.href = dataUrl;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-
-                toast.dismiss(loadingToast);
-                toast.success('Journal downloaded!');
+            // Add Size headers
+            for (let i = 1; i <= 9; i++) {
+                csvContent += `${getSizeLabel(i)},`;
             }
+            csvContent += "\n";
+
+            // Add Rows
+            challans.forEach(challan => {
+                const isUdhar = challan.type === 'udhar';
+                const type = isUdhar ? 'UDHAR' : 'JAMA';
+                const total = calculateTotalFromItems(challan.items);
+
+                // Escape commas in fields
+                const clientName = (challan.clientFullName || '').replace(/,/g, ' ');
+                const site = (challan.client?.site || '').replace(/,/g, ' ');
+                const phone = (challan.client?.primary_phone_number || '').replace(/,/g, ' ');
+
+                let row = `${type},${challan.challanNumber},"${clientName}","${site}","${phone}",${isUdhar ? '+' : '-'}${total},`;
+
+                // Add size quantities
+                for (let i = 1; i <= 9; i++) {
+                    const qty = (challan.items?.[`size_${i}_qty`] || 0) + (challan.items?.[`size_${i}_borrowed`] || 0);
+                    row += `${qty},`;
+                }
+
+                csvContent += row + "\n";
+            });
+
+            // Add Summary Footer
+            csvContent += "\n";
+            csvContent += "SUMMARY\n";
+            const totals = calculateTotals();
+            csvContent += `Total Udhar,${totals.totalUdhar}\n`;
+            csvContent += `Total Jama,${totals.totalJama}\n`;
+            csvContent += `Net Change,${totals.totalJama - totals.totalUdhar}\n`;
+
+            // Trigger Download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            const dateStr = selectedDate.toISOString().split('T')[0];
+
+            link.setAttribute("href", url);
+            link.setAttribute("download", `journal_${dateStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            toast.success('CSV downloaded!');
+
         } catch (error) {
-            console.error('Error generating journal:', error);
-            toast.dismiss(loadingToast);
-            toast.error('Failed to download journal');
+            console.error('Error generating CSV:', error);
+            toast.error('Failed to download CSV');
         }
     };
 
@@ -189,7 +218,7 @@ const JournalSection: React.FC = () => {
     }
 
     return (
-        <div ref={journalRef} className="p-3 mb-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 sm:mb-5 lg:p-6 sm:rounded-xl">
+        <div className="p-3 mb-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-4 sm:mb-5 lg:p-6 sm:rounded-xl">
             {/* Header */}
             <div className="flex items-center justify-between gap-2 mb-3 sm:mb-4 lg:mb-5">
                 <div className="flex items-center gap-1.5 sm:gap-2">
@@ -435,14 +464,16 @@ const JournalSection: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Download Button - Full Width */}
-                        <button
-                            onClick={downloadJournal}
-                            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all"
-                        >
-                            <Download className="w-4 h-4" />
-                            <span className="text-sm">{t('downloadJournal') || 'Download Journal'}</span>
-                        </button>
+                        {/* Download Buttons - Mobile */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={downloadCSV}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all"
+                            >
+                                <FileText className="w-4 h-4" />
+                                <span className="text-sm">રોજમેળ ડાઉનલોડ કરો</span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Desktop Layout - Original */}
@@ -469,153 +500,25 @@ const JournalSection: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Download Button */}
-                        <button
-                            onClick={downloadJournal}
-                            className="flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95 transition-all"
-                        >
-                            <Download className="w-5 h-5" />
-                            <span className="text-base">{t('downloadJournal') || 'Download Journal'}</span>
-                        </button>
+                        {/* Download Buttons - Desktop */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={downloadCSV}
+                                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95 transition-all"
+                            >
+                                <FileText className="w-5 h-5" />
+                                <span className="text-base">રોજમેળ ડાઉનલોડ કરો</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Hidden Print Template */}
-            <div style={{ position: 'absolute', top: -9999, left: -9999 }}>
-                <div ref={printRef} className="bg-white p-8" style={{ width: '1000px', minHeight: '1414px', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                    {/* Print Header */}
-                    <div className="flex justify-between items-center mb-6 pb-4 border-b-2 border-gray-800">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">{t('appName')}</h1>
-                            <p className="text-gray-600 mt-1">{t('journal')} {t('report') || 'Report'}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-2xl font-bold text-gray-900">
-                                {selectedDate.toLocaleDateString('gu-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                            </p>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {t('generatedOn') || 'Generated on'} {new Date().toLocaleTimeString()}
-                            </p>
-                        </div>
-                    </div>
 
-                    {/* Print Content Table */}
-                    <div className="mb-8">
-                        <table className="w-full mb-6">
-                            <thead>
-                                <tr className="border-b-2 border-gray-300">
-                                    <th className="py-2 text-left text-sm font-bold text-gray-700 w-24">{t('type') || 'Type'}</th>
-                                    <th className="py-2 text-left text-sm font-bold text-gray-700 w-24">{t('challanNumber')}</th>
-                                    <th className="py-2 text-left text-sm font-bold text-gray-700 flex-1">{t('client')}</th>
-                                    <th className="py-2 text-right text-sm font-bold text-gray-700 w-24">{t('total')}</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {challans.map((challan, idx) => {
-                                    const totalStock = calculateTotalFromItems(challan.items);
-                                    const isUdhar = challan.type === 'udhar';
-                                    const sizeDetails = getSizeDetails(challan.items);
 
-                                    return (
-                                        <tr key={`${challan.type}-${challan.challanNumber}`} className={idx % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                                            <td className="py-3 px-2 align-top">
-                                                <span className={`inline-block px-2 py-1 rounded text-xs font-bold uppercase ${isUdhar ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                                                    }`}>
-                                                    {isUdhar ? (t('udhar') || 'UDHAR') : (t('jama') || 'JAMA')}
-                                                </span>
-                                            </td>
-                                            <td className="py-3 px-2 align-top text-sm font-medium text-gray-900">
-                                                #{challan.challanNumber}
-                                            </td>
-                                            <td className="py-3 px-2 align-top">
-                                                <div className="font-bold text-gray-900 text-sm">{challan.clientNicName}</div>
-                                                <div className="text-xs text-gray-500">{challan.clientFullName}</div>
-
-                                                {/* Size details grid for print */}
-                                                <div className="grid grid-cols-6 gap-2 mt-2 pt-2 border-t border-gray-200">
-                                                    {sizeDetails.map(detail => (
-                                                        <div key={detail.size} className="text-[10px] text-gray-600 bg-white border border-gray-100 p-1 rounded">
-                                                            <span className="font-semibold block">{getSizeLabel(detail.size)}</span>
-                                                            <span className={isUdhar ? 'text-red-600' : 'text-green-600 font-bold'}>
-                                                                {detail.total}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className={`py-3 px-2 align-top text-right font-bold text-lg ${isUdhar ? 'text-red-700' : 'text-green-700'
-                                                }`}>
-                                                {isUdhar ? '+' : '-'}{totalStock}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* Print Summary Footer */}
-                    <div className="border-t-4 border-gray-800 pt-6 mt-auto">
-                        <div className="flex gap-8">
-                            {/* Stock Summary */}
-                            <div className="flex-1">
-                                <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-300 pb-2">{t('endOfDayStock') || 'End of Day Stock'}</h3>
-                                <div className="grid grid-cols-4 gap-3">
-                                    {calculateDayEndStock().map(stock => (
-                                        <div key={stock.size} className="p-2 border border-gray-200 rounded bg-gray-50">
-                                            <div className="text-[10px] text-gray-500 uppercase font-bold">{getSizeLabel(stock.size)}</div>
-                                            <div className="text-xl font-bold text-gray-900 my-1">{stock.closing}</div>
-                                            <div className="flex justify-between text-[10px]">
-                                                <span className="text-red-600 font-medium">-{stock.udhar}</span>
-                                                <span className="text-green-600 font-medium">+{stock.jama}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Financial Summary */}
-                            <div className="w-64 flex flex-col gap-4">
-                                <h3 className="text-lg font-bold text-gray-900 mb-0 border-b border-gray-300 pb-2">{t('daySummary') || 'Day Summary'}</h3>
-
-                                <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r">
-                                    <div className="text-xs font-bold text-red-800 uppercase tracking-widest">{t('totalUdhar') || 'Total Udhar'}</div>
-                                    <div className="text-3xl font-bold text-red-900 mt-1">{calculateTotals().totalUdhar}</div>
-                                </div>
-
-                                <div className="p-4 bg-green-50 border-l-4 border-green-500 rounded-r">
-                                    <div className="text-xs font-bold text-green-800 uppercase tracking-widest">{t('totalJama') || 'Total Jama'}</div>
-                                    <div className="text-3xl font-bold text-green-900 mt-1">{calculateTotals().totalJama}</div>
-                                </div>
-
-                                <div className="p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r mt-2">
-                                    <div className="text-xs font-bold text-blue-800 uppercase tracking-widest">{t('netChange') || 'Net Change'}</div>
-                                    <div className="text-4xl font-bold text-blue-900 mt-1">
-                                        {calculateTotals().totalJama - calculateTotals().totalUdhar}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Promotional Footer */}
-                        <div style={{
-                            textAlign: 'center',
-                            padding: '4px 0',
-                            marginTop: '40px',
-                            fontSize: '18px',
-                            fontWeight: '600',
-                            color: '#dc2626',
-                            letterSpacing: '0.5px',
-                            opacity: 0.6
-                        }}>
-                            કસ્ટમ બિલિંગ સોફ્ટવેર બનાવા સંપર્ક કરો - 8866471567
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div >
+        </div>
     );
 };
 
 export default JournalSection;
+

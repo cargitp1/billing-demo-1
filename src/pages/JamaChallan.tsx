@@ -46,6 +46,7 @@ interface ClientSelectionStepProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onAddNewClick?: () => void;
+  clientBalances: { [clientId: string]: number };
 }
 
 
@@ -55,6 +56,7 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
   searchQuery,
   onSearchChange,
   onAddNewClick,
+  clientBalances,
 }) => {
   const { t } = useLanguage();
   const filteredClients = clients
@@ -181,6 +183,13 @@ const ClientSelectionStep: React.FC<ClientSelectionStepProps> = ({
                     {client.client_nic_name}
                   </h4>
                   <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 truncate">{client.client_name}</p>
+                </div>
+                <div className="flex flex-col items-end flex-shrink-0">
+                  <span className="text-[8px] sm:text-[9px] text-gray-500">કુલ બહાર</span>
+                  <span className={`text-xs sm:text-sm font-semibold ${(clientBalances[client.id!] || 0) > 0 ? 'text-amber-600' : 'text-green-600'
+                    }`}>
+                    {clientBalances[client.id!] || 0}
+                  </span>
                 </div>
                 <ChevronRight className="flex-shrink-0 w-4 h-4 text-gray-400 transition-transform sm:w-5 sm:h-5 group-hover:translate-x-1" />
               </div>
@@ -506,6 +515,7 @@ const JamaChallan: React.FC = () => {
   const [clients, setClients] = useState<ClientFormData[]>([]);
   const [showAddClient, setShowAddClient] = useState(false);
   const [selectedClient, setSelectedClient] = useState<ClientFormData | null>(null);
+  const [clientBalances, setClientBalances] = useState<{ [clientId: string]: number }>({});
 
   // Form states
   const [challanNumber, setChallanNumber] = useState('');
@@ -642,6 +652,45 @@ const JamaChallan: React.FC = () => {
 
 
     setClients(data || []);
+
+    // Fetch balances for all clients
+    if (data && data.length > 0) {
+      await fetchAllClientBalances(data);
+    }
+  };
+
+  const fetchAllClientBalances = async (clientsList: ClientFormData[]) => {
+    const balances: { [clientId: string]: number } = {};
+
+    // Fetch balances for each client
+    await Promise.all(
+      clientsList.map(async (client) => {
+        try {
+          const transactions = await fetchClientTransactions(client.id!);
+
+          let grandTotal = 0;
+          transactions.forEach(transaction => {
+            for (let i = 1; i <= 9; i++) {
+              const qty = transaction.items[`size_${i}_qty`] || 0;
+              const borrowed = transaction.items[`size_${i}_borrowed`] || 0;
+
+              if (transaction.type === 'udhar') {
+                grandTotal += qty + borrowed;
+              } else {
+                grandTotal -= qty + borrowed;
+              }
+            }
+          });
+
+          balances[client.id!] = grandTotal;
+        } catch (error) {
+          console.error(`Error fetching balance for client ${client.id}:`, error);
+          balances[client.id!] = 0;
+        }
+      })
+    );
+
+    setClientBalances(balances);
   };
 
 
@@ -949,6 +998,7 @@ const JamaChallan: React.FC = () => {
                   onAddNewClick={handleAddNewClick}
                   searchQuery={searchQuery}
                   onSearchChange={handleSearchChange}
+                  clientBalances={clientBalances}
                 />
               )}
             </>

@@ -4,7 +4,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { supabase } from "../utils/supabase";
 import Navbar from "../components/Navbar";
 import toast, { Toaster } from "react-hot-toast";
-import { format } from "date-fns";
+import { format, subDays, parseISO } from "date-fns";
 import * as periodCalculations from "../utils/billingPeriodCalculations";
 import { generateBillJPEG } from "../utils/generateBillJPEG";
 import BillInvoiceTemplate from "../components/BillInvoiceTemplate";
@@ -372,7 +372,7 @@ export default function BillBook() {
         rentalCharges: result.billingPeriods.periods.map((p: any) => ({
           size: "All",
           startDate: p.startDate,
-          endDate: p.endDate,
+          endDate: subDays(parseISO(p.endDate), 1).toISOString(),
           pieces: p.plateCount,
           days: p.days,
           rate: bill.daily_rent || 1.5, // Use bill's daily rent

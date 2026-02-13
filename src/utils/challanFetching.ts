@@ -234,7 +234,11 @@ export const fetchDailyChallans = async (date: Date) => {
           size_6_qty, size_7_qty, size_8_qty, size_9_qty,
           size_1_borrowed, size_2_borrowed, size_3_borrowed,
           size_4_borrowed, size_5_borrowed, size_6_borrowed,
-          size_7_borrowed, size_8_borrowed, size_9_borrowed
+          size_7_borrowed, size_8_borrowed, size_9_borrowed,
+          size_1_note, size_2_note, size_3_note,
+          size_4_note, size_5_note, size_6_note,
+          size_7_note, size_8_note, size_9_note,
+          main_note
         )
       `)
       .eq('udhar_date', dateStr)
@@ -260,7 +264,11 @@ export const fetchDailyChallans = async (date: Date) => {
           size_6_qty, size_7_qty, size_8_qty, size_9_qty,
           size_1_borrowed, size_2_borrowed, size_3_borrowed,
           size_4_borrowed, size_5_borrowed, size_6_borrowed,
-          size_7_borrowed, size_8_borrowed, size_9_borrowed
+          size_7_borrowed, size_8_borrowed, size_9_borrowed,
+          size_1_note, size_2_note, size_3_note,
+          size_4_note, size_5_note, size_6_note,
+          size_7_note, size_8_note, size_9_note,
+          main_note
         )
       `)
       .eq('jama_date', dateStr)
