@@ -15,6 +15,7 @@ import ClientLedger from './pages/ClientLedger';
 import Billing from './pages/Billing';
 import CreateBill from './pages/CreateBill';
 import BillBook from './pages/BillBook';
+import Payments from './pages/Payments';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -72,6 +73,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <BillBook />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/payments"
+              element={
+                <ProtectedRoute>
+                  <Payments />
                 </ProtectedRoute>
               }
             />

@@ -91,6 +91,11 @@ interface LedgerEntry {
   sortPriority: 1 | 2;
 }
 
+interface ChallanDetail {
+  challanNumber: string;
+  qty: number;
+}
+
 interface BillingPeriod {
   startDate: string;
   endDate: string;
@@ -100,8 +105,10 @@ interface BillingPeriod {
   causeType: 'udhar' | 'jama';
   challanNumber: string;
   txnQty: number;
-  udharQty?: number;  // Individual udhar quantity if both types on same date
-  jamaQty?: number;   // Individual jama quantity if both types on same date
+  udharQty?: number;  // Total udhar quantity on this date
+  jamaQty?: number;   // Total jama quantity on this date
+  udharDetails?: ChallanDetail[];  // Individual udhar challans on same day
+  jamaDetails?: ChallanDetail[];   // Individual jama challans on same day
 }
 
 export interface BillingPeriodResult {
@@ -319,95 +326,122 @@ export function calculateBillingPeriods(
       }
     });
 
-    // Only calculate rent if there are plates to charge for
-    if (currentBalance > 0) {
-      /**
-       * PERIOD CALCULATION BLOCK
-       * -----------------------
-       * Calculate period details including:
-       * 1. Start and end dates
-       * 2. Number of days to charge
-       * 3. Validation and error handling
-       */
+    // Calculate rent if there are plates; also record a zero-balance row when all plates returned
+    if (currentBalance >= 0) {
+      // Collect challan details for this date (needed for both > 0 and = 0 cases)
+      const changesOnDate = balanceChanges[currentDate];
+      const udharEntries = changesOnDate.filter(c => c.type === 'udhar');
+      const jamaEntries = changesOnDate.filter(c => c.type === 'jama');
 
-      // Initialize period data
-      let periodData: { days: number; endDate: string; } | null = null;
+      const udharQty = udharEntries.length > 0
+        ? udharEntries.reduce((s, c) => s + c.plateCount, 0)
+        : undefined;
+      const jamaQty = jamaEntries.length > 0
+        ? jamaEntries.reduce((s, c) => s + c.plateCount, 0)
+        : undefined;
 
-      try {
-        // Start date is simply the effective date of the change
-        const effectiveStartDate = parseISO(currentDate);
+      const udharDetails: ChallanDetail[] = udharEntries.map(c => ({ challanNumber: c.challanNumber, qty: c.plateCount }));
+      const jamaDetails: ChallanDetail[] = jamaEntries.map(c => ({ challanNumber: c.challanNumber, qty: c.plateCount }));
+      const txnQty = changesOnDate[0].plateCount || 0;
 
-        if (isNaN(effectiveStartDate.getTime())) {
-          throw new Error(`Invalid start date: ${currentDate}`);
-        }
-
-        if (i < dates.length - 1) {
-          // Regular period with next event
-          const endDateObj = parseISO(nextDate);
-          if (isNaN(endDateObj.getTime())) {
-            throw new Error(`Invalid end date: ${nextDate}`);
-          }
-
-          // Use the start date directly
-          periodData = {
-            days: differenceInDays(endDateObj, effectiveStartDate),
-            endDate: nextDate
-          };
-        } else {
-          // Last period - include bill date
-          const billDateObj = parseISO(billDate);
-          if (isNaN(billDateObj.getTime())) {
-            throw new Error(`Invalid bill date: ${billDate}`);
-          }
-
-          periodData = {
-            days: differenceInDays(billDateObj, effectiveStartDate) + 1,
-            endDate: format(addDays(billDateObj, 1), 'yyyy-MM-dd')
-          };
-        }
-      } catch (error) {
-        console.error('Date processing error:', error);
-        continue;  // Skip invalid periods
-      }
-
-      // Create period if we have valid data with positive days
-      if (periodData && periodData.days > 0) {
-
-        // Final days calculation
-        let finalDays = periodData.days;
-
-        // Recalculate rent with corrected days
-        const rateInPaise = Math.round(dailyRate * 100);
-        const rentInPaise = currentBalance * finalDays * rateInPaise;
-        const rent = Math.round(rentInPaise) / 100;
-
-        // Get transaction quantities - check if there are both udhar and jama on this date
-        const changesOnDate = balanceChanges[currentDate];
-        const udharChange = changesOnDate.find(c => c.type === 'udhar');
-        const jamaChange = changesOnDate.find(c => c.type === 'jama');
-
-        const txnQty = changesOnDate[0].plateCount || 0;
-        const udharQty = udharChange ? udharChange.plateCount : undefined;
-        const jamaQty = jamaChange ? jamaChange.plateCount : undefined;
-
-        console.log('Period txnQty:', txnQty, 'udharQty:', udharQty, 'jamaQty:', jamaQty, 'from date:', currentDate);
-
-        // Add the billing period with full details
+      if (currentBalance === 0) {
+        // Zero-balance display row — all plates returned, no rent charged
         periods.push({
           startDate: currentDate,
-          endDate: periodData.endDate,
-          plateCount: currentBalance,
-          days: finalDays,
-          rent,
+          endDate: currentDate,
+          plateCount: 0,
+          days: 0,
+          rent: 0,
           causeType: balanceChanges[currentDate][0].type,
           challanNumber: balanceChanges[currentDate][0].challanNumber,
           txnQty,
           udharQty,
-          jamaQty
+          jamaQty,
+          udharDetails: udharDetails.length > 0 ? udharDetails : undefined,
+          jamaDetails: jamaDetails.length > 0 ? jamaDetails : undefined,
         });
+      } else {
+        /**
+         * PERIOD CALCULATION BLOCK
+         * -----------------------
+         * Calculate period details including:
+         * 1. Start and end dates
+         * 2. Number of days to charge
+         * 3. Validation and error handling
+         */
 
-        // Update total rent
-        totalRent += rent;
+        // Initialize period data
+        let periodData: { days: number; endDate: string; } | null = null;
+
+        try {
+          // Start date is simply the effective date of the change
+          const effectiveStartDate = parseISO(currentDate);
+
+          if (isNaN(effectiveStartDate.getTime())) {
+            throw new Error(`Invalid start date: ${currentDate}`);
+          }
+
+          if (i < dates.length - 1) {
+            // Regular period with next event
+            const endDateObj = parseISO(nextDate);
+            if (isNaN(endDateObj.getTime())) {
+              throw new Error(`Invalid end date: ${nextDate}`);
+            }
+
+            // Use the start date directly
+            periodData = {
+              days: differenceInDays(endDateObj, effectiveStartDate),
+              endDate: nextDate
+            };
+          } else {
+            // Last period - include bill date
+            const billDateObj = parseISO(billDate);
+            if (isNaN(billDateObj.getTime())) {
+              throw new Error(`Invalid bill date: ${billDate}`);
+            }
+
+            periodData = {
+              days: differenceInDays(billDateObj, effectiveStartDate) + 1,
+              endDate: format(addDays(billDateObj, 1), 'yyyy-MM-dd')
+            };
+          }
+        } catch (error) {
+          console.error('Date processing error:', error);
+          continue;  // Skip invalid periods
+        }
+
+        // Create period if we have valid data with positive days
+        if (periodData && periodData.days > 0) {
+
+          // Final days calculation
+          let finalDays = periodData.days;
+
+          // Recalculate rent with corrected days
+          const rateInPaise = Math.round(dailyRate * 100);
+          const rentInPaise = currentBalance * finalDays * rateInPaise;
+          const rent = Math.round(rentInPaise) / 100;
+
+          console.log('Period txnQty:', txnQty, 'udharQty:', udharQty, 'jamaQty:', jamaQty, 'from date:', currentDate);
+
+          // Add the billing period with full details
+          periods.push({
+            startDate: currentDate,
+            endDate: periodData.endDate,
+            plateCount: currentBalance,
+            days: finalDays,
+            rent,
+            causeType: balanceChanges[currentDate][0].type,
+            challanNumber: balanceChanges[currentDate][0].challanNumber,
+            txnQty,
+            udharQty,
+            jamaQty,
+            udharDetails: udharDetails.length > 0 ? udharDetails : undefined,
+            jamaDetails: jamaDetails.length > 0 ? jamaDetails : undefined,
+          });
+
+          // Update total rent
+          totalRent += rent;
+        }
       }
     }
   }

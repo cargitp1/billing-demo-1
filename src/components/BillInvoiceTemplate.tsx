@@ -35,6 +35,8 @@ interface BillInvoiceProps {
     txnQty?: number;
     udharQty?: number;
     jamaQty?: number;
+    udharDetails?: { challanNumber: string; qty: number }[];
+    jamaDetails?: { challanNumber: string; qty: number }[];
   }[];
   extraCosts: {
     id: string;
@@ -231,7 +233,6 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               {rentalCharges.map((charge, index) => {
                 const rowStartDate = charge.startDate ? new Date(charge.startDate) : new Date(billDetails.fromDate);
                 const rowEndDate = charge.endDate ? new Date(charge.endDate) : new Date(billDetails.toDate);
-                const isJama = charge.causeType === 'jama';
 
                 // Use provided udharQty/jamaQty if available (from billing calculation)
                 let udharQty = 0;
@@ -243,6 +244,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                   jamaQty = charge.jamaQty || 0;
                 } else {
                   // Fallback: calculate from transaction type and matching
+                  const isJama = charge.causeType === 'jama';
                   const prevPieces = index > 0 ? rentalCharges[index - 1].pieces : 0;
                   const stockChange = Math.abs(charge.pieces - prevPieces);
                   const currentQty = charge.txnQty || stockChange || charge.pieces;
@@ -267,28 +269,47 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                   jamaQty = isJama ? currentQty : matchingQty;
                 }
 
+                const isZeroBalance = charge.pieces === 0 && charge.days === 0;
+
                 return (
                   <tr key={`rent-${index}`}>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}
+                      {isZeroBalance
+                        ? format(rowStartDate, 'dd/MM/yyyy')
+                        : <>{format(rowStartDate, 'dd/MM/yyyy')} થી {format(rowEndDate, 'dd/MM/yyyy')}</>
+                      }
                     </td>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {udharQty > 0 && <span style={{ color: '#dc2626' }}>+{udharQty}</span>}
-                      {udharQty > 0 && jamaQty > 0 && <span style={{ color: '#6b7280' }}> / </span>}
-                      {jamaQty > 0 && <span style={{ color: '#16a34a' }}>-{jamaQty}</span>}
-                      {udharQty === 0 && jamaQty === 0 && <span style={{ color: '#6b7280' }}>-</span>}
+                      {/* Multiple udhar challans on same day → one line per challan */}
+                      {(charge.udharDetails && charge.udharDetails.length > 1)
+                        ? charge.udharDetails.map((d, i) => (
+                          <div key={`ud-${i}`} style={{ color: '#dc2626' }}>+{d.qty}</div>
+                        ))
+                        : udharQty > 0 && <div style={{ color: '#dc2626' }}>+{udharQty}</div>
+                      }
+                      {/* Multiple jama challans on same day → one line per challan */}
+                      {(charge.jamaDetails && charge.jamaDetails.length > 1)
+                        ? charge.jamaDetails.map((d, i) => (
+                          <div key={`jd-${i}`} style={{ color: '#16a34a' }}>-{d.qty}</div>
+                        ))
+                        : jamaQty > 0 && <div style={{ color: '#16a34a' }}>-{jamaQty}</div>
+                      }
+                      {udharQty === 0 && jamaQty === 0
+                        && !(charge.udharDetails?.length) && !(charge.jamaDetails?.length)
+                        && <span style={{ color: '#6b7280' }}>-</span>
+                      }
                     </td>
-                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
+                    <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: isZeroBalance ? '800' : '600', color: isZeroBalance ? '#dc2626' : undefined }}>
                       {charge.pieces}
                     </td>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {charge.rate || billDetails.dailyRent}
+                      {isZeroBalance ? '-' : (charge.rate || billDetails.dailyRent)}
                     </td>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {charge.days}
+                      {isZeroBalance ? '-' : charge.days}
                     </td>
                     <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600' }}>
-                      {formatIndianCurrency(Math.round(charge.amount))}
+                      {isZeroBalance ? '-' : formatIndianCurrency(Math.round(charge.amount))}
                     </td>
                   </tr>
                 );
@@ -315,23 +336,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
                 </>
               )}
 
-              {/* Discounts */}
-              {discounts.length > 0 && (
-                <>
-                  <tr style={{ backgroundColor: '#f9fafb' }}>
-                    <td colSpan={6} style={{ border: '1px solid #000', padding: '8px 12px', fontWeight: 'bold', fontSize: '14px', color: '#4b5563' }}>ડિસ્કાઉન્ટ</td>
-                  </tr>
-                  {discounts.map((discount, index) => (
-                    <tr key={`disc-${index}`}>
-                      <td colSpan={5} style={{ border: '1px solid #000', padding: '8px 12px' }}>
-                        <span style={{ fontWeight: '600' }}>{discount.description}</span>
-                        <span style={{ fontSize: '12px', color: '#6b7280', marginLeft: '10px' }}>({format(new Date(discount.date), 'dd/MM/yyyy')})</span>
-                      </td>
-                      <td style={{ border: '1px solid #000', padding: '8px', textAlign: 'center', fontWeight: '600', color: '#dc2626' }}>-{formatIndianCurrency(discount.amount)}</td>
-                    </tr>
-                  ))}
-                </>
-              )}
+
             </tbody>
           </table>
 
@@ -387,7 +392,7 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
               <tbody>
                 <tr>
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>કુલ રકમ:</td>
-                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600', fontSize: '16px' }}>{formatIndianCurrency(summary.grandTotal)}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600', fontSize: '16px' }}>{formatIndianCurrency(Math.round(summary.grandTotal))}</td>
                 </tr>
 
                 {/* Add extra costs total if multiple? */}
@@ -395,17 +400,17 @@ const BillInvoiceTemplate: React.FC<BillInvoiceProps> = ({
 
                 <tr>
                   <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600', color: '#16a34a' }}>ચુકવેલ:</td>
-                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '700', color: '#16a34a', fontSize: '16px' }}>{formatIndianCurrency(summary.totalPaid)}</td>
+                  <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '700', color: '#16a34a', fontSize: '16px' }}>{formatIndianCurrency(Math.round(summary.totalPaid))}</td>
                 </tr>
                 {summary.discounts > 0 && (
                   <tr>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>ડિસ્કાઉન્ટ:</td>
-                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right' }}>{formatIndianCurrency(summary.discounts)}</td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', fontWeight: '600' }}>કસર:</td>
+                    <td style={{ padding: '12px', borderBottom: '1px solid #e5e7eb', textAlign: 'right', fontWeight: '600', color: '#dc2626' }}>-{formatIndianCurrency(Math.round(summary.discounts))}</td>
                   </tr>
                 )}
                 <tr style={{ backgroundColor: '#fee2e2' }}>
                   <td style={{ padding: '15px 12px', borderTop: '2px solid #000', fontWeight: '800', fontSize: '18px', color: '#dc2626' }}>બાકી રકમ:</td>
-                  <td style={{ padding: '15px 12px', borderTop: '2px solid #000', textAlign: 'right', fontWeight: '800', fontSize: '20px', color: '#dc2626' }}>{formatIndianCurrency(summary.duePayment)}</td>
+                  <td style={{ padding: '15px 12px', borderTop: '2px solid #000', textAlign: 'right', fontWeight: '800', fontSize: '20px', color: '#dc2626' }}>{formatIndianCurrency(Math.round(summary.duePayment))}</td>
                 </tr>
               </tbody>
             </table>
