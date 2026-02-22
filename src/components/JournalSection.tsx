@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BookOpen, Calendar, ChevronDown, ChevronUp, FileText } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { fetchDailyChallans } from '../utils/challanFetching';
 import { calculateTotalFromItems } from '../utils/challanFetching';
-
+import { supabase } from '../utils/supabase';
 import toast from 'react-hot-toast';
 
 const JournalSection: React.FC = () => {
@@ -13,6 +13,23 @@ const JournalSection: React.FC = () => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
     const [isStockExpanded, setIsStockExpanded] = useState(false);
+    const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+    const downloadMenuRefMobile = useRef<HTMLDivElement>(null);
+    const downloadMenuRefDesktop = useRef<HTMLDivElement>(null);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            const target = e.target as Node;
+            const insideMobile = downloadMenuRefMobile.current?.contains(target);
+            const insideDesktop = downloadMenuRefDesktop.current?.contains(target);
+            if (!insideMobile && !insideDesktop) {
+                setShowDownloadMenu(false);
+            }
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, []);
 
     // Size labels mapping (matching PLATE_SIZES from ItemsTable)
     const sizeLabels = [
@@ -89,61 +106,149 @@ const JournalSection: React.FC = () => {
 
 
 
-    const downloadCSV = () => {
+    const buildCSVFromChallans = (challans: any[], label: string) => {
+        const sizeLabelsRow = Array.from({ length: 9 }, (_, i) => getSizeLabel(i + 1)).join(',');
+        let csv = `${label}\n`;
+        csv += `પ્રકાર,તારીખ,ચલણ નં.,ક્લાયન્ટ ID,ક્લાયન્ટ નામ,કુલ જથ્થો,${sizeLabelsRow}\n`;
+
+        // Group by date
+        const byDate: Record<string, any[]> = {};
+        challans.forEach(c => {
+            const d = c.date || '';
+            if (!byDate[d]) byDate[d] = [];
+            byDate[d].push(c);
+        });
+
+        Object.keys(byDate).sort().forEach(date => {
+            csv += `\n--- ${date} ---\n`;
+            byDate[date].forEach(challan => {
+                const isUdhar = challan.type === 'udhar';
+                const type = isUdhar ? 'ઉધાર' : 'જમા';
+                const total = calculateTotalFromItems(challan.items);
+                const clientId = `"${(challan.clientNicName || '').replace(/"/g, '""')}"`;
+                const clientName = `"${(challan.clientFullName || '').replace(/"/g, '""')}"`;
+                const totalDisplay = `${isUdhar ? '+' : '-'}${total}`;
+                const sizeCols = Array.from({ length: 9 }, (_, i) => {
+                    const qty = (challan.items?.[`size_${i + 1}_qty`] || 0) + (challan.items?.[`size_${i + 1}_borrowed`] || 0);
+                    if (qty === 0) return 0;
+                    return isUdhar ? qty : `-${qty}`;
+                }).join(',');
+                csv += `${type},${date},${challan.challanNumber},${clientId},${clientName},${totalDisplay},${sizeCols}\n`;
+            });
+        });
+
+        // Summary
+        let totalUdhar = 0, totalJama = 0;
+        challans.forEach(c => {
+            const t = calculateTotalFromItems(c.items);
+            if (c.type === 'udhar') totalUdhar += t;
+            else totalJama += t;
+        });
+        const net = totalJama - totalUdhar;
+        csv += `\nસારાંશ,,,કુલ ઉધાર: ${totalUdhar},કુલ જમા: ${totalJama},ચોખ્ખો ફેરફાર: ${net}\n`;
+        return csv;
+    };
+
+    const downloadRangeJournal = async (days: number, label: string) => {
+        setShowDownloadMenu(false);
+        const toastId = toast.loading('ડાઉનલોડ થઈ રહ્યું છે...');
         try {
-            // Define CSV Headers
-            let csvContent = "Type,Challan No,Client Name,Site,Phone,Total Qty,";
+            const endDate = new Date(selectedDate);
+            const startDate = new Date(selectedDate);
+            startDate.setDate(endDate.getDate() - days + 1);
+            const startStr = startDate.toISOString().split('T')[0];
+            const endStr = endDate.toISOString().split('T')[0];
 
-            // Add Size headers
-            for (let i = 1; i <= 9; i++) {
-                csvContent += `${getSizeLabel(i)},`;
-            }
-            csvContent += "\n";
+            const mapItems = (rawItems: any) => {
+                const emptyItems = Object.fromEntries(
+                    Array.from({ length: 9 }, (_, i) => [`size_${i + 1}_qty`, 0]
+                    ).concat(Array.from({ length: 9 }, (_, i) => [`size_${i + 1}_borrowed`, 0]))
+                );
+                const row = Array.isArray(rawItems) ? (rawItems[0] || emptyItems) : (rawItems || emptyItems);
+                return row;
+            };
 
-            // Add Rows
+            const [{ data: udhar }, { data: jama }] = await Promise.all([
+                supabase.from('udhar_challans').select(`
+                    udhar_challan_number, udhar_date, client_id,
+                    client:clients!udhar_challans_client_id_fkey(client_nic_name, client_name),
+                    items:udhar_items!udhar_items_udhar_challan_number_fkey(
+                        size_1_qty,size_2_qty,size_3_qty,size_4_qty,size_5_qty,size_6_qty,size_7_qty,size_8_qty,size_9_qty,
+                        size_1_borrowed,size_2_borrowed,size_3_borrowed,size_4_borrowed,size_5_borrowed,size_6_borrowed,size_7_borrowed,size_8_borrowed,size_9_borrowed
+                    )
+                `).gte('udhar_date', startStr).lte('udhar_date', endStr).order('udhar_date', { ascending: true }),
+                supabase.from('jama_challans').select(`
+                    jama_challan_number, jama_date, client_id,
+                    client:clients!jama_challans_client_id_fkey(client_nic_name, client_name),
+                    items:jama_items!jama_items_jama_challan_number_fkey(
+                        size_1_qty,size_2_qty,size_3_qty,size_4_qty,size_5_qty,size_6_qty,size_7_qty,size_8_qty,size_9_qty,
+                        size_1_borrowed,size_2_borrowed,size_3_borrowed,size_4_borrowed,size_5_borrowed,size_6_borrowed,size_7_borrowed,size_8_borrowed,size_9_borrowed
+                    )
+                `).gte('jama_date', startStr).lte('jama_date', endStr).order('jama_date', { ascending: true }),
+            ]);
+
+            const allChallans = [
+                ...(udhar || []).map((c: any) => ({ challanNumber: c.udhar_challan_number, date: c.udhar_date, type: 'udhar', clientNicName: c.client?.client_nic_name || '', clientFullName: c.client?.client_name || '', items: mapItems(c.items) })),
+                ...(jama || []).map((c: any) => ({ challanNumber: c.jama_challan_number, date: c.jama_date, type: 'jama', clientNicName: c.client?.client_nic_name || '', clientFullName: c.client?.client_name || '', items: mapItems(c.items) })),
+            ].sort((a, b) => a.date.localeCompare(b.date));
+
+            const csv = buildCSVFromChallans(allChallans, `${label} (${startStr} થી ${endStr})`);
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.setAttribute('href', URL.createObjectURL(blob));
+            link.setAttribute('download', `journal_${label}_${startStr}_to_${endStr}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success('ડાઉનલોડ થઈ ગઈ!', { id: toastId });
+        } catch (err) {
+            console.error(err);
+            toast.error('ડાઉનલોડ નિષ્ફળ!', { id: toastId });
+        }
+    };
+
+    const downloadJournal = () => {
+        try {
+            const dateStr = selectedDate.toISOString().split('T')[0];
+            const totals = calculateTotals();
+            const net = totals.totalJama - totals.totalUdhar;
+
+            // Header row (no trailing comma)
+            const sizeLabelsRow = Array.from({ length: 9 }, (_, i) => getSizeLabel(i + 1)).join(',');
+            let csv = `પ્રકાર,ચલણ નં.,ક્લાયન્ટ ID,ક્લાયન્ટ નામ,કુલ જથ્થો,${sizeLabelsRow}\n`;
+
+            // Data rows
             challans.forEach(challan => {
                 const isUdhar = challan.type === 'udhar';
-                const type = isUdhar ? 'UDHAR' : 'JAMA';
+                const type = isUdhar ? 'ઉધાર' : 'જમા';
                 const total = calculateTotalFromItems(challan.items);
+                const clientId = `"${(challan.clientNicName || '').replace(/"/g, '""')}"`;
+                const clientName = `"${(challan.clientFullName || '').replace(/"/g, '""')}"`;
+                const totalDisplay = `${isUdhar ? '+' : '-'}${total}`;
 
-                // Escape commas in fields
-                const clientName = (challan.clientFullName || '').replace(/,/g, ' ');
-                const site = (challan.client?.site || '').replace(/,/g, ' ');
-                const phone = (challan.client?.primary_phone_number || '').replace(/,/g, ' ');
+                const sizeCols = Array.from({ length: 9 }, (_, i) => {
+                    const qty = (challan.items?.[`size_${i + 1}_qty`] || 0) + (challan.items?.[`size_${i + 1}_borrowed`] || 0);
+                    if (qty === 0) return 0;
+                    return isUdhar ? qty : `-${qty}`;
+                }).join(',');
 
-                let row = `${type},${challan.challanNumber},"${clientName}","${site}","${phone}",${isUdhar ? '+' : '-'}${total},`;
-
-                // Add size quantities
-                for (let i = 1; i <= 9; i++) {
-                    const qty = (challan.items?.[`size_${i}_qty`] || 0) + (challan.items?.[`size_${i}_borrowed`] || 0);
-                    row += `${qty},`;
-                }
-
-                csvContent += row + "\n";
+                csv += `${type},${challan.challanNumber},${clientId},${clientName},${totalDisplay},${sizeCols}\n`;
             });
 
-            // Add Summary Footer
-            csvContent += "\n";
-            csvContent += "SUMMARY\n";
-            const totals = calculateTotals();
-            csvContent += `Total Udhar,${totals.totalUdhar}\n`;
-            csvContent += `Total Jama,${totals.totalJama}\n`;
-            csvContent += `Net Change,${totals.totalJama - totals.totalUdhar}\n`;
+            // Summary — single row
+            csv += `\nસારાંશ,,કુલ ઉધાર: ${totals.totalUdhar},કુલ જમા: ${totals.totalJama},ચોખ્ખો ફેરફાર: ${net}\n`;
 
-            // Trigger Download
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement("a");
-            const url = URL.createObjectURL(blob);
-            const dateStr = selectedDate.toISOString().split('T')[0];
-
-            link.setAttribute("href", url);
-            link.setAttribute("download", `journal_${dateStr}.csv`);
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.setAttribute('href', URL.createObjectURL(blob));
+            link.setAttribute('download', `journal_${dateStr}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
 
-            toast.success('CSV downloaded!');
+            toast.success('રોજમેળ ડાઉનલોડ થઈ ગઈ!');
 
         } catch (error) {
             console.error('Error generating CSV:', error);
@@ -270,13 +375,13 @@ const JournalSection: React.FC = () => {
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sm:px-3 sm:py-3 sm:text-sm">
+                                    <th className="px-2 py-2 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider sm:px-3 sm:py-3 sm:text-sm">
                                         {t('totalStock')}
                                     </th>
-                                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sm:px-3 sm:py-3 sm:text-sm">
+                                    <th className="px-2 py-2 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider sm:px-3 sm:py-3 sm:text-sm">
                                         {t('challanNumber')}
                                     </th>
-                                    <th className="px-2 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider sm:px-3 sm:py-3 sm:text-sm">
+                                    <th className="px-2 py-2 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider sm:px-3 sm:py-3 sm:text-sm">
                                         {t('client')}
                                     </th>
                                 </tr>
@@ -299,8 +404,8 @@ const JournalSection: React.FC = () => {
                                                     }`}
                                             >
                                                 {/* Total Stock Column */}
-                                                <td className="px-2 py-2 sm:px-3 sm:py-3">
-                                                    <div className="flex items-center gap-2">
+                                                <td className="px-2 py-2 sm:px-3 sm:py-3 text-center">
+                                                    <div className="flex items-center justify-center gap-2">
                                                         <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-bold sm:text-sm ${isUdhar
                                                             ? 'bg-red-600 text-white'
                                                             : 'bg-green-600 text-white'
@@ -316,8 +421,8 @@ const JournalSection: React.FC = () => {
                                                 </td>
 
                                                 {/* Challan Number Column */}
-                                                <td className="px-2 py-2 sm:px-3 sm:py-3">
-                                                    <div className="flex flex-col">
+                                                <td className="px-2 py-2 sm:px-3 sm:py-3 text-center">
+                                                    <div className="flex flex-col items-center">
                                                         <span className={`text-sm font-bold sm:text-base ${isUdhar ? 'text-red-700' : 'text-green-700'
                                                             }`}>
                                                             #{challan.challanNumber}
@@ -330,8 +435,8 @@ const JournalSection: React.FC = () => {
                                                 </td>
 
                                                 {/* Client Column */}
-                                                <td className="px-2 py-2 sm:px-3 sm:py-3">
-                                                    <div className="flex flex-col">
+                                                <td className="px-2 py-2 sm:px-3 sm:py-3 text-center">
+                                                    <div className="flex flex-col items-center">
                                                         <span className="text-sm font-bold text-gray-900 sm:text-base line-clamp-1">
                                                             {challan.clientNicName}
                                                         </span>
@@ -465,14 +570,40 @@ const JournalSection: React.FC = () => {
                         </div>
 
                         {/* Download Buttons - Mobile */}
-                        <div className="flex gap-2">
-                            <button
-                                onClick={downloadCSV}
-                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 active:scale-95 transition-all"
-                            >
-                                <FileText className="w-4 h-4" />
-                                <span className="text-sm">રોજમેળ ડાઉનલોડ કરો</span>
-                            </button>
+                        <div className="relative" ref={downloadMenuRefMobile}>
+                            <div className="flex">
+                                <button
+                                    onClick={downloadJournal}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-l-lg shadow-md active:scale-95 transition-all"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    <span className="text-sm">રોજમેળ ડાઉનલોડ</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowDownloadMenu(v => !v)}
+                                    className="px-3 py-2.5 bg-blue-700 hover:bg-blue-800 text-white rounded-r-lg border-l border-blue-500 transition-all"
+                                >
+                                    <ChevronDown className="w-4 h-4" />
+                                </button>
+                            </div>
+                            {showDownloadMenu && (
+                                <div className="absolute bottom-full mb-1 left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+                                    {[
+                                        { label: 'છેલ્લા ૭ દિવસ', days: 7 },
+                                        { label: 'છેલ્લા ૧૫ દિવસ', days: 15 },
+                                        { label: 'છેલ્લો મહિનો', days: 30 },
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.days}
+                                            onClick={() => downloadRangeJournal(opt.days, opt.label)}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors text-left"
+                                        >
+                                            <FileText className="w-4 h-4 text-blue-500" />
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -501,14 +632,40 @@ const JournalSection: React.FC = () => {
                         </div>
 
                         {/* Download Buttons - Desktop */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={downloadCSV}
-                                className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-lg shadow-md hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 active:scale-95 transition-all"
-                            >
-                                <FileText className="w-5 h-5" />
-                                <span className="text-base">રોજમેળ ડાઉનલોડ કરો</span>
-                            </button>
+                        <div className="relative" ref={downloadMenuRefDesktop}>
+                            <div className="flex">
+                                <button
+                                    onClick={downloadJournal}
+                                    className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-l-lg shadow-md hover:from-blue-700 hover:to-blue-800 active:scale-95 transition-all"
+                                >
+                                    <FileText className="w-5 h-5" />
+                                    <span className="text-base">રોજમેળ ડાઉનલોડ</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowDownloadMenu(v => !v)}
+                                    className="px-3 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-r-lg border-l border-blue-500 transition-all"
+                                >
+                                    <ChevronDown className="w-5 h-5" />
+                                </button>
+                            </div>
+                            {showDownloadMenu && (
+                                <div className="absolute bottom-full mb-1 right-0 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden min-w-[200px]">
+                                    {[
+                                        { label: 'છેલ્લા ૭ દિવસ', days: 7 },
+                                        { label: 'છેલ્લા ૧૫ દિવસ', days: 15 },
+                                        { label: 'છેલ્લો મહિનો', days: 30 },
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.days}
+                                            onClick={() => downloadRangeJournal(opt.days, opt.label)}
+                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors text-left"
+                                        >
+                                            <FileText className="w-4 h-4 text-blue-500" />
+                                            {opt.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

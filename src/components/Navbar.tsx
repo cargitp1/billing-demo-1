@@ -244,7 +244,7 @@ const Navbar: React.FC = () => {
           />
 
           <nav
-            className="fixed top-0 left-0 z-50 flex flex-col h-screen lg:hidden"
+            className="fixed top-0 left-0 z-50 flex flex-col h-screen overflow-y-auto lg:hidden"
             style={{
               width: '280px',
               backgroundColor: '#1f2937',

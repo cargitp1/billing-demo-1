@@ -425,8 +425,8 @@ export default function Payments() {
                             </div>
                         </div>
                         <div className="flex-1 overflow-auto p-2 sm:p-4 bg-gray-100">
-                            <div className="min-w-[800px] sm:min-w-0 origin-top-left transform scale-[0.6] sm:scale-100 origin-top bg-white shadow-sm sm:shadow-none mx-auto">
-                                <div className="min-w-[794px]">
+                            <div className="overflow-x-auto">
+                                <div className="min-w-[794px] bg-white shadow-sm sm:shadow-none mx-auto">
                                     <BillInvoiceTemplate {...selectedBill} />
                                 </div>
                             </div>
@@ -441,11 +441,12 @@ export default function Payments() {
                     id="invoice-template"
                     ref={downloadTemplateRef}
                     style={{
-                        position: 'absolute',
+                        position: 'fixed',
                         top: '-9999px',
                         left: '-9999px',
                         width: '794px',
-                        backgroundColor: 'white'
+                        backgroundColor: 'white',
+                        zIndex: -1
                     }}
                 >
                     <BillInvoiceTemplate {...selectedBill} />

@@ -310,7 +310,7 @@ const Dashboard: React.FC = () => {
       <main className="flex-1 w-full ml-0 overflow-auto lg:ml-64 pt-[56px] lg:pt-0">
         <div className="w-full px-3 py-3 mx-auto sm:px-4 sm:py-5 lg:px-8 lg:py-8 max-w-7xl">
           {/* Welcome Section - Compact Mobile */}
-          <div className="relative p-3 mb-3 overflow-visible text-white rounded-lg shadow-lg sm:p-5 sm:mb-5 lg:p-8 lg:mb-8 bg-gradient-to-r from-blue-600 to-indigo-700 sm:rounded-xl lg:rounded-2xl">
+          <div className="relative p-3 mb-3 overflow-hidden text-white rounded-lg shadow-lg sm:p-5 sm:mb-5 lg:p-8 lg:mb-8 bg-gradient-to-r from-blue-600 to-indigo-700 sm:rounded-xl lg:rounded-2xl">
             <div className="absolute top-0 right-0 w-24 h-24 -mt-12 -mr-12 bg-white rounded-full sm:w-40 sm:h-40 lg:w-64 lg:h-64 sm:-mt-20 sm:-mr-20 lg:-mt-32 lg:-mr-32 opacity-5"></div>
             <div className="absolute bottom-0 left-0 w-20 h-20 -mb-10 -ml-10 bg-white rounded-full sm:w-32 sm:h-32 lg:w-48 lg:h-48 sm:-mb-16 sm:-ml-16 lg:-mb-24 lg:-ml-24 opacity-5"></div>
             <div className="relative">
