@@ -22,7 +22,7 @@ const Landing = () => {
   const t = (key) => {
     const translations = {
       gu: {
-        appName: 'નીલકંઠ પ્લેટ ડેપો',
+        appName: 'ખાતા કેન્દ્ર',
         slogan: 'તમારા બાંધકામને મજબૂત બનાવો, અમારી પ્લેટ્સ સાથે',
         subSlogan: 'ડિજિટલ ભાડા વ્યવસ્થાપન સાથે વિશ્વસનીય સેવા',
         login: 'લોગિન',
