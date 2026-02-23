@@ -1,7 +1,7 @@
 import React from 'react';
 import { ItemsData, PLATE_SIZES } from './ItemsTable';
-import udharTemplate from '../assets/UdharReceiptTemplate_11zon.jpg';
-import jamaTemplate from '../assets/JamaReceiptTemplate_11zon.jpg';
+import udharTemplate from '../assets/UdharReceiptTemplate_11zon.png';
+import jamaTemplate from '../assets/JamaReceiptTemplate_11zon.png';
 
 interface ReceiptTemplateProps {
   challanType: 'udhar' | 'jama';
@@ -36,13 +36,13 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
 
   // Define coordinates for each element
   const coordinates = {
-    challanType: { x: 80, y: 150},
+    challanType: { x: 80, y: 150 },
     challanNumber: { x: 230, y: 380 },
-    date: { x: 880, y: 380},
+    date: { x: 880, y: 380 },
     clientName: { x: 200, y: 464 },
-    clientSortName: { x: 938, y: 464 },  
-    driverId: { x: 850, y: 1150},
-    site: { x: 200, y: 514},
+    clientSortName: { x: 938, y: 464 },
+    driverId: { x: 850, y: 1150 },
+    site: { x: 200, y: 514 },
     phone: { x: 200, y: 560 },
     itemsStart: { x: 320, y: 700, increment: 63.5 },
     borrowedStockStart: { x: 550, y: 700, increment: 63.5 },
@@ -56,10 +56,10 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
     const qty = items?.[`size_${sizeNum}_qty` as keyof typeof items] as number | undefined;
     const borrowedStock = items?.[`size_${sizeNum}_borrowed` as keyof typeof items] as number | undefined;
     const note = items?.[`size_${sizeNum}_note` as keyof typeof items] as string | undefined;
-    
+
     // Calculate total (main + borrowed) for the pattern display
     const total = (qty || 0) + (borrowedStock || 0);
-    
+
     return {
       ...acc,
       [size]: {
@@ -195,7 +195,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
               >
                 {value.pattern}
               </div>
-              
+
               {/* Borrowed Stock */}
               {value.borrowedStock && (
                 <div
@@ -204,7 +204,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
                     ...getPosition(value.note ? coordinates.borrowedStockStart.x - 30 : coordinates.borrowedStockStart.x, y),
                     fontSize: '28px',
                     fontWeight: '750',
-                    color: '#000000', 
+                    color: '#000000',
                     textAlign: 'center',
                     width: '120px'
                   }}
@@ -249,7 +249,7 @@ const ReceiptTemplate: React.FC<ReceiptTemplateProps> = ({
         {/* Grand Total above main notes */}
         <div style={{
           position: 'absolute',
-          ...getPosition(coordinates.grandTotal.x + 330 , coordinates.mainNotes.y - 48),
+          ...getPosition(coordinates.grandTotal.x + 330, coordinates.mainNotes.y - 48),
           fontSize: '26px',
           fontWeight: '750',
           color: '#000000',
